@@ -243,6 +243,19 @@ TABLES_EN: dict[str, tuple[str, str, dict[str, str]]] = {
             "season_qid": "Wikidata QID of the season (the row's source).",
         },
     ),
+    "award": (
+        "Rankings of individual awards: one row per ranked player of an edition of the Ballon d'Or (since 2000), from the edition's Wikipedia page.", "(award, year, rank, player_name)",
+        {
+            "award": "Award (`BALLON_DOR`).",
+            "year": "Edition year (of the ceremony).",
+            "rank": "Rank (1 = winner). Some editions only give the podium.",
+            "player_name": "Player name.",
+            "player_qid": "Wikidata QID of the player (join key with `squad.player_qid`); empty if his page has no item.",
+            "club_name": "Club at the time of the edition, as written on the page.",
+            "club": "Title of the club's Wikipedia page in `club` when it is there; empty otherwise.",
+            "points": "Points received; empty when the page does not give them.",
+        },
+    ),
     "player_profile": (
         "Profile read from the English Wikipedia infobox: full name, birthplace, height, death and **photo** (one row per player "
         "with at least one of these). Values **published as is by Wikipedia, unverified**.",

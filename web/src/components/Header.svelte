@@ -11,6 +11,7 @@
     { key: "clubs", label: t("clubs"), to: href("clubs") },
     { key: "players", label: t("players"), to: href("players") },
     { key: "competitions", label: t("allComps"), to: href("competitions") },
+    { key: "ballon-dor", label: t("balloon"), to: href("ballon-dor") },
     { key: "coverage", label: t("coverage"), to: href("coverage") },
     { key: "about", label: t("about"), to: href("about") },
   ]);

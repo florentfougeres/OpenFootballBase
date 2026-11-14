@@ -248,6 +248,19 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
             "season_qid": "QID Wikidata de la saison (la source de la ligne).",
         },
     ),
+    "award": (
+        "Classements de récompenses individuelles : une ligne par joueur classé d'une édition du Ballon d'Or (depuis 2000), d'après la page Wikipedia de l'édition.", "(award, year, rank, player_name)",
+        {
+            "award": "Récompense (`BALLON_DOR`).",
+            "year": "Année de l'édition (de la cérémonie).",
+            "rank": "Rang (1 = lauréat). Certaines éditions ne donnent que le podium.",
+            "player_name": "Nom du joueur.",
+            "player_qid": "QID Wikidata du joueur (clé de jointure avec `squad.player_qid`) ; vide si sa page n'a pas d'élément.",
+            "club_name": "Club au moment de l'édition, tel qu'écrit sur la page.",
+            "club": "Titre de la page Wikipedia du club dans `club`, quand il y figure ; vide sinon.",
+            "points": "Points reçus ; vide quand la page ne les donne pas.",
+        },
+    ),
     "player_profile": (
         "Profil lu dans l'infobox Wikipedia anglaise : nom complet, lieu de naissance, taille, décès et **photo** (une ligne par joueur "
         "ayant au moins une de ces informations). Valeurs **publiées telles quelles par Wikipedia, non vérifiées**.",
@@ -285,7 +298,7 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
     ),
 }
 
-ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "player_profile", "birth", "entity_wiki"]
+ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "award", "player_profile", "birth", "entity_wiki"]
 
 INTRO = """# OpenFootballBase — dictionnaire de données
 

@@ -19,7 +19,7 @@ Last update: 2026-11-13. Size: **S** (a few hours), **M** (one to two days), **L
 ## Decided, in this order
 
 1. **Honours: competition winners, club honours, honours on each competition page.** **Done** (Data 1.15.0): Wikidata "winner" for 69 competitions, 3,730 winners; seasons without a recorded winner are absent.
-2. **Players' titles, derived from squads** (an approximation, to be displayed as such). **S** after point 1.
+2. **Players' titles, derived from squads** (an approximation, to be displayed as such). **Done** (Data 1.16.0), with the Ballon d'Or rankings since 2000.
 3. **Stats per player, season and competition**, from the "Statistics" tables of the English pages (partial coverage, to be announced). **L.**
 
 Detail: [spec.md](spec.md), "Honours and statistics".

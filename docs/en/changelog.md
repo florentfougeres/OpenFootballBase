@@ -4,6 +4,12 @@
 
 Published data releases, newest first. Names follow [semantic versioning](https://semver.org): **major** = incompatible schema change, **minor** = new data (league, country, cup, table, column), **patch** = data fixes. Each release is `Data X.Y.Z` with tag `data-X.Y.Z` ([how to publish](publishing-a-release.md)). Changes to the site and tooling that are not tied to a data release are listed under "Site and tooling".
 
+## Data 1.16.0 — 2026-11-14
+- **Ballon d'Or** (new table `award`, new command `awards`): the ranking of every edition since 2000 (609 rows, 25 editions; no 2020 edition; 2010-2015 only the podium), read from the Wikipedia page of each edition. New "Ballon d'Or" page on the site with the winners and the edition-by-edition rankings, and the player page shows a player's Ballon d'Or wins and podiums.
+- **Honours completed**: the winner of 655 more seasons read from the infobox of the Wikipedia season page when Wikidata does not record it (Ligue 1 2024/25, the UEFA Cup 2000-2008, small top flights…): 4,339 winners over 97 competitions. A Wikidata winner who is not among the participants of the season is dropped (Wikidata credited the Real Madrid with the MLS 2011 and 2012).
+- **Player honours** on the site: the titles won with a club whose listed squad includes the player in the season of the title (an approximation, shown as such); **club honours** redesigned, with title chips in the club header.
+- **Site**: Season / Honours tabs on a competition page; a bottom tab bar replaces the top-right menu on mobile; matches and goals in two columns in player statistics.
+
 ## Data 1.15.0 — 2026-11-14
 - **Honours** (new table `winner`, new command `honours`): the winner of each season of 69 competitions, from Wikidata (3,730 winners): the main leagues back to their first seasons (Serie A from 1898, La Liga from 1929, Ligue 1 from 1932, Bundesliga from 1963, Eredivisie from 1888, Primeira Liga from 1934) and the Champions League from 1955. Seasons whose winner Wikidata does not record are absent (for example Ligue 1 2024/25). The site shows the winner of the season and the most successful clubs on each competition page, and the titles of a club on its page.
 - **Dutch Wikipedia squads**: 11 more Eredivisie squads read (273 → 284 of 469 club-seasons), from the tables "Naam | Duels" as well; titles guessed even when Wikidata links another page.

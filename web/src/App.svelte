@@ -8,6 +8,7 @@
   import ErrorBox from "./components/ErrorBox.svelte";
   import Spinner from "./components/Spinner.svelte";
   import About from "./routes/About.svelte";
+  import BallonDor from "./routes/BallonDor.svelte";
   import Club from "./routes/Club.svelte";
   import Clubs from "./routes/Clubs.svelte";
   import Competition from "./routes/Competition.svelte";
@@ -59,6 +60,8 @@
         <Player key={route.parts[1]} />
       {:else if head === "coverage"}
         <Coverage slug={route.parts[1]} />
+      {:else if head === "ballon-dor"}
+        <BallonDor />
       {:else if head === "about"}
         <About />
       {:else}

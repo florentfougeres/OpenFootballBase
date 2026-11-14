@@ -345,7 +345,7 @@ Provenance of the statistics: the page read for each player (one row per player 
 
 Honours: the winner of each season of a competition, from Wikidata (one row per winner; joint winners give two rows).
 
-- Files : `winner/winner.d14534d6.parquet` — **3 730 rows**
+- Files : `winner/winner.ce811b24.parquet` — **4 339 rows**
 - Key : (competition, season_start, winner_qid)
 
 | Column | Type | Description |
@@ -356,6 +356,24 @@ Honours: the winner of each season of a competition, from Wikidata (one row per 
 | `winner_qid` | VARCHAR | Wikidata QID of the winner. |
 | `club` | VARCHAR | Title of the club's Wikipedia page in `club` when the winner is there; empty otherwise. |
 | `season_qid` | VARCHAR | Wikidata QID of the season (the row's source). |
+
+### `award`
+
+Rankings of individual awards: one row per ranked player of an edition of the Ballon d'Or (since 2000), from the edition's Wikipedia page.
+
+- Files : `award/award.74d261bb.parquet` — **609 rows**
+- Key : (award, year, rank, player_name)
+
+| Column | Type | Description |
+|---|---|---|
+| `award` | VARCHAR | Award (`BALLON_DOR`). |
+| `year` | INTEGER | Edition year (of the ceremony). |
+| `rank` | INTEGER | Rank (1 = winner). Some editions only give the podium. |
+| `player_name` | VARCHAR | Player name. |
+| `player_qid` | VARCHAR | Wikidata QID of the player (join key with `squad.player_qid`); empty if his page has no item. |
+| `club_name` | VARCHAR | Club at the time of the edition, as written on the page. |
+| `club` | VARCHAR | Title of the club's Wikipedia page in `club` when it is there; empty otherwise. |
+| `points` | INTEGER | Points received; empty when the page does not give them. |
 
 ### `player_profile`
 

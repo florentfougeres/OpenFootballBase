@@ -9,6 +9,7 @@
   import ErrorBox from "../components/ErrorBox.svelte";
   import Flag from "../components/Flag.svelte";
   import Logo from "../components/Logo.svelte";
+  import PlayerHonours from "../components/PlayerHonours.svelte";
   import PlayerStats from "../components/PlayerStats.svelte";
   import Spinner from "../components/Spinner.svelte";
   import WikiButton from "../components/WikiButton.svelte";
@@ -215,6 +216,8 @@
       </div>
     </section>
   {/if}
+
+  <PlayerHonours pkey={key} qid={d.p.qid ?? null} />
 
   {#if d.statClub.length}
     <PlayerStats club={d.statClub} national={d.statNat} source={d.statSource} />

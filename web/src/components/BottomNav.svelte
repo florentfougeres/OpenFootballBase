@@ -8,7 +8,7 @@
   const current = $derived(route.parts[0] ?? "home");
   const isActive = (k: string) =>
     k === "home" ? current === "home" : k === "clubs" ? ["clubs", "club"].includes(current) : k === "players" ? ["players", "player"].includes(current)
-    : k === "competitions" ? ["competitions", "competition"].includes(current) : ["coverage", "about"].includes(current);
+    : k === "competitions" ? ["competitions", "competition"].includes(current) : ["coverage", "about", "ballon-dor"].includes(current);
   const items = $derived([
     { key: "home", label: t("home"), to: href("") },
     { key: "clubs", label: t("clubs"), to: href("clubs") },
@@ -25,6 +25,7 @@
   <!-- Voile : un tap à côté ferme le panneau -->
   <button type="button" class="fixed inset-0 z-40 cursor-default bg-fg/20 md:hidden" aria-label={t("close")} onclick={() => (more = false)} tabindex="-1"></button>
   <div id="more-panel" class="fixed inset-x-3 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-surface p-2 shadow-2xl md:hidden" role="menu">
+    <a class="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold no-underline hover:bg-surface-2 {current === 'ballon-dor' ? 'bg-surface-2' : ''}" href={href("ballon-dor")} role="menuitem">{t("balloon")}</a>
     <a class="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold no-underline hover:bg-surface-2 {current === 'coverage' ? 'bg-surface-2' : ''}" href={href("coverage")} role="menuitem">{t("coverage")}</a>
     <a class="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold no-underline hover:bg-surface-2 {current === 'about' ? 'bg-surface-2' : ''}" href={href("about")} role="menuitem">{t("about")}</a>
     <button type="button" class="flex min-h-12 w-full items-center justify-between rounded-xl border-t border-line px-4 text-left text-base font-semibold hover:bg-surface-2" role="menuitem" onclick={cycleTheme}>

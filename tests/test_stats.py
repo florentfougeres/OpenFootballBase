@@ -101,3 +101,21 @@ def test_annee_de_saison_du_palmares():
     from openfootball.honours import season_start
     assert season_start("2003–04 Ligue 1") == 2003 and season_start("2019 Campeonato Brasileiro Série A") == 2019
     assert season_start("1970–71 European Cup") == 1970 and season_start("Ligue 1") is None
+
+
+def test_vainqueur_dans_l_infobox_de_la_saison():
+    from openfootball.honours import infobox_winner
+    page = "{{Infobox football league season\n|season = 2024–25\n|champions = [[Paris Saint-Germain FC|Paris Saint-Germain]]<br>13th title\n|relegated = x\n}}"
+    assert infobox_winner(page) == ("Paris Saint-Germain FC", "Paris Saint-Germain")
+    assert infobox_winner("{{Infobox\n|winners = {{fbaicon|ESP}} [[Real Madrid CF|Real Madrid]]\n}}") == ("Real Madrid CF", "Real Madrid")
+    assert infobox_winner("{{Infobox\n|season = 2025–26\n}}") is None
+
+
+def test_classement_du_ballon_d_or():
+    from openfootball.awards import parse_ranking
+    page = ("{| class=\"wikitable\"\n! Rank !! Player !! Club(s) !! Points\n|-\n| 1 || {{flagicon|ARG}} [[Lionel Messi]] || {{fbaicon|ESP}} [[FC Barcelona|Barcelona]] || 686\n"
+            "|-\n| 2 || {{sortname|Virgil|van Dijk}} || {{fbaicon|ENG}} [[Liverpool F.C.|Liverpool]] || 679\n|-\n| 3rd || [[Cristiano Ronaldo]] || [[Juventus FC|Juventus]]<br>[[X]] || 476\n|}")
+    got = parse_ranking(page)
+    assert [(r["rank"], r["player"], r["club_link"], r["points"]) for r in got] == [
+        (1, "Lionel Messi", "FC Barcelona", 686), (2, "Virgil van Dijk", "Liverpool F.C.", 679), (3, "Cristiano Ronaldo", "Juventus FC", 476)]
+    assert parse_ranking("{|\n! A !! B\n|-\n| x || y\n|}") == []

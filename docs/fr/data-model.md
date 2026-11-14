@@ -345,7 +345,7 @@ Provenance des statistiques : la page lue pour chaque joueur (une ligne par joue
 
 Palmarès : le vainqueur de chaque saison d'une compétition, d'après Wikidata (une ligne par vainqueur ; un co-vainqueur donne deux lignes).
 
-- Fichiers : `winner/winner.d14534d6.parquet` — **3 730 lignes**
+- Fichiers : `winner/winner.ce811b24.parquet` — **4 339 lignes**
 - Clé : (competition, season_start, winner_qid)
 
 | Colonne | Type | Description |
@@ -356,6 +356,24 @@ Palmarès : le vainqueur de chaque saison d'une compétition, d'après Wikidata 
 | `winner_qid` | VARCHAR | QID Wikidata du vainqueur. |
 | `club` | VARCHAR | Titre de la page Wikipedia du club dans `club`, quand le vainqueur y figure ; vide sinon. |
 | `season_qid` | VARCHAR | QID Wikidata de la saison (la source de la ligne). |
+
+### `award`
+
+Classements de récompenses individuelles : une ligne par joueur classé d'une édition du Ballon d'Or (depuis 2000), d'après la page Wikipedia de l'édition.
+
+- Fichiers : `award/award.74d261bb.parquet` — **609 lignes**
+- Clé : (award, year, rank, player_name)
+
+| Colonne | Type | Description |
+|---|---|---|
+| `award` | VARCHAR | Récompense (`BALLON_DOR`). |
+| `year` | INTEGER | Année de l'édition (de la cérémonie). |
+| `rank` | INTEGER | Rang (1 = lauréat). Certaines éditions ne donnent que le podium. |
+| `player_name` | VARCHAR | Nom du joueur. |
+| `player_qid` | VARCHAR | QID Wikidata du joueur (clé de jointure avec `squad.player_qid`) ; vide si sa page n'a pas d'élément. |
+| `club_name` | VARCHAR | Club au moment de l'édition, tel qu'écrit sur la page. |
+| `club` | VARCHAR | Titre de la page Wikipedia du club dans `club`, quand il y figure ; vide sinon. |
+| `points` | INTEGER | Points reçus ; vide quand la page ne les donne pas. |
 
 ### `player_profile`
 

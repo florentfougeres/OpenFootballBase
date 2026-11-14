@@ -215,6 +215,14 @@
           {#if current}<a class="link" href={href("competition", current.competition, seasonSlug(current.season))}>{compName(current.competition)}</a>{/if}
           {#each (extra.data ?? []).filter((c) => c !== current?.competition) as c}<a class="link" href={href("competition", c, seasonSlug(label ?? ""))}>{compName(c)}</a>{/each}
         </p>
+        {#if honours.data?.length}
+          <p class="mt-3 flex flex-wrap items-center gap-2" aria-label={t("honours")}>
+            {#each honours.data.slice(0, 4) as h (h.code)}
+              <a class="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm font-semibold no-underline hover:border-accent hover:text-accent" href={href("competition", h.code)}>
+                <Trophy size={15} /><span class="tabular-nums">{h.years.length}×</span> {compName(h.code)}</a>
+            {/each}
+          </p>
+        {/if}
       </div>
     </div>
   </header>
@@ -421,21 +429,29 @@
     <!-- À propos du club -->
     <aside class="min-w-0 lg:sticky lg:top-20 lg:self-start" aria-labelledby="about-club">
       {#if honours.data?.length}
-        <h2 class="mb-2 flex items-center gap-2 text-xl font-bold"><Trophy size={20} />{t("honoursTitles")}</h2>
-        <ul class="card mb-6 divide-y divide-line/60 px-4 py-1">
-          {#each honours.data as h (h.code)}
-            <li class="py-2">
-              <details>
-                <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
-                  <span class="display w-7 text-xl font-bold tabular-nums">{h.years.length}</span>
-                  <a class="min-w-0 flex-1 truncate font-medium no-underline hover:text-accent" href={href("competition", h.code)}>{compName(h.code)}</a>
-                  <span class="text-muted" aria-hidden="true">›</span>
-                </summary>
-                <p class="mt-1.5 pl-10 text-sm leading-relaxed text-muted">{h.years.map((y) => `${y}/${String(y + 1).slice(2)}`).join(" · ")}</p>
-              </details>
-            </li>
-          {/each}
-        </ul>
+        {@const total = honours.data.reduce((n, h) => n + h.years.length, 0)}
+        <h2 class="mb-2 flex items-center gap-2 text-xl font-bold"><Trophy size={20} />{t("honours")}</h2>
+        <div class="card mb-6 px-4 py-3">
+          <div class="flex items-baseline gap-2 border-b border-line pb-2"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{total}</span><span class="font-semibold">{total > 1 ? t("titlesN") : t("titleN")}</span></div>
+          <ul class="divide-y divide-line/60">
+            {#each honours.data as h (h.code)}
+              <li class="py-2.5">
+                <details class="group">
+                  <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                    <span class="display w-8 text-2xl font-bold tabular-nums">{h.years.length}</span>
+                    <span class="min-w-0 flex-1">
+                      <a class="block truncate font-semibold no-underline hover:text-accent" href={href("competition", h.code)}>{compName(h.code)}</a>
+                      <span class="block truncate text-xs tabular-nums text-muted">{h.years.slice(0, 4).map((y) => `${y}/${String(y + 1).slice(2)}`).join(" · ")}{h.years.length > 4 ? " …" : ""}</span>
+                    </span>
+                    {#if h.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
+                  </summary>
+                  {#if h.years.length > 4}<p class="mt-1.5 pl-11 text-sm leading-relaxed tabular-nums text-muted">{h.years.map((y) => `${y}/${String(y + 1).slice(2)}`).join(" · ")}</p>{/if}
+                </details>
+              </li>
+            {/each}
+          </ul>
+          <p class="border-t border-line pt-2 text-xs text-muted">{t("honoursClubNote")}</p>
+        </div>
       {/if}
       <h2 id="about-club" class="mb-3 text-xl font-bold">{t("about_club")}</h2>
       {#if info.length || external.length}

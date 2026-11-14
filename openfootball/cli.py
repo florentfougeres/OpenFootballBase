@@ -16,7 +16,8 @@ from openfootball.progress import build_progress
 from openfootball.world_clubs import import_world_clubs, purge_non_clubs
 from openfootball.careers import import_profiles, import_careers, import_careers_by_qid, prune_after_career_end
 from openfootball.schema_doc import build_schema_doc
-from openfootball.honours import import_winners, resolve_competition_qids
+from openfootball.awards import import_ballon_dor
+from openfootball.honours import fill_winners_from_wikipedia, import_winners, resolve_competition_qids
 from openfootball.reconstruct import reconstruct, reconstruct_from_careers
 from openfootball.stats import COUNTRIES, StatsClient, import_stats, select_all_players, select_players, select_without_stats
 from openfootball.transfers import mark_moves_from_careers, apply_transfers, drop_stale_current_rows, drop_summer_departures
@@ -593,6 +594,15 @@ def honours_cmd(args: argparse.Namespace) -> int:
     migrate(con)
     resolve_competition_qids(con, WikipediaClient(args.cache))
     import_winners(con, WikidataClient(args.wd_cache))
+    fill_winners_from_wikipedia(con, WikipediaClient(args.cache))
+    return 0
+
+
+def awards_cmd(args: argparse.Namespace) -> int:
+    """Ballon d'Or : le classement de chaque édition depuis 2000 (pages Wikipedia « <année> Ballon d'Or »)."""
+    con = connect(args.db)
+    migrate(con)
+    import_ballon_dor(con, WikipediaClient(args.cache), since=args.since, until=args.until)
     return 0
 
 
@@ -798,6 +808,12 @@ def main(argv: list[str] | None = None) -> int:
     ho.add_argument("--cache", default="cache/wikipedia")
     ho.add_argument("--wd-cache", default="cache/wikidata")
     ho.set_defaults(func=honours_cmd)
+    aw = sub.add_parser("awards", help="Ballon d'Or : classement de chaque édition (pages Wikipedia)")
+    aw.add_argument("--db", default=DB_DEFAULT)
+    aw.add_argument("--cache", default="cache/wikipedia")
+    aw.add_argument("--since", type=int, default=2000)
+    aw.add_argument("--until", type=int, default=2025)
+    aw.set_defaults(func=awards_cmd)
     st = sub.add_parser("stats", help="statistiques de carrière (matchs, buts par club, saison, compétition, sélection) depuis la page du joueur")
     st.add_argument("--db", default=DB_DEFAULT)
     st.add_argument("--since", type=int, default=2010, help="première saison de Ligue des champions prise en compte (année de début)")
