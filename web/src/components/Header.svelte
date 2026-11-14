@@ -3,7 +3,6 @@
   import { theme, cycleTheme } from "../lib/theme.svelte";
   import { focusSearch, searchUi } from "../lib/searchui.svelte";
   import SearchBox from "./SearchBox.svelte";
-  let open = $state(false);
   const other = $derived(app.lang === "fr" ? "en" : "fr");
   const switchHref = $derived(`#/${other}/${route.parts.map(encodeURIComponent).join("/")}`);
   const current = $derived(route.parts[0] ?? "home");
@@ -16,7 +15,7 @@
     { key: "about", label: t("about"), to: href("about") },
   ]);
   const active = (k: string) => (k === "competitions" ? ["competitions", "competition"].includes(current) : k === "clubs" ? ["clubs", "club"].includes(current) : k === "players" ? ["players", "player"].includes(current) : k === "home" ? ["home", "country"].includes(current) : current === k);
-  $effect(() => { route.parts; open = false; searchUi.bar = false; });
+  $effect(() => { route.parts; searchUi.bar = false; });
   // « / » (hors champ de saisie) ou ⌘K / Ctrl+K : va à la recherche.
   function onKey(e: KeyboardEvent) {
     const el = e.target as HTMLElement | null;
@@ -54,21 +53,9 @@
         <span class="hidden sm:inline">{theme.value === "dark" ? t("themeDark") : theme.value === "light" ? t("themeLight") : t("themeAuto")}</span>
       </button>
       <a class="btn-ghost !px-3 uppercase" href={switchHref} hreflang={other} lang={other}>{other}</a>
-      <button class="btn-ghost !px-3 md:hidden" type="button" aria-expanded={open} aria-label={t("menu")} onclick={() => (open = !open)}>
-        <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
     </div>
   </div>
   {#if searchUi.bar}
     <div class="border-t border-line px-4 py-2.5 md:hidden"><SearchBox variant="bar" autofocus onclose={() => (searchUi.bar = false)} /></div>
-  {/if}
-  {#if open}
-    <nav class="border-t border-line px-4 pb-3 md:hidden" aria-label="Navigation">
-      {#each links as l}
-        <a class="block rounded-lg px-3 py-2.5 text-sm font-medium no-underline {active(l.key) ? 'bg-surface-2' : ''}" href={l.to}>{l.label}</a>
-      {/each}
-      <button class="mt-1 flex w-full items-center justify-between rounded-lg border-t border-line px-3 py-2.5 text-left text-sm font-medium sm:hidden" type="button" onclick={cycleTheme}>
-        <span>{t("theme")}</span><span class="text-muted">{theme.value === "dark" ? t("themeDark") : theme.value === "light" ? t("themeLight") : t("themeAuto")}</span>
-      </button>
-    </nav>
   {/if}
 </header>

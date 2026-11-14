@@ -3,6 +3,7 @@
   import { boot } from "./lib/db";
   import { applyTheme } from "./lib/theme.svelte";
   import Footer from "./components/Footer.svelte";
+  import BottomNav from "./components/BottomNav.svelte";
   import Header from "./components/Header.svelte";
   import ErrorBox from "./components/ErrorBox.svelte";
   import Spinner from "./components/Spinner.svelte";
@@ -67,3 +68,5 @@
   {/if}
 </main>
 <Footer />
+<div class="h-[calc(4.5rem+env(safe-area-inset-bottom))] md:hidden" aria-hidden="true"></div>
+<BottomNav />
