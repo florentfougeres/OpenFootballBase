@@ -12,6 +12,8 @@
   import LeagueTrends from "../components/LeagueTrends.svelte";
 
   let { code, slug }: { code: string; slug?: string } = $props();
+  let view = $state<"season" | "honours">("season");
+  $effect(() => { code; view = "season"; });
   const comp = $derived(app.comps.get(code));
   const country = $derived(countryOf(comp?.country_code));
 
@@ -68,9 +70,19 @@
     </div>
   </header>
 
+  {#if winners.data?.length}
+    <div class="mt-6 inline-flex rounded-lg border border-line bg-surface p-0.5" role="tablist" aria-label={t("compView")}>
+      {#each [["season", "seasonTab"], ["honours", "honours"]] as [v, k]}
+        <button type="button" role="tab" aria-selected={view === v} class="flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-semibold transition {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
+          onclick={() => (view = v as typeof view)}>{#if v === "honours"}<Trophy size={15} />{/if}{t(k)}</button>
+      {/each}
+    </div>
+  {/if}
+
   {#if seasons.loading && !seasons.data}
     <Spinner />
   {:else if seasons.data && label}
+    {#if view === "season"}
     <h2 class="mt-7 text-lg font-bold">{t("allSeasons")}</h2>
     <div class="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={t("allSeasons")}>
       {#each seasons.data as s}
@@ -108,11 +120,11 @@
       </ul>
       {#if !isArea(comp.country_code)}<LeagueTrends {code} season={label} />{/if}
     {/if}
+    {/if}
 
-    {#if winners.data?.length}
-      <section class="mt-10" aria-labelledby="honours-h">
-        <h2 id="honours-h" class="mb-3 text-xl font-bold">{t("honours")}</h2>
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+    {#if view === "honours" && winners.data?.length}
+      <section class="mt-5" aria-label={t("honours")}>
+        <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <div class="card p-4">
             <h3 class="mb-2 text-sm font-semibold text-muted">{t("honoursBest")}</h3>
             <ol class="divide-y divide-line/60">
@@ -131,7 +143,7 @@
             <ul class="max-h-[28rem] divide-y divide-line/60 overflow-y-auto pr-1">
               {#each winners.data as w (w.season_start + w.winner_qid)}
                 <li class="flex items-center gap-3 py-1.5 {winnersOfSeason.includes(w) ? 'font-semibold' : ''}">
-                  <a class="w-16 shrink-0 text-sm tabular-nums text-muted no-underline hover:text-accent" href={href("competition", code, seasonSlug(seasonName(w.season_start)))}>{seasonName(w.season_start)}</a>
+                  <a class="w-16 shrink-0 text-sm tabular-nums text-muted no-underline hover:text-accent" href={href("competition", code, seasonSlug(seasonName(w.season_start)))} onclick={() => (view = "season")}>{seasonName(w.season_start)}</a>
                   {#if w.c}<Logo club={w.c} size={22} />{:else}<span class="size-[22px]"></span>{/if}
                   <span class="min-w-0 flex-1 truncate">{#if w.club}<a class="no-underline hover:text-accent" href={href("club", enc(w.club))}>{clubName(w.c)}</a>{:else}{w.winner_name}{/if}</span>
                 </li>
