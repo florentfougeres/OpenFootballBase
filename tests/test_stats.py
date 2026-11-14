@@ -119,3 +119,15 @@ def test_classement_du_ballon_d_or():
     assert [(r["rank"], r["player"], r["club_link"], r["points"]) for r in got] == [
         (1, "Lionel Messi", "FC Barcelona", 686), (2, "Virgil van Dijk", "Liverpool F.C.", 679), (3, "Cristiano Ronaldo", "Juventus FC", 476)]
     assert parse_ranking("{|\n! A !! B\n|-\n| x || y\n|}") == []
+
+
+def test_titres_en_selection():
+    from openfootball.nationals import champion, players, team_section
+    assert champion("{{Infobox\n|champion = France|champion-flagvar=1974\n}}") == "France"
+    assert champion("{{Infobox\n|champion = FRA\n}}") == "France"
+    assert champion("{{Infobox\n|champions = [[Argentina national football team|Argentina]]\n}}") == "Argentina"
+    page = ("==Group A==\n===Brazil===\n{{nat fs start}}\n{{nat fs player|no=1|pos=GK|name=[[Taffarel]]}}\n{{nat fs end}}\n"
+            "===France===\n{{nat fs start}}\n{{nat fs player|no=6|pos=MF|name=[[Patrick Vieira]]|age=22}}\n{{nat fs g player|no=10|pos=MF|name=[[Zinedine Zidane]]}}\n{{nat fs end}}\n"
+            "===Italy===\n{{nat fs player|no=1|name=[[Buffon]]}}\n")
+    got = players(team_section(page, "France"))
+    assert [(g["name"], g["no"], g["pos"]) for g in got] == [("Patrick Vieira", 6, "MF"), ("Zinedine Zidane", 10, "MF")]

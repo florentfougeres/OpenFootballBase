@@ -256,6 +256,18 @@ TABLES_EN: dict[str, tuple[str, str, dict[str, str]]] = {
             "points": "Points received; empty when the page does not give them.",
         },
     ),
+    "national_title": (
+        "National-team titles: for each edition of a national-team competition (World Cup, Euro, Copa América, Africa Cup of Nations, Asian Cup, Gold Cup, Confederations Cup), the players of the winning team, from the edition's squads page on Wikipedia. A listed player may not have played.", "(competition, year, player_name)",
+        {
+            "competition": "`WORLD_CUP`, `EURO`, `COPA_AMERICA`, `AFCON`, `ASIAN_CUP`, `GOLD_CUP` or `CONFEDERATIONS_CUP`.",
+            "year": "Edition year.",
+            "team": "Winning team (English name).",
+            "player_name": "Player name.",
+            "player_qid": "Wikidata QID of the player (join key with `squad.player_qid`); empty if his page has no item.",
+            "shirt_number": "Shirt number in the list; empty if not given.",
+            "position": "Position written in the list (`GK`, `DF`, `MF`, `FW`).",
+        },
+    ),
     "player_profile": (
         "Profile read from the English Wikipedia infobox: full name, birthplace, height, death and **photo** (one row per player "
         "with at least one of these). Values **published as is by Wikipedia, unverified**.",

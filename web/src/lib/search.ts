@@ -55,13 +55,35 @@ export async function search(term: string): Promise<Groups> {
 
   if (app.ready) {
     const like = `%${term}%`, start = `${term}%`, word = `% ${term}%`;
-    const players = await q(
-      `SELECT any_value(player) AS player, COALESCE(player_qid, 'name:' || player) AS key, arg_max(nat_flag, season) AS flag, arg_max(nationality, season) AS nat,
-              arg_max(position, season) AS pos, arg_max(club, season) AS club, count(DISTINCT season) AS n, min(season) AS first, max(season) AS last
-       FROM squad WHERE strip_accents(player) ILIKE strip_accents(?)
+    const cols = `any_value(player) AS player, COALESCE(player_qid, 'name:' || player) AS key, arg_max(nat_flag, season) AS flag, arg_max(nationality, season) AS nat,
+              arg_max(position, season) AS pos, arg_max(club, season) AS club, count(DISTINCT season) AS n, min(season) AS first, max(season) AS last`;
+    // « commence par » ET « un mot commence par » au même rang (« ronaldo » doit trouver Cristiano Ronaldo autant que Ronaldo Vieira), puis les plus
+    // présents dans la base (nombre de saisons) : les joueurs connus remontent, un homonyme obscur ne les écarte pas.
+    let players = await q(
+      `SELECT ${cols} FROM squad WHERE strip_accents(player) ILIKE strip_accents(?)
        GROUP BY COALESCE(player_qid, 'name:' || player)
-       ORDER BY CASE WHEN strip_accents(any_value(player)) ILIKE strip_accents(?) THEN 0 WHEN strip_accents(any_value(player)) ILIKE strip_accents(?) THEN 1 ELSE 2 END, n DESC, any_value(player) LIMIT 5`,
+       ORDER BY CASE WHEN strip_accents(any_value(player)) ILIKE strip_accents(?) OR strip_accents(any_value(player)) ILIKE strip_accents(?) THEN 1 ELSE 2 END,
+                n DESC, any_value(player) LIMIT 8`,
       [like, start, word]);
+    // Faute de frappe (« viera » pour Vieira) : on rapproche aussi la saisie des mots des noms (similarité de Jaro-Winkler) ; les plus présents d'abord.
+    // Saisie de plusieurs mots (« patrick vieira ») : les correspondances exactes d'abord, puis la ressemblance du NOM ENTIER (sinon « patrick » ramène Patrice).
+    if (needle.length >= 4) {
+      const multi = needle.includes(" ");
+      const fuzzy = await q(
+        multi
+          ? `WITH names AS (SELECT COALESCE(player_qid, 'name:' || player) AS key, any_value(player) AS player, count(DISTINCT season) AS n FROM squad GROUP BY 1),
+                  fz AS (SELECT key FROM names WHERE jaro_winkler_similarity(lower(strip_accents(player)), ?) >= 0.9 ORDER BY n DESC LIMIT 8)
+             SELECT ${cols} FROM squad WHERE COALESCE(player_qid, 'name:' || player) IN (SELECT key FROM fz) GROUP BY COALESCE(player_qid, 'name:' || player) ORDER BY n DESC LIMIT 5`
+          : `WITH names AS (SELECT COALESCE(player_qid, 'name:' || player) AS key, any_value(player) AS player, count(DISTINCT season) AS n FROM squad GROUP BY 1),
+                  tok AS (SELECT key, n, unnest(string_split(lower(strip_accents(player)), ' ')) AS w FROM names),
+                  fz AS (SELECT key FROM (SELECT key, n, max(jaro_winkler_similarity(w, ?)) AS sim FROM tok GROUP BY key, n) WHERE sim >= 0.9 ORDER BY n DESC, sim DESC LIMIT 8)
+             SELECT ${cols} FROM squad WHERE COALESCE(player_qid, 'name:' || player) IN (SELECT key FROM fz) GROUP BY COALESCE(player_qid, 'name:' || player) ORDER BY n DESC LIMIT 5`,
+        [needle]);
+      const seen = new Set(players.map((p) => p.key));
+      const extra = fuzzy.filter((p) => !seen.has(p.key));
+      players = multi ? [...players, ...extra] : [...players, ...extra].sort((a, b) => Number(b.n) - Number(a.n));
+    }
+    players = players.slice(0, 5);
     out.players = players.map((p) => ({
       id: `p:${p.key}`, kind: "player" as const, label: p.player, flag: p.flag,
       sub: [p.pos, p.club ? clubName(app.clubs.get(p.club) ?? { wikipedia_title: p.club, name_en: p.club }) : ""].filter(Boolean).join(" · "),

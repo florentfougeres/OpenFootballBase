@@ -375,6 +375,23 @@ Classements de récompenses individuelles : une ligne par joueur classé d'une �
 | `club` | VARCHAR | Titre de la page Wikipedia du club dans `club`, quand il y figure ; vide sinon. |
 | `points` | INTEGER | Points reçus ; vide quand la page ne les donne pas. |
 
+### `national_title`
+
+Titres en équipe nationale : pour chaque édition d'une compétition de sélections (Coupe du monde, Euro, Copa América, Coupe d'Afrique des nations, Coupe d'Asie, Gold Cup, Coupe des confédérations), la liste des joueurs de l'équipe victorieuse, d'après la page Wikipedia des effectifs de l'édition. Un joueur de la liste a pu ne pas jouer.
+
+- Fichiers : `national_title/national_title.438dd2eb.parquet` — **2 975 lignes**
+- Clé : (competition, year, player_name)
+
+| Colonne | Type | Description |
+|---|---|---|
+| `competition` | VARCHAR | `WORLD_CUP`, `EURO`, `COPA_AMERICA`, `AFCON`, `ASIAN_CUP`, `GOLD_CUP` ou `CONFEDERATIONS_CUP`. |
+| `year` | INTEGER | Année de l'édition. |
+| `team` | VARCHAR | Sélection victorieuse (nom anglais). |
+| `player_name` | VARCHAR | Nom du joueur. |
+| `player_qid` | VARCHAR | QID Wikidata du joueur (clé de jointure avec `squad.player_qid`) ; vide si sa page n'a pas d'élément. |
+| `shirt_number` | INTEGER | Numéro de maillot dans la liste ; vide si non donné. |
+| `position` | VARCHAR | Poste écrit dans la liste (`GK`, `DF`, `MF`, `FW`). |
+
 ### `player_profile`
 
 Profil lu dans l'infobox Wikipedia anglaise : nom complet, lieu de naissance, taille, décès et **photo** (une ligne par joueur ayant au moins une de ces informations). Valeurs **publiées telles quelles par Wikipedia, non vérifiées**.

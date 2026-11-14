@@ -17,6 +17,7 @@ from openfootball.world_clubs import import_world_clubs, purge_non_clubs
 from openfootball.careers import import_profiles, import_careers, import_careers_by_qid, prune_after_career_end
 from openfootball.schema_doc import build_schema_doc
 from openfootball.awards import import_ballon_dor
+from openfootball.nationals import import_national_titles
 from openfootball.honours import fill_winners_from_wikipedia, import_winners, resolve_competition_qids
 from openfootball.reconstruct import reconstruct, reconstruct_from_careers
 from openfootball.stats import COUNTRIES, StatsClient, import_stats, select_all_players, select_players, select_without_stats
@@ -606,6 +607,14 @@ def awards_cmd(args: argparse.Namespace) -> int:
     return 0
 
 
+def nationals_cmd(args: argparse.Namespace) -> int:
+    """Titres en équipe nationale : le vainqueur de chaque édition (Coupe du monde, Euro, Copa América…) et sa liste de joueurs."""
+    con = connect(args.db)
+    migrate(con)
+    import_national_titles(con, WikipediaClient(args.cache))
+    return 0
+
+
 def fix_player_cmd(args: argparse.Namespace) -> int:
     """Rustine : le joueur que la page du club nomme `name` (sans lien) est celui dont la page Wikipedia est `--page`."""
     con = connect(args.db)
@@ -808,6 +817,10 @@ def main(argv: list[str] | None = None) -> int:
     ho.add_argument("--cache", default="cache/wikipedia")
     ho.add_argument("--wd-cache", default="cache/wikidata")
     ho.set_defaults(func=honours_cmd)
+    nt = sub.add_parser("nationals", help="titres en équipe nationale : la liste de l'équipe victorieuse de chaque édition (Coupe du monde, Euro…)")
+    nt.add_argument("--db", default=DB_DEFAULT)
+    nt.add_argument("--cache", default="cache/wikipedia")
+    nt.set_defaults(func=nationals_cmd)
     aw = sub.add_parser("awards", help="Ballon d'Or : classement de chaque édition (pages Wikipedia)")
     aw.add_argument("--db", default=DB_DEFAULT)
     aw.add_argument("--cache", default="cache/wikipedia")

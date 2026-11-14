@@ -261,6 +261,18 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
             "points": "Points reçus ; vide quand la page ne les donne pas.",
         },
     ),
+    "national_title": (
+        "Titres en équipe nationale : pour chaque édition d'une compétition de sélections (Coupe du monde, Euro, Copa América, Coupe d'Afrique des nations, Coupe d'Asie, Gold Cup, Coupe des confédérations), la liste des joueurs de l'équipe victorieuse, d'après la page Wikipedia des effectifs de l'édition. Un joueur de la liste a pu ne pas jouer.", "(competition, year, player_name)",
+        {
+            "competition": "`WORLD_CUP`, `EURO`, `COPA_AMERICA`, `AFCON`, `ASIAN_CUP`, `GOLD_CUP` ou `CONFEDERATIONS_CUP`.",
+            "year": "Année de l'édition.",
+            "team": "Sélection victorieuse (nom anglais).",
+            "player_name": "Nom du joueur.",
+            "player_qid": "QID Wikidata du joueur (clé de jointure avec `squad.player_qid`) ; vide si sa page n'a pas d'élément.",
+            "shirt_number": "Numéro de maillot dans la liste ; vide si non donné.",
+            "position": "Poste écrit dans la liste (`GK`, `DF`, `MF`, `FW`).",
+        },
+    ),
     "player_profile": (
         "Profil lu dans l'infobox Wikipedia anglaise : nom complet, lieu de naissance, taille, décès et **photo** (une ligne par joueur "
         "ayant au moins une de ces informations). Valeurs **publiées telles quelles par Wikipedia, non vérifiées**.",
@@ -298,7 +310,7 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
     ),
 }
 
-ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "award", "player_profile", "birth", "entity_wiki"]
+ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "player_profile", "birth", "entity_wiki"]
 
 INTRO = """# OpenFootballBase — dictionnaire de données
 

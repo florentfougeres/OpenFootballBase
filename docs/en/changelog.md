@@ -4,6 +4,10 @@
 
 Published data releases, newest first. Names follow [semantic versioning](https://semver.org): **major** = incompatible schema change, **minor** = new data (league, country, cup, table, column), **patch** = data fixes. Each release is `Data X.Y.Z` with tag `data-X.Y.Z` ([how to publish](publishing-a-release.md)). Changes to the site and tooling that are not tied to a data release are listed under "Site and tooling".
 
+## Data 1.17.0 — 2026-11-14
+- **National-team titles** (new table `national_title`, new command `nationals`): for every edition of the World Cup (22 of 22), the European Championship (17 of 17), the Copa América (19 editions from 1975), the Africa Cup of Nations (34 of 35), the AFC Asian Cup (17 of 18), the Gold Cup (18) and the Confederations Cup (10), the players of the winning team, read from the Wikipedia squads page of the edition: 2,975 players. A player of the list may not have played. The player page shows them under "with the national team" (Patrick Vieira: World Cup 1998, Euro 2000, Confederations Cup 2001).
+- **Site**: player search ranks well-known players first and tolerates typos ("ronaldo" finds Cristiano Ronaldo, "viera" and "patrick vieira" find Patrick Vieira, "mbape" finds Kylian Mbappé).
+
 ## Data 1.16.0 — 2026-11-14
 - **Ballon d'Or** (new table `award`, new command `awards`): the ranking of every edition since 2000 (609 rows, 25 editions; no 2020 edition; 2010-2015 only the podium), read from the Wikipedia page of each edition. New "Ballon d'Or" page on the site with the winners and the edition-by-edition rankings, and the player page shows a player's Ballon d'Or wins and podiums.
 - **Honours completed**: the winner of 655 more seasons read from the infobox of the Wikipedia season page when Wikidata does not record it (Ligue 1 2024/25, the UEFA Cup 2000-2008, small top flights…): 4,339 winners over 97 competitions. A Wikidata winner who is not among the participants of the season is dropped (Wikidata credited the Real Madrid with the MLS 2011 and 2012).

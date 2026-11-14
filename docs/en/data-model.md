@@ -375,6 +375,23 @@ Rankings of individual awards: one row per ranked player of an edition of the Ba
 | `club` | VARCHAR | Title of the club's Wikipedia page in `club` when it is there; empty otherwise. |
 | `points` | INTEGER | Points received; empty when the page does not give them. |
 
+### `national_title`
+
+National-team titles: for each edition of a national-team competition (World Cup, Euro, Copa América, Africa Cup of Nations, Asian Cup, Gold Cup, Confederations Cup), the players of the winning team, from the edition's squads page on Wikipedia. A listed player may not have played.
+
+- Files : `national_title/national_title.438dd2eb.parquet` — **2 975 rows**
+- Key : (competition, year, player_name)
+
+| Column | Type | Description |
+|---|---|---|
+| `competition` | VARCHAR | `WORLD_CUP`, `EURO`, `COPA_AMERICA`, `AFCON`, `ASIAN_CUP`, `GOLD_CUP` or `CONFEDERATIONS_CUP`. |
+| `year` | INTEGER | Edition year. |
+| `team` | VARCHAR | Winning team (English name). |
+| `player_name` | VARCHAR | Player name. |
+| `player_qid` | VARCHAR | Wikidata QID of the player (join key with `squad.player_qid`); empty if his page has no item. |
+| `shirt_number` | INTEGER | Shirt number in the list; empty if not given. |
+| `position` | VARCHAR | Position written in the list (`GK`, `DF`, `MF`, `FW`). |
+
 ### `player_profile`
 
 Profile read from the English Wikipedia infobox: full name, birthplace, height, death and **photo** (one row per player with at least one of these). Values **published as is by Wikipedia, unverified**.

@@ -2,7 +2,8 @@
   import { app, href, enc, t } from "../lib/app.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
-  import { compName } from "../lib/format";
+  import { compName, nationalTeam } from "../lib/format";
+  import Flag from "./Flag.svelte";
   import Trophy from "./Trophy.svelte";
 
   // Palmarès d'un joueur : le Ballon d'Or (classements publiés) et les titres remportés avec un club dont il figure dans l'effectif listé la saison du titre.
@@ -26,9 +27,30 @@
       }
       titles.push(...by.values());
     }
+    // Titres en équipe nationale : par QID, ou par nom quand le joueur n'a pas d'élément Wikidata.
+    const national = app.has.national_title
+      ? await q(`SELECT competition, year, team FROM national_title WHERE ${qid ? "player_qid = ?" : "player_qid IS NULL AND player_name = ?"} ORDER BY year DESC`, [qid ?? pkey.replace(/^name:/, "")])
+      : [];
     const awards = qid && app.has.award ? await q(`SELECT year, rank, club_name, points FROM award WHERE player_qid = ? ORDER BY year`, [qid]) : [];
-    return { titles, awards };
+    return { titles, awards, national };
   });
+  const NAT_ORDER = ["WORLD_CUP", "EURO", "COPA_AMERICA", "AFCON", "ASIAN_CUP", "GOLD_CUP", "CONFEDERATIONS_CUP"];
+  const NAT_NAME: Record<string, [string, string]> = {
+    WORLD_CUP: ["Coupe du monde", "World Cup"], EURO: ["Championnat d'Europe", "European Championship"], COPA_AMERICA: ["Copa América", "Copa América"],
+    AFCON: ["Coupe d'Afrique des nations", "Africa Cup of Nations"], ASIAN_CUP: ["Coupe d'Asie des nations", "AFC Asian Cup"], GOLD_CUP: ["Gold Cup", "Gold Cup"],
+    CONFEDERATIONS_CUP: ["Coupe des confédérations", "Confederations Cup"],
+  };
+  const nationalGroups = $derived.by(() => {
+    const by = new Map<string, { code: string; rows: { year: number; team: string }[] }>();
+    for (const r of data.data?.national ?? []) {
+      const g = by.get(r.competition) ?? { code: r.competition as string, rows: [] };
+      g.rows.push({ year: r.year as number, team: r.team as string });
+      by.set(r.competition, g);
+    }
+    return [...by.values()].sort((a, b) => NAT_ORDER.indexOf(a.code) - NAT_ORDER.indexOf(b.code));
+  });
+  const nationalTotal = $derived(nationalGroups.reduce((n, g) => n + g.rows.length, 0));
+  const natName = (c: string) => NAT_NAME[c]?.[app.lang === "fr" ? 0 : 1] ?? c;
   // Compétitions continentales d'abord, puis par niveau, puis par nombre de titres.
   const sorted = $derived.by(() => {
     const lvl = (c: string) => (app.comps.get(c)?.country_code === "EUR" || !app.comps.get(c)?.country_code ? 0 : 1);
@@ -41,7 +63,7 @@
   const season = (y: number) => `${y}/${String(y + 1).slice(2)}`;
 </script>
 
-{#if data.data && (total || data.data.awards.length)}
+{#if data.data && (total || nationalTotal || data.data.awards.length)}
   <section class="card mt-6 overflow-hidden" aria-labelledby="player-honours">
     <div class="flex items-center gap-2 px-5 pt-4"><Trophy size={20} /><h2 id="player-honours" class="text-lg font-bold">{t("honours")}</h2></div>
 
@@ -58,9 +80,28 @@
       </div>
     {/if}
 
+    {#if nationalTotal}
+      <div class="mt-4 px-5">
+        <div class="flex items-baseline gap-2"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{nationalTotal}</span><span class="font-semibold">{nationalTotal > 1 ? t("titlesN") : t("titleN")} {t("withNational")}</span></div>
+      </div>
+      <ul class="mt-2 divide-y divide-line/60 px-5">
+        {#each nationalGroups as g (g.code)}
+          <li class="flex items-center gap-3 py-2.5">
+            <span class="display w-8 text-2xl font-bold tabular-nums">{g.rows.length}</span>
+            <span class="min-w-0 flex-1">
+              <span class="block truncate font-semibold">{natName(g.code)}</span>
+              <span class="flex flex-wrap items-center gap-x-2 text-xs tabular-nums text-muted">
+                {#each g.rows as r (r.year)}<span class="inline-flex items-center gap-1">{r.year}{#if nationalTeam(r.team).flag}<Flag code={nationalTeam(r.team).flag} label={r.team} size={13} />{/if}</span>{/each}
+              </span>
+            </span>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+
     {#if total}
       <div class="mt-4 px-5">
-        <div class="flex items-baseline gap-2"><span class="display text-3xl font-extrabold leading-none tabular-nums">{total}</span><span class="font-semibold">{total > 1 ? t("titlesN") : t("titleN")}</span></div>
+        <div class="flex items-baseline gap-2"><span class="display text-3xl font-extrabold leading-none tabular-nums">{total}</span><span class="font-semibold">{total > 1 ? t("titlesN") : t("titleN")} {t("withClubs")}</span></div>
       </div>
       <ul class="mt-2 divide-y divide-line/60 px-5">
         {#each sorted as g (g.competition)}
@@ -81,5 +122,6 @@
       </ul>
       <p class="border-t border-line px-5 py-3 text-xs text-muted">{t("honoursPlayerNote")}</p>
     {/if}
+    {#if !total && nationalTotal}<p class="border-t border-line px-5 py-3 text-xs text-muted">{t("honoursNationalNote")}</p>{/if}
   </section>
 {/if}
