@@ -95,7 +95,7 @@ export async function boot() {
   try {
     const engine = openDb();
     engine.catch(() => {});                       // l'erreur est remontée plus bas ; pas de rejet non géré si le manifeste échoue d'abord
-    const res = await fetch(new URL("manifest.json", base));
+    const res = await fetch(new URL("manifest.json", base), { cache: "no-cache" });    // revalide à chaque visite : un manifeste périmé pointerait vers des fichiers (noms à empreinte) qu'une nouvelle release a retirés
     if (!res.ok) throw new Error(`manifest.json: HTTP ${res.status}`);
     app.manifest = await res.json();
     await loadData(await engine, app.manifest, base);
