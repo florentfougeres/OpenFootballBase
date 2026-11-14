@@ -152,7 +152,7 @@
     return countries.size > 1 ? (u ? `${nationalTeam(base).name} U${u[1]}` : nationalTeam(team).name) : u ? `U${u[1]}` : t("statsSenior");
   };
   const natGroups = $derived(["Competitive", "Friendly", "Total"].filter((g) => national.some((r) => r.competition_group === g)));
-  const cell = (c?: Cell) => (c && (c.apps != null || c.goals != null) ? `${num(c.apps) || "–"} / ${num(c.goals) || "–"}` : "");
+  const cell = (c?: Cell) => (c && (c.apps != null || c.goals != null) ? `${num(c.apps) || "–"} ${t("matchesLc")} · ${num(c.goals) || "–"} ${t("goalsLc")}` : "");
   const VIEWS: [View, string][] = [["club", "statsByClub"], ["season", "statsBySeason"], ["comp", "statsByComp"], ["nat", "statsNat"]];
 </script>
 
@@ -227,12 +227,23 @@
             </summary>
             <div class="overflow-x-auto bg-surface-2/40 px-5 pb-3">
               <table class="tbl">
-                <thead><tr><th>{t("statsSeason")}</th><th>{t("statsDivision")}</th>{#each used as g}<th class="num whitespace-nowrap"><span class="mr-1 inline-block size-2 rounded-full" style:background={COLOR[g]} aria-hidden="true"></span>{label(g)}</th>{/each}<th class="num">{t("statsTotal")}</th></tr></thead>
+                <thead>
+                  <tr><th rowspan="2" class="align-bottom">{t("statsSeason")}</th><th rowspan="2" class="hidden align-bottom sm:table-cell">{t("statsDivision")}</th>
+                    {#each used as g}<th colspan="2" class="whitespace-nowrap border-l border-line text-center"><span class="mr-1 inline-block size-2 rounded-full" style:background={COLOR[g]} aria-hidden="true"></span>{label(g)}</th>{/each}
+                    <th colspan="2" class="border-l border-line text-center">{t("statsTotal")}</th></tr>
+                  <tr class="text-[0.7rem]">
+                    {#each [...used, "total"] as g}<th class="num border-l border-line" title={t("colApps")}>{t("statsAppsS")}</th><th class="num" title={t("colGoals")}>{t("statsGoalsS")}</th>{/each}
+                  </tr>
+                </thead>
                 <tbody>
                   {#each s.seasons as x (x.key)}
-                    <tr><td class="whitespace-nowrap tabular-nums">{x.season}</td><td class="text-muted">{x.division ?? ""}</td>
-                      {#each used as g}<td class="num whitespace-nowrap">{cell(x.by[g])}</td>{/each}
-                      <td class="num whitespace-nowrap font-semibold">{cell(x.total)}</td></tr>
+                    <tr><td class="whitespace-nowrap tabular-nums">{x.season}{#if x.division}<span class="block max-w-28 truncate text-[0.7rem] text-muted sm:hidden">{x.division}</span>{/if}</td><td class="hidden text-muted sm:table-cell">{x.division ?? ""}</td>
+                      {#each used as g}
+                        <td class="num border-l border-line/60 tabular-nums text-muted">{num(x.by[g]?.apps)}</td>
+                        <td class="num tabular-nums font-semibold text-accent">{num(x.by[g]?.goals)}</td>
+                      {/each}
+                      <td class="num border-l border-line/60 tabular-nums">{num(x.total.apps)}</td>
+                      <td class="num tabular-nums font-bold text-accent">{num(x.total.goals)}</td></tr>
                   {/each}
                 </tbody>
               </table>
