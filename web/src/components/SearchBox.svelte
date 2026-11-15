@@ -72,7 +72,7 @@
   const maxH = $derived(variant === "bar" ? "max-h-[46vh]" : "max-h-[min(34rem,70vh)]");
 </script>
 
-<div bind:this={root} class="relative {variant === 'hero' ? 'w-full max-w-3xl' : variant === 'bar' ? 'w-full' : 'hidden md:block'}"
+<div bind:this={root} class="relative {variant === 'hero' ? 'w-full max-w-3xl' : variant === 'bar' ? 'w-full' : 'hidden lg:block'}"
   onfocusout={(e) => { if (!root?.contains(e.relatedTarget as Node)) close(); }}>
   <label class="relative block">
     <span class="sr-only">{t("searchTrigger")}</span>
@@ -81,7 +81,7 @@
       aria-activedescendant={open && (flat.length || (term.length < 2 && recent.length)) ? idOf(active) : undefined}
       placeholder={variant === "header" ? `${t("searchTrigger")}…` : t("spPlaceholder")} autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
       class="w-full rounded-lg border border-line bg-surface pl-9 pr-16 text-fg outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40
-        {variant === 'hero' ? 'h-12 bg-bg pl-11 text-base' : 'h-9 text-sm'} {variant === 'header' ? 'w-56 lg:w-64 lg:focus:w-80' : ''}" />
+        {variant === 'hero' ? 'h-12 bg-bg pl-11 text-base' : 'h-9 text-sm'} {variant === 'header' ? 'w-40 xl:w-64 xl:focus:w-80' : ''}" />
     <span class="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
       {#if busy}<span class="size-4 animate-spin rounded-full border-2 border-line border-t-accent" aria-hidden="true"></span>{/if}
       {#if input}

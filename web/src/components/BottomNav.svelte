@@ -23,8 +23,8 @@
 
 {#if more}
   <!-- Voile : un tap à côté ferme le panneau -->
-  <button type="button" class="fixed inset-0 z-40 cursor-default bg-fg/20 md:hidden" aria-label={t("close")} onclick={() => (more = false)} tabindex="-1"></button>
-  <div id="more-panel" class="fixed inset-x-3 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-surface p-2 shadow-2xl md:hidden" role="menu">
+  <button type="button" class="fixed inset-0 z-40 cursor-default bg-fg/20 lg:hidden" aria-label={t("close")} onclick={() => (more = false)} tabindex="-1"></button>
+  <div id="more-panel" class="fixed inset-x-3 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-line bg-surface p-2 shadow-2xl lg:hidden" role="menu">
     <a class="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold no-underline hover:bg-surface-2 {current === 'ballon-dor' ? 'bg-surface-2' : ''}" href={href("ballon-dor")} role="menuitem">{t("balloon")}</a>
     <a class="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold no-underline hover:bg-surface-2 {current === 'coverage' ? 'bg-surface-2' : ''}" href={href("coverage")} role="menuitem">{t("coverage")}</a>
     <a class="flex min-h-12 items-center rounded-xl px-4 text-base font-semibold no-underline hover:bg-surface-2 {current === 'about' ? 'bg-surface-2' : ''}" href={href("about")} role="menuitem">{t("about")}</a>
@@ -34,7 +34,7 @@
   </div>
 {/if}
 
-<nav class="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Navigation">
+<nav class="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-bg/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label="Navigation">
   <ul class="mx-auto grid max-w-lg grid-cols-5">
     {#each items as it (it.key)}
       <li>

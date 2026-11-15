@@ -2,7 +2,7 @@
 export const searchUi = $state({ focusTick: 0, bar: false });
 
 export const focusSearch = () => {
-  if (typeof matchMedia === "function" && matchMedia("(max-width: 767px)").matches) searchUi.bar = true;
+  if (typeof matchMedia === "function" && matchMedia("(max-width: 1023px)").matches) searchUi.bar = true;
   else searchUi.focusTick++;
 };
 
