@@ -16,7 +16,7 @@
     { key: "about", label: t("about"), to: href("about") },
   ]);
   const main = $derived(links.slice(0, 4));
-  const extra = $derived(links.slice(4));
+  const extra = $derived(links.slice(4));                 // Ballon d'Or (en ligne dès xl), Couverture, À propos
   let more = $state(false);
   const active = (k: string) => (k === "competitions" ? ["competitions", "competition"].includes(current) : k === "clubs" ? ["clubs", "club"].includes(current) : k === "players" ? ["players", "player"].includes(current) : k === "home" ? ["home", "country"].includes(current) : current === k);
   $effect(() => { route.parts; searchUi.bar = false; more = false; });
@@ -35,27 +35,26 @@
     <a class="display flex shrink-0 items-center gap-2 text-xl font-extrabold tracking-tight no-underline sm:text-2xl" href={href("")}>
       <img class="size-9" src={import.meta.env.BASE_URL + "logo.svg"} alt="" width="36" height="36" />
       OpenFootballBase
-      <span class="hidden rounded-md border border-line px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted xl:inline" title={t("betaNote")}>{t("beta")}</span>
     </a>
-    <nav class="ml-4 hidden min-w-0 items-center gap-1 lg:flex xl:ml-8" aria-label="Navigation">
+    <nav class="ml-4 hidden min-w-0 items-center gap-1 lg:flex 2xl:ml-8" aria-label="Navigation">
       {#each main as l}
         <a class="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold no-underline transition hover:bg-surface-2 {active(l.key) ? 'bg-surface-2 text-fg' : 'text-muted'}"
           href={l.to} aria-current={active(l.key) ? "page" : undefined}>{l.label}</a>
       {/each}
       <!-- Liens secondaires : en ligne sur grand écran, dans un menu « Plus » en dessous (la barre ne tient pas sur une largeur moyenne) -->
-      {#each extra as l}
+      {#each extra.slice(0, 1) as l}
         <a class="hidden whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold no-underline transition hover:bg-surface-2 xl:inline-block {active(l.key) ? 'bg-surface-2 text-fg' : 'text-muted'}"
           href={l.to} aria-current={active(l.key) ? "page" : undefined}>{l.label}</a>
       {/each}
-      <div class="relative xl:hidden">
-        <button type="button" class="flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition hover:bg-surface-2 {extra.some((l) => active(l.key)) || more ? 'bg-surface-2 text-fg' : 'text-muted'}"
+      <div class="relative">
+        <button type="button" class="flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition hover:bg-surface-2 {extra.slice(1).some((l) => active(l.key)) || more ? 'bg-surface-2 text-fg' : 'text-muted'}"
           aria-expanded={more} aria-haspopup="menu" onclick={() => (more = !more)}>{t("more")}
           <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></button>
         {#if more}
           <button type="button" class="fixed inset-0 z-30 cursor-default" aria-label={t("close")} tabindex="-1" onclick={() => (more = false)}></button>
           <div class="absolute left-0 top-full z-40 mt-1.5 min-w-44 rounded-xl border border-line bg-surface p-1.5 shadow-2xl" role="menu">
-            {#each extra as l}
-              <a class="flex items-center rounded-lg px-3 py-2 text-sm font-semibold no-underline hover:bg-surface-2 {active(l.key) ? 'bg-surface-2' : ''}" href={l.to} role="menuitem">{l.label}</a>
+            {#each extra as l, i}
+              <a class="flex items-center rounded-lg px-3 py-2 text-sm font-semibold no-underline hover:bg-surface-2 {i === 0 ? 'xl:hidden' : ''} {active(l.key) ? 'bg-surface-2' : ''}" href={l.to} role="menuitem">{l.label}</a>
             {/each}
           </div>
         {/if}
@@ -72,7 +71,6 @@
           {:else if theme.value === "light"}<circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
           {:else}<rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" />{/if}
         </svg>
-        <span class="hidden xl:inline">{theme.value === "dark" ? t("themeDark") : theme.value === "light" ? t("themeLight") : t("themeAuto")}</span>
       </button>
       <a class="btn-ghost !px-3 uppercase" href={switchHref} hreflang={other} lang={other}>{other}</a>
     </div>

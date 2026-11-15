@@ -81,7 +81,7 @@
       aria-activedescendant={open && (flat.length || (term.length < 2 && recent.length)) ? idOf(active) : undefined}
       placeholder={variant === "header" ? `${t("searchTrigger")}…` : t("spPlaceholder")} autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
       class="w-full rounded-lg border border-line bg-surface pl-9 pr-16 text-fg outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40
-        {variant === 'hero' ? 'h-12 bg-bg pl-11 text-base' : 'h-9 text-sm'} {variant === 'header' ? 'w-40 xl:w-64 xl:focus:w-80' : ''}" />
+        {variant === 'hero' ? 'h-12 bg-bg pl-11 text-base' : 'h-9 text-sm'} {variant === 'header' ? 'w-40 xl:w-52 2xl:w-64 2xl:focus:w-80' : ''}" />
     <span class="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
       {#if busy}<span class="size-4 animate-spin rounded-full border-2 border-line border-t-accent" aria-hidden="true"></span>{/if}
       {#if input}
