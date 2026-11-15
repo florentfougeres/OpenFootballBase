@@ -225,29 +225,30 @@
                 <span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>
               </div>
             </summary>
-            <div class="overflow-x-auto bg-surface-2/40 px-5 pb-3">
-              <table class="tbl">
-                <thead>
-                  <tr><th rowspan="2" class="align-bottom">{t("statsSeason")}</th><th rowspan="2" class="hidden align-bottom sm:table-cell">{t("statsDivision")}</th>
-                    {#each used as g}<th colspan="2" class="whitespace-nowrap border-l border-line text-center"><span class="mr-1 inline-block size-2 rounded-full" style:background={COLOR[g]} aria-hidden="true"></span>{label(g)}</th>{/each}
-                    <th colspan="2" class="border-l border-line text-center">{t("statsTotal")}</th></tr>
-                  <tr class="text-[0.7rem]">
-                    {#each [...used, "total"] as g}<th class="num border-l border-line" title={t("colApps")}>{t("statsAppsS")}</th><th class="num" title={t("colGoals")}>{t("statsGoalsS")}</th>{/each}
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each s.seasons as x (x.key)}
-                    <tr><td class="whitespace-nowrap tabular-nums">{x.season}{#if x.division}<span class="block max-w-28 truncate text-[0.7rem] text-muted sm:hidden">{x.division}</span>{/if}</td><td class="hidden text-muted sm:table-cell">{x.division ?? ""}</td>
-                      {#each used as g}
-                        <td class="num border-l border-line/60 tabular-nums text-muted">{num(x.by[g]?.apps)}</td>
-                        <td class="num tabular-nums font-semibold text-accent">{num(x.by[g]?.goals)}</td>
+            <!-- Une ligne par saison : saison et division à gauche, matchs et buts à droite ; la répartition par compétition en étiquettes, seulement quand il y en a plusieurs. -->
+            <ul class="divide-y divide-line/60 bg-surface-2/40 px-5 pb-1">
+              {#each s.seasons as x (x.key)}
+                {@const parts = used.filter((g) => (x.by[g]?.apps ?? 0) > 0 || (x.by[g]?.goals ?? 0) > 0)}
+                <li class="py-2.5">
+                  <div class="grid grid-cols-[4.75rem_minmax(0,1fr)_auto_auto] items-baseline gap-x-3">
+                    <span class="font-semibold tabular-nums">{x.season}</span>
+                    <span class="truncate text-sm text-muted">{x.division ?? ""}</span>
+                    <span class="text-right text-sm tabular-nums text-muted"><span class="text-fg">{num(x.total.apps) || "–"}</span> {t("matchesLc")}</span>
+                    <span class="w-14 text-right tabular-nums"><strong class="text-lg text-accent">{num(x.total.goals) || "–"}</strong> <span class="text-xs text-muted">{t("goalsLc")}</span></span>
+                  </div>
+                  {#if parts.length > 1 || (parts.length === 1 && parts[0] !== "League")}
+                    <div class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 pl-[5.5rem] text-xs text-muted">
+                      {#each parts as g}
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                          <span class="size-2 rounded-full" style:background={COLOR[g]} aria-hidden="true"></span>{label(g)}
+                          <span class="tabular-nums"><span class="text-fg">{num(x.by[g]?.apps) || "–"}</span> {t("statsAppsS")}{#if x.by[g]?.goals}<span class="mx-1">·</span><span class="font-semibold text-accent">{x.by[g]?.goals}</span> {t("statsGoalsS")}{/if}</span>
+                        </span>
                       {/each}
-                      <td class="num border-l border-line/60 tabular-nums">{num(x.total.apps)}</td>
-                      <td class="num tabular-nums font-bold text-accent">{num(x.total.goals)}</td></tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
+                    </div>
+                  {/if}
+                </li>
+              {/each}
+            </ul>
           </details>
         </li>
       {/each}
