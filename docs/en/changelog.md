@@ -4,12 +4,14 @@
 
 Published data releases, newest first. Names follow [semantic versioning](https://semver.org): **major** = incompatible schema change, **minor** = new data (league, country, cup, table, column), **patch** = data fixes. Each release is `Data X.Y.Z` with tag `data-X.Y.Z` ([how to publish](publishing-a-release.md)). Changes to the site and tooling that are not tied to a data release are listed under "Site and tooling".
 
+## Data 1.19.0 — 2026-11-16
+- **Coaches** (new table `coach`, new command `coaches`): the head-coach tenures of the clubs, with start and end dates, from Wikidata (8,091 tenures, 1,381 of the 2,815 clubs with squads; the big clubs are well covered, small ones less). The club page shows them in the side column, most recent first; a coach who was also a player in our data links to his player page.
+- **Fixes**: 12 birth dates taken from the wrong Wikidata item are no longer shown (a player "born in 2026", a career that starts before the birth); 165 impossible goal counts are left empty (Wikipedia typos such as "11 matches, 100 goals"); statistics tables whose season cell carries a stray `!colspan` no longer shift their columns.
+
 ## Data 1.18.2 — 2026-11-16
 - **Vacant titles**: Marseille 1992/93 (bribery scandal) and Juventus 2004/05 (Calciopoli) are no longer credited as league titles, as the federations declared them vacant (Marseille: 9 Ligue 1 titles, not 10). Wikidata still lists the club that finished first.
 
 ## Data 1.18.1 — 2026-11-16
-- **Coaches** (new table `coach`, new command `coaches`): the head-coach tenures of the clubs, with start and end dates, from Wikidata (8,091 tenures, 1,381 of the 2,815 clubs with squads; the big clubs are well covered, small ones less). The club page shows them in the side column, most recent first; a coach who was also a player in our data links to his player page. Birth dates taken from the wrong Wikidata item (12 players, such as one "born in 2026") are no longer shown.
-- **Consistency audit** (`audit`): checks the whole database before every publication, run by the weekly script (a blocking problem stops it). Statistics: goal counts that are impossible (more than 3 per match and at least 10, typos in Wikipedia such as "11 matches, 100 goals") are now left empty instead of displayed; tables whose season cell carries a stray `!colspan` no longer shift the columns.
 - **Weekly refresh** (first run of `scripts/weekly_refresh.sh`): career infobox and statistics tables re-read for the 29,000 players still active (544,634 statistics rows).
 
 ## Data 1.18.0 — 2026-11-16
@@ -123,6 +125,7 @@ Published data releases, newest first. Names follow [semantic versioning](https:
 ## Site and tooling
 
 ### 2026-11-16
+- **Consistency audit** (`audit`): checks the whole database before every publication, run by the weekly script (a blocking problem stops it). Statistics: goal counts that are impossible (more than 3 per match and at least 10, typos in Wikipedia such as "11 matches, 100 goals") are now left empty instead of displayed; tables whose season cell carries a stray `!colspan` no longer shift the columns.
 - **Weekly refresh** (`scripts/weekly_refresh.sh`, [weekly-refresh.md](weekly-refresh.md)): script for a server cron that re-reads the players still active (career infobox and statistics tables), exports and publishes a release. New option `stats --active`.
 
 ### 2026-11-13
