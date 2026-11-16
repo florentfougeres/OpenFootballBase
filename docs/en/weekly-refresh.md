@@ -7,7 +7,7 @@
 1. restores the database from the latest release if the server has none, then backs it up (3 backups kept);
 2. `careers --active --fresh`: re-reads the career infobox and profile, ignoring the cache;
 3. `reconcile --names --wikidata`, then `stats --active --fresh`: re-reads the "Career statistics" tables;
-4. `enrich --what players careerclubs labels`, `progress`, `audit` (a blocking problem stops the script before the export);
+4. `enrich --what players careerclubs labels`, `coaches` (a Wikidata failure is tolerated: the previous table is kept), `progress`, `audit` (a blocking problem stops the script before the export);
 5. exports with `--previous` (refused if a frozen season changed) and **publishes** a GitHub release `data-X.Y.(Z+1)` (patch bump of the latest one), then reruns the site deployment.
 
 A lock (`data/work/weekly.lock`) prevents two runs at once (DuckDB has a single writer). Log: `data/work/logs/weekly_YYYYMMDD.log`.

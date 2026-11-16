@@ -12,7 +12,8 @@ from openfootball.checks import Problem
 from openfootball.honours import VACANT
 
 MIN_FIELD = 10            # une compétition-saison n'est « connue en entier » qu'avec au moins ce nombre de clubs inscrits
-MIN_AGE_STATS = 14        # âge minimal pour une ligne de statistiques ; la carrière en tolère deux de moins (centres de formation)
+MIN_AGE_STATS = 13        # âge minimal pour une ligne de statistiques (Falcao joue à 13 ans) ; la carrière commence avec les équipes de jeunes, dès 7 ans
+MIN_AGE_CAREER = 7
 MAX_LEAGUE_APPS = 80      # plus de matches de championnat dans une saison : lecture erronée
 MIN_NATIONAL_SQUAD, MAX_NATIONAL_SQUAD = 11, 40
 LIMIT = 25                # cas listés par contrôle (le total est toujours donné)
@@ -49,13 +50,13 @@ def run_audit(con: duckdb.DuckDBPyConnection) -> list[Problem]:
         SELECT p.name || ' (né en ' || year(b.birth_date) || ')', 'statistiques dès ' || min(s.season) || ' : homonymes fusionnés ou date de naissance fausse ?'
         FROM player_stat_club s JOIN player_birth b ON b.player_id = s.player_id JOIN player p ON p.id = s.player_id
         WHERE b.precision >= 9 AND try_cast(left(s.season, 4) AS INTEGER) < year(b.birth_date) + {MIN_AGE_STATS}
-        GROUP BY p.name, b.birth_date ORDER BY p.name""", "joueurs avec des statistiques avant leurs 14 ans")
+        GROUP BY p.name, b.birth_date ORDER BY p.name""", "joueurs avec des statistiques avant leurs 13 ans")
 
     out += _scan(con, "career_before_birth", "warning", f"""
         SELECT p.name || ' (né en ' || year(b.birth_date) || ')', 'carrière dès ' || min(c.start_year) || ' : homonymes fusionnés ou date de naissance fausse ?'
         FROM player_career c JOIN player_birth b ON b.player_id = c.player_id JOIN player p ON p.id = c.player_id
-        WHERE b.precision >= 9 AND c.start_year < year(b.birth_date) + {MIN_AGE_STATS - 2}
-        GROUP BY p.name, b.birth_date ORDER BY p.name""", "joueurs avec une carrière avant leurs 12 ans")
+        WHERE b.precision >= 9 AND c.start_year < year(b.birth_date) + {MIN_AGE_CAREER}
+        GROUP BY p.name, b.birth_date ORDER BY p.name""", "joueurs avec une carrière avant leurs 7 ans")
 
     out += _scan(con, "stats_implausible", "warning", f"""
         SELECT p.name || ' — ' || s.club || ' ' || s.season, s.apps || ' matches, ' || s.goals || ' buts (' || coalesce(s.competition_group, '?') || ')'

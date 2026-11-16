@@ -10,6 +10,7 @@ from pathlib import Path
 
 from openfootball.audit import run_audit
 from openfootball.backfill import run_backfill
+from openfootball.coaches import import_coaches
 from openfootball.checks import run_checks
 from openfootball.db import connect, migrate
 from openfootball.enrich import add_career_clubs, enrich_player_photos, enrich_birth_dates, enrich_career_clubs, enrich_context_labels, enrich_league_logos, enrich_logos, enrich_wiki_links
@@ -632,6 +633,14 @@ def nationals_cmd(args: argparse.Namespace) -> int:
     return 0
 
 
+def coaches_cmd(args: argparse.Namespace) -> int:
+    """Entraîneurs des clubs : mandats (début, fin) lus sur Wikidata. Remplace la table à chaque passage."""
+    con = connect(args.db)
+    migrate(con)
+    import_coaches(con, WikidataClient(args.wd_cache))
+    return 0
+
+
 def fix_player_cmd(args: argparse.Namespace) -> int:
     """Rustine : le joueur que la page du club nomme `name` (sans lien) est celui dont la page Wikipedia est `--page`."""
     con = connect(args.db)
@@ -842,6 +851,10 @@ def main(argv: list[str] | None = None) -> int:
     nt.add_argument("--db", default=DB_DEFAULT)
     nt.add_argument("--cache", default="cache/wikipedia")
     nt.set_defaults(func=nationals_cmd)
+    co = sub.add_parser("coaches", help="entraîneurs des clubs : mandats avec dates (Wikidata)")
+    co.add_argument("--db", default=DB_DEFAULT)
+    co.add_argument("--wd-cache", default="cache/wikidata")
+    co.set_defaults(func=coaches_cmd)
     aw = sub.add_parser("awards", help="Ballon d'Or : classement de chaque édition (pages Wikipedia)")
     aw.add_argument("--db", default=DB_DEFAULT)
     aw.add_argument("--cache", default="cache/wikipedia")

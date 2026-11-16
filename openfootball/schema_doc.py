@@ -273,6 +273,16 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
             "position": "Poste écrit dans la liste (`GK`, `DF`, `MF`, `FW`).",
         },
     ),
+    "coach": (
+        "Entraîneurs : un mandat par ligne (entraîneur d'un club entre deux dates), d'après la propriété Wikidata « entraîneur ». Les mandats sans date de début ne sont pas publiés ; les entraîneurs intérimaires y figurent comme les autres.", "(club, coach_qid, start_date)",
+        {
+            "club": "Titre de la page Wikipedia du club dans `club`.",
+            "coach_qid": "QID Wikidata de l'entraîneur (clé de jointure avec `squad.player_qid` quand il a aussi été joueur de notre base).",
+            "coach_name": "Nom de l'entraîneur (libellé Wikidata).",
+            "start_date": "Début du mandat.",
+            "end_date": "Fin du mandat ; vide si le mandat est en cours ou si la fin n'est pas renseignée.",
+        },
+    ),
     "player_profile": (
         "Profil lu dans l'infobox Wikipedia anglaise : nom complet, lieu de naissance, taille, décès et **photo** (une ligne par joueur "
         "ayant au moins une de ces informations). Valeurs **publiées telles quelles par Wikipedia, non vérifiées**.",
@@ -310,7 +320,7 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
     ),
 }
 
-ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "player_profile", "birth", "entity_wiki"]
+ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach", "player_profile", "birth", "entity_wiki"]
 
 INTRO = """# OpenFootballBase — dictionnaire de données
 

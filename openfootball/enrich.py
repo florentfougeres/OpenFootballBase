@@ -213,10 +213,18 @@ def parse_birth(rows: list[dict]) -> dict[str, tuple[date, int]]:
     return best
 
 
+# Éléments Wikidata dont la date de naissance est celle d'un homonyme ou une erreur (carrière ou statistiques bien avant la naissance : Jefté Betancor « né en 2026 »,
+# Mike Flynn né en 1980 pour une carrière dès 1987…). On préfère une date inconnue à une date fausse ; `audit` signale les nouveaux cas.
+UNRELIABLE_BIRTH = ("Q3822716", "Q113459658", "Q6176406", "Q529244", "Q2529972", "Q93969423", "Q16586609", "Q111547565", "Q1337570", "Q669575", "Q6846866", "Q1375717")
+
+
 def enrich_birth_dates(con: duckdb.DuckDBPyConnection, wd, *, log: Callable[[str], None] = print) -> int:
     """Date de naissance (P569) des joueurs avec QID qui n'en ont pas encore."""
-    rows = con.execute("""SELECT p.id, w.qid FROM player p JOIN player_wikidata w ON w.player_id = p.id
-                          WHERE NOT EXISTS (SELECT 1 FROM player_birth b WHERE b.player_id = p.id) ORDER BY p.id""").fetchall()
+    marks = ",".join("?" for _ in UNRELIABLE_BIRTH)
+    con.execute(f"DELETE FROM player_birth WHERE player_id IN (SELECT player_id FROM player_wikidata WHERE qid IN ({marks}))", list(UNRELIABLE_BIRTH))
+    rows = con.execute(f"""SELECT p.id, w.qid FROM player p JOIN player_wikidata w ON w.player_id = p.id
+                          WHERE NOT EXISTS (SELECT 1 FROM player_birth b WHERE b.player_id = p.id) AND w.qid NOT IN ({marks}) ORDER BY p.id""",
+                      list(UNRELIABLE_BIRTH)).fetchall()
     by_qid = {q: pid for pid, q in rows}
     written = 0
     for chunk in _chunks(list(by_qid), BIRTH_BATCH):

@@ -268,6 +268,16 @@ TABLES_EN: dict[str, tuple[str, str, dict[str, str]]] = {
             "position": "Position written in the list (`GK`, `DF`, `MF`, `FW`).",
         },
     ),
+    "coach": (
+        "Coaches: one tenure per row (a coach of a club between two dates), from the Wikidata \"head coach\" property. Tenures without a start date are not published; caretaker coaches appear like the others.", "(club, coach_qid, start_date)",
+        {
+            "club": "Title of the club's Wikipedia page in `club`.",
+            "coach_qid": "Wikidata QID of the coach (join key with `squad.player_qid` when he was also a player in our database).",
+            "coach_name": "Coach name (Wikidata label).",
+            "start_date": "Start of the tenure.",
+            "end_date": "End of the tenure; empty if the tenure is ongoing or the end is not recorded.",
+        },
+    ),
     "player_profile": (
         "Profile read from the English Wikipedia infobox: full name, birthplace, height, death and **photo** (one row per player "
         "with at least one of these). Values **published as is by Wikipedia, unverified**.",

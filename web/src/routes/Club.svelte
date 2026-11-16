@@ -46,6 +46,15 @@
     for (const r of rows) by.set(r.competition, [...(by.get(r.competition) ?? []), r.season_start as number]);
     return [...by.entries()].map(([code, years]) => ({ code, years })).sort((a, b) => b.years.length - a.years.length);
   });
+  // Entraîneurs : les mandats publiés (Wikidata), le plus récent d'abord ; un entraîneur qui a aussi été joueur dans notre base mène à sa fiche.
+  const coaches = resource(async () => {
+    const tt = title;
+    if (!tt || !app.has.coach) return [] as { qid: string; name: string; from: number; to: number | null; player: boolean }[];
+    const rows = await q(`SELECT coach_qid, coach_name, CAST(start_date AS VARCHAR) AS s, CAST(end_date AS VARCHAR) AS e FROM coach WHERE club = ? ORDER BY start_date DESC`, [tt]);
+    const ids = [...new Set(rows.map((r) => r.coach_qid as string))];
+    const players = ids.length && app.has.career ? new Set((await q(`SELECT DISTINCT player_qid FROM career WHERE player_qid IN (${ids.map(() => "?").join(",")})`, ids)).map((r) => r.player_qid as string)) : new Set<string>();
+    return rows.map((r) => ({ qid: r.coach_qid as string, name: r.coach_name as string, from: Number(String(r.s).slice(0, 4)), to: r.e ? Number(String(r.e).slice(0, 4)) : null, player: players.has(r.coach_qid as string) }));
+  });
   const title = $derived(d?.ours?.wikipedia_title as string | undefined);
   const iso = $derived(d?.w?.country_iso ? String(d.w.country_iso).toLowerCase() : null);
   const flag = $derived(d?.ours ? countryOf(d.ours.country_code).flag : iso);
@@ -460,6 +469,33 @@
             {/if}
           {/each}
           <p class="border-t border-line pt-2 text-xs text-muted">{t("honoursClubNote")}</p>
+        </div>
+      {/if}
+      {#if coaches.data?.length}
+        <h2 class="mb-2 text-xl font-bold">{t("coaches")}</h2>
+        <div class="card mb-6 px-4 py-3">
+          <ul class="divide-y divide-line/60">
+            {#each coaches.data.slice(0, 8) as k (k.qid + k.from)}
+              <li class="flex items-baseline justify-between gap-3 py-2">
+                {#if k.player}<a class="min-w-0 truncate font-medium hover:text-accent hover:underline" href={href("player", enc(k.qid))}>{k.name}</a>{:else}<span class="min-w-0 truncate font-medium">{k.name}</span>{/if}
+                <span class="shrink-0 text-sm tabular-nums text-muted">{k.to === k.from ? k.from : `${k.from}–${k.to ?? ""}`}{#if k.to === null}<span class="sr-only"> {t("coachesNow")}</span>{/if}</span>
+              </li>
+            {/each}
+          </ul>
+          {#if coaches.data.length > 8}
+            <details class="group border-t border-line pt-2">
+              <summary class="cursor-pointer list-none text-sm font-semibold text-accent [&::-webkit-details-marker]:hidden">{t("coachesAll")} ({coaches.data.length})</summary>
+              <ul class="mt-1 divide-y divide-line/60">
+                {#each coaches.data.slice(8) as k (k.qid + k.from)}
+                  <li class="flex items-baseline justify-between gap-3 py-2">
+                    {#if k.player}<a class="min-w-0 truncate font-medium hover:text-accent hover:underline" href={href("player", enc(k.qid))}>{k.name}</a>{:else}<span class="min-w-0 truncate font-medium">{k.name}</span>{/if}
+                    <span class="shrink-0 text-sm tabular-nums text-muted">{k.to === k.from ? k.from : `${k.from}–${k.to ?? ""}`}</span>
+                  </li>
+                {/each}
+              </ul>
+            </details>
+          {/if}
+          <p class="border-t border-line pt-2 text-xs text-muted">{t("coachesNote")}</p>
         </div>
       {/if}
       <h2 id="about-club" class="mb-3 text-xl font-bold">{t("about_club")}</h2>

@@ -47,3 +47,22 @@ def test_edition_nationale_trop_courte():
     con = _db()
     con.execute("INSERT INTO national_title (competition, year, team, player_name, source_title) VALUES ('EURO', 2000, 'France', 'A', 'x')")
     assert [p.scope for p in _checks(con)["national_squad_size"]] == ["EURO 2000"]
+
+
+def test_date_de_naissance_peu_fiable_retiree_et_non_reimportee(monkeypatch):
+    import datetime
+    import openfootball.enrich as enrich
+    con = _db()
+    con.execute("INSERT INTO player (id, name) VALUES (1, 'Mike Flynn'), (2, 'Autre')")
+    con.execute("INSERT INTO player_wikidata VALUES (1, 'Q6846866'), (2, 'Q2')")
+    con.execute("INSERT INTO player_birth VALUES (1, DATE '1980-10-17', 11)")
+    asked = []
+    monkeypatch.setattr(enrich, "parse_birth", lambda rows: {q: (datetime.date(1990, 1, 1), 11) for q in rows})
+
+    class Wd:
+        def query(self, sparql):
+            asked.append(sparql)
+            return [q for q in ("Q2", "Q6846866") if q in sparql]     # ce que Wikidata répondrait pour les éléments demandés
+    enrich.enrich_birth_dates(con, Wd(), log=lambda _: None)
+    assert "Q6846866" not in asked[0]                                            # jamais réinterrogé
+    assert con.execute("SELECT player_id FROM player_birth ORDER BY 1").fetchall() == [(2,)]   # la date fausse est partie, l'autre est écrite
