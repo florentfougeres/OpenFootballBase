@@ -109,7 +109,7 @@ TABLES_EN: dict[str, tuple[str, str, dict[str, str]]] = {
             "code": "League code: `<COUNTRY>-<ABBREVIATION>`, e.g. `FRA-L1`.",
             "name_en": "English name.", "name_fr": "French name.",
             "country_code": "The league's country (`country.code`).",
-            "level": "Level in the pyramid (1 = first division).",
+            "level": "Level in the pyramid (1 = first division). 5: domestic cup or supercup (no club or squad per season, only a list of winners).",
             "wikipedia_title": "Title of the league's English Wikipedia page.",
             "logo_url": "League logo thumbnail read from the infobox of its Wikipedia page (hosted by Wikimedia). Often **non-free**: see `logo_license`.",
             "logo_license": "Licence of the logo file (`Public domain`, `Fair use`…).",

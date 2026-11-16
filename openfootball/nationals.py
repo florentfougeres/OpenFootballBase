@@ -53,22 +53,30 @@ _HEADING = re.compile(r"^(={2,6})\s*(.*?)\s*\1\s*$", re.M)
 _NATION_WORDS = re.compile(r"\s*national (?:football |soccer )?team\s*$", re.I)
 
 
+# Codes que `country_of_fifa` ne résout pas (anciens pays, codes propres à Wikipedia) : le nom de l'équipe tel que la page des effectifs l'écrit.
+_CODE_NAMES = {"FRG": "West Germany", "TCH": "Czechoslovakia", "NED": "Netherlands", "GER": "Germany", "URS": "Soviet Union", "YUG": "Yugoslavia",
+               "SCG": "Serbia and Montenegro", "UAR": "Egypt", "ZAI": "DR Congo", "US": "United States", "USA": "United States", "DDR": "East Germany"}
+
+
 def champion(wikitext: str) -> str | None:
     """Nom de l'équipe victorieuse d'après l'infobox : lien (« [[France national football team|France]] »), code FIFA (« FRA », « {{fb|FRA}} ») ou texte."""
     head = wikitext[:6000]
     for m in _PARAM.finditer(head):
         raw = m.group(1).split("|champion")[0]
-        code = re.search(r"\{\{\s*(?:fb|fbaicon|flagicon|flag)\s*\|\s*([A-Z]{3})\b", raw, re.I) or re.fullmatch(r"\s*([A-Z]{3})\s*(?:\|.*)?", raw)
+        code = re.search(r"\{\{\s*(?:fb|fbaicon|flagicon|flag)\s*\|\s*([A-Z]{2,3})\b", raw, re.I) or re.fullmatch(r"\s*([A-Z]{2,3})\s*(?:\|.*)?", raw)
         if code:
-            name = country_of_fifa(code.group(1).upper())[1]
+            key = code.group(1).upper()
+            name = _CODE_NAMES.get(key) or country_of_fifa(key)[1]
             if name:
                 return name
         link = _LINK.search(raw)
         if link:
-            return _NATION_WORDS.sub("", (link.group(2) or link.group(1))).strip()
+            label = _NATION_WORDS.sub("", (link.group(2) or link.group(1))).strip()
+            return _CODE_NAMES.get(label.upper(), label)
         text = re.sub(r"\{\{[^{}]*\}\}|<[^>]+>|\[\[|\]\]|'{2,}", "", raw).strip()
         if text:
-            return _NATION_WORDS.sub("", text).strip()
+            text = _NATION_WORDS.sub("", text).strip()
+            return _CODE_NAMES.get(text.upper(), text)
     return None
 
 

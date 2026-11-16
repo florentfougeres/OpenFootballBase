@@ -172,7 +172,7 @@ Every known football club (≈ 43,000, source: Wikidata). `has_squads` tells the
 
 The competitions covered: leagues in scope, partial leagues of countries outside the scope, and cups (`UEFA-CL`, `CONMEBOL-CL`…).
 
-- Files : `competition/competition.642aa784.parquet` — **129 rows**
+- Files : `competition/competition.34d7328b.parquet` — **152 rows**
 - Key : code
 
 | Column | Type | Description |
@@ -181,7 +181,7 @@ The competitions covered: leagues in scope, partial leagues of countries outside
 | `name_en` | VARCHAR | English name. |
 | `name_fr` | VARCHAR | French name. |
 | `country_code` | VARCHAR | The league's country (`country.code`). |
-| `level` | INTEGER | Level in the pyramid (1 = first division). |
+| `level` | INTEGER | Level in the pyramid (1 = first division). 5: domestic cup or supercup (no club or squad per season, only a list of winners). |
 | `wikidata_qid` | VARCHAR | The league's Wikidata QID, when known. |
 | `wikipedia_title` | VARCHAR | Title of the league's English Wikipedia page. |
 | `logo_url` | VARCHAR | League logo thumbnail read from the infobox of its Wikipedia page (hosted by Wikimedia). Often **non-free**: see `logo_license`. |
@@ -191,7 +191,7 @@ The competitions covered: leagues in scope, partial leagues of countries outside
 
 The countries covered by `competition`.
 
-- Files : `country/country.a9f5f721.parquet` — **115 rows**
+- Files : `country/country.27c6bb64.parquet` — **116 rows**
 - Key : code
 
 | Column | Type | Description |
@@ -345,7 +345,7 @@ Provenance of the statistics: the page read for each player (one row per player 
 
 Honours: the winner of each season of a competition, from Wikidata (one row per winner; joint winners give two rows).
 
-- Files : `winner/winner.ce811b24.parquet` — **4 339 rows**
+- Files : `winner/winner.def31300.parquet` — **5 615 rows**
 - Key : (competition, season_start, winner_qid)
 
 | Column | Type | Description |
@@ -379,7 +379,7 @@ Rankings of individual awards: one row per ranked player of an edition of the Ba
 
 National-team titles: for each edition of a national-team competition (World Cup, Euro, Copa América, Africa Cup of Nations, Asian Cup, Gold Cup, Confederations Cup), the players of the winning team, from the edition's squads page on Wikipedia. A listed player may not have played.
 
-- Files : `national_title/national_title.438dd2eb.parquet` — **2 975 rows**
+- Files : `national_title/national_title.4eff70be.parquet` — **2 975 rows**
 - Key : (competition, year, player_name)
 
 | Column | Type | Description |

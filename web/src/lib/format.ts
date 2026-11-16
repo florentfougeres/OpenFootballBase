@@ -1,4 +1,4 @@
-import { app, startYear, type Row } from "./app.svelte";
+import { app, isArea, startYear, type Row } from "./app.svelte";
 
 export const wikiUrl = (lang: string, title: string) => `https://${lang}.wikipedia.org/wiki/${encodeURI(String(title).replace(/ /g, "_"))}`;
 export const pct = (a: number, b: number) => (b ? Math.round((100 * a) / b) : 0);
@@ -114,4 +114,15 @@ export function natLabel(flag: string, fallback: string): string {
   if (/^[a-z]{2}$/.test(flag)) return countryName(flag.toUpperCase());
   const uk: Record<string, string> = { "gb-eng": "England", "gb-sct": "Scotland", "gb-wls": "Wales", "gb-nir": "Northern Ireland" };
   return uk[flag] ? nationalTeam(uk[flag]).name : fallback;
+}
+
+/** Compétitions qui se jouent sur une année précise (supercoupes d'août, coupe du monde des clubs) : on écrit « 2023 », pas « 2023/24 ». */
+export const YEAR_ONLY = new Set(["ENG-CS", "FRA-TDC", "DEU-SC", "NLD-JCS", "UEFA-SC", "FIFA-CWC", "FIFA-IC"]);
+export const titleYear = (code: string, y: number) => (YEAR_ONLY.has(code) ? String(y) : `${y}/${String(y + 1).slice(2)}`);
+
+/** Type d'une compétition pour regrouper un palmarès : championnat, coupe nationale (niveau 5) ou compétition continentale / internationale (pseudo-pays). */
+export function compKind(code: string): "league" | "cup" | "intl" {
+  const c = app.comps.get(code);
+  if (!c?.country_code || isArea(c.country_code)) return "intl";
+  return Number(c.level) >= 5 ? "cup" : "league";
 }

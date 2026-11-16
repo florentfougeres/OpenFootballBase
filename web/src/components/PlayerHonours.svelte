@@ -2,9 +2,10 @@
   import { app, href, enc, t } from "../lib/app.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
-  import { compName, nationalTeam } from "../lib/format";
+  import { compKind, compName, nationalTeam, titleYear } from "../lib/format";
   import Flag from "./Flag.svelte";
   import Trophy from "./Trophy.svelte";
+  import CompLogo from "./CompLogo.svelte";
 
   // Palmarès d'un joueur : le Ballon d'Or (classements publiés) et les titres remportés avec un club dont il figure dans l'effectif listé la saison du titre.
   // C'est une approximation (il a pu partir en cours de saison ou peu jouer) : dite comme telle, jamais présentée comme un fait établi.
@@ -59,6 +60,7 @@
   const total = $derived(sorted.reduce((n, g) => n + g.years.length, 0));
   const wins = $derived((data.data?.awards ?? []).filter((a) => a.rank === 1));
   const podium = $derived((data.data?.awards ?? []).filter((a) => a.rank === 2 || a.rank === 3));
+  const KINDS = ["league", "cup", "intl"] as const;
   const ord = (n: number) => (app.lang === "fr" ? `${n}e` : n === 2 ? "2nd" : "3rd");
   const season = (y: number) => `${y}/${String(y + 1).slice(2)}`;
 </script>
@@ -103,23 +105,30 @@
       <div class="mt-4 px-5">
         <div class="flex items-baseline gap-2"><span class="display text-3xl font-extrabold leading-none tabular-nums">{total}</span><span class="font-semibold">{total > 1 ? t("titlesN") : t("titleN")} {t("withClubs")}</span></div>
       </div>
-      <ul class="mt-2 divide-y divide-line/60 px-5">
-        {#each sorted as g (g.competition)}
-          <li class="py-2.5">
-            <details class="group">
-              <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
-                <span class="display w-8 text-2xl font-bold tabular-nums">{g.years.length}</span>
-                <span class="min-w-0 flex-1">
-                  <a class="block truncate font-semibold no-underline hover:text-accent" href={href("competition", g.competition)}>{compName(g.competition)}</a>
-                  <span class="block truncate text-xs tabular-nums text-muted">{g.years.slice(0, 4).map(season).join(" · ")}{g.years.length > 4 ? " …" : ""}</span>
-                </span>
-                {#if g.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
-              </summary>
-              {#if g.years.length > 4}<p class="mt-1.5 pl-11 text-sm leading-relaxed tabular-nums text-muted">{g.years.map(season).join(" · ")}</p>{/if}
-            </details>
-          </li>
-        {/each}
-      </ul>
+      {#each KINDS as kind (kind)}
+        {@const rows = sorted.filter((g) => compKind(g.competition) === kind)}
+        {#if rows.length}
+          <h3 class="mt-3 flex items-baseline justify-between px-5 text-xs font-semibold uppercase tracking-wide text-muted"><span>{t("kind_" + kind)}</span><span class="tabular-nums">{rows.reduce((n, g) => n + g.years.length, 0)}</span></h3>
+          <ul class="divide-y divide-line/60 px-5">
+            {#each rows as g (g.competition)}
+              <li class="py-2.5">
+                <details class="group">
+                  <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                    <span class="display w-8 text-2xl font-bold tabular-nums">{g.years.length}</span>
+                    <CompLogo code={g.competition} size={32} />
+                    <span class="min-w-0 flex-1">
+                      <a class="block truncate font-semibold no-underline hover:text-accent" href={href("competition", g.competition)}>{compName(g.competition)}</a>
+                      <span class="block truncate text-xs tabular-nums text-muted">{g.years.slice(0, 4).map((y) => titleYear(g.competition, y)).join(" · ")}{g.years.length > 4 ? " …" : ""}</span>
+                    </span>
+                    {#if g.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
+                  </summary>
+                  {#if g.years.length > 4}<p class="mt-1.5 pl-[4.75rem] text-sm leading-relaxed tabular-nums text-muted">{g.years.map((y) => titleYear(g.competition, y)).join(" · ")}</p>{/if}
+                </details>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      {/each}
       <p class="border-t border-line px-5 py-3 text-xs text-muted">{t("honoursPlayerNote")}</p>
     {/if}
     {#if !total && nationalTotal}<p class="border-t border-line px-5 py-3 text-xs text-muted">{t("honoursNationalNote")}</p>{/if}

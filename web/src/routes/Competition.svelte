@@ -2,7 +2,7 @@
   import { app, countryOf, href, enc, isArea, seasonSlug, startYear, t, type Row } from "../lib/app.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
-  import { clubName, clubOf, compName } from "../lib/format";
+  import { YEAR_ONLY, clubName, clubOf, compName } from "../lib/format";
   import Crumbs from "../components/Crumbs.svelte";
   import Flag from "../components/Flag.svelte";
   import Logo from "../components/Logo.svelte";
@@ -21,6 +21,7 @@
     const rows = await q(`SELECT DISTINCT season FROM ${app.has.competition_club ? "competition_club" : "club_season"} WHERE competition = ? ORDER BY season DESC`, [code]);
     return rows.map((r) => r.season as string);
   });
+  const hasSeasons = $derived(!!seasons.data?.length);                 // une coupe nationale n'a ni clubs ni effectifs par saison : seulement son palmarès
   const label = $derived(seasons.data ? seasons.data.find((s) => seasonSlug(s) === slug) ?? seasons.data[0] : undefined);
 
   const clubs = resource(async () => {
@@ -40,7 +41,7 @@
     const rows = await q(`SELECT season_start, winner_name, winner_qid, club FROM winner WHERE competition = ? ORDER BY season_start DESC, winner_name`, [code]);
     return rows.map((r): Row => ({ ...r, c: r.club ? clubOf(r.club) : null, key: (r.club as string | null) ?? (r.winner_name as string) }));
   });
-  const seasonName = (y: number) => seasons.data?.find((s) => startYear(s) === y) ?? `${y}/${String(y + 1).slice(2)}`;
+  const seasonName = (y: number) => (YEAR_ONLY.has(code) ? String(y) : seasons.data?.find((s) => startYear(s) === y) ?? `${y}/${String(y + 1).slice(2)}`);
   const winnersOfSeason = $derived(label ? (winners.data ?? []).filter((w) => w.season_start === startYear(label)) : []);
   /** Clubs les plus titrés : nombre de saisons gagnées (une seule fois par saison), puis la plus récente. */
   const ranking = $derived.by(() => {
@@ -70,7 +71,7 @@
     </div>
   </header>
 
-  {#if winners.data?.length}
+  {#if winners.data?.length && hasSeasons}
     <div class="mt-6 inline-flex rounded-lg border border-line bg-surface p-0.5" role="tablist" aria-label={t("compView")}>
       {#each [["season", "seasonTab"], ["honours", "honours"]] as [v, k]}
         <button type="button" role="tab" aria-selected={view === v} class="flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-semibold transition {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
@@ -81,8 +82,8 @@
 
   {#if seasons.loading && !seasons.data}
     <Spinner />
-  {:else if seasons.data && label}
-    {#if view === "season"}
+  {:else}
+    {#if seasons.data && label && view === "season"}
     <h2 class="mt-7 text-lg font-bold">{t("allSeasons")}</h2>
     <div class="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={t("allSeasons")}>
       {#each seasons.data as s}
@@ -122,7 +123,7 @@
     {/if}
     {/if}
 
-    {#if view === "honours" && winners.data?.length}
+    {#if (view === "honours" || !hasSeasons) && winners.data?.length}
       <section class="mt-5" aria-label={t("honours")}>
         <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <div class="card p-4">
@@ -143,7 +144,7 @@
             <ul class="max-h-[28rem] divide-y divide-line/60 overflow-y-auto pr-1">
               {#each winners.data as w (w.season_start + w.winner_qid)}
                 <li class="flex items-center gap-3 py-1.5 {winnersOfSeason.includes(w) ? 'font-semibold' : ''}">
-                  <a class="w-16 shrink-0 text-sm tabular-nums text-muted no-underline hover:text-accent" href={href("competition", code, seasonSlug(seasonName(w.season_start)))} onclick={() => (view = "season")}>{seasonName(w.season_start)}</a>
+                  {#if hasSeasons}<a class="w-16 shrink-0 text-sm tabular-nums text-muted no-underline hover:text-accent" href={href("competition", code, seasonSlug(seasonName(w.season_start)))} onclick={() => (view = "season")}>{seasonName(w.season_start)}</a>{:else}<span class="w-16 shrink-0 text-sm tabular-nums text-muted">{seasonName(w.season_start)}</span>{/if}
                   {#if w.c}<Logo club={w.c} size={22} />{:else}<span class="size-[22px]"></span>{/if}
                   <span class="min-w-0 flex-1 truncate">{#if w.club}<a class="no-underline hover:text-accent" href={href("club", enc(w.club))}>{clubName(w.c)}</a>{:else}{w.winner_name}{/if}</span>
                 </li>

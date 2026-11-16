@@ -114,7 +114,7 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
             "code": "Code du championnat : `<PAYS>-<ABRÉVIATION>`, ex. `FRA-L1`.",
             "name_en": "Nom anglais.", "name_fr": "Nom français.",
             "country_code": "Pays du championnat (`country.code`).",
-            "level": "Niveau dans la pyramide (1 = première division).",
+            "level": "Niveau dans la pyramide (1 = première division). 5 : coupe nationale ou supercoupe (aucun club ni effectif par saison, seulement un palmarès).",
             "wikipedia_title": "Titre de la page Wikipedia anglaise du championnat.",
             "logo_url": "Miniature du logo du championnat lue dans l'infobox de sa page Wikipedia (hébergée par Wikimedia). Souvent **non libre** : voir `logo_license`.",
             "logo_license": "Licence du fichier logo (`Public domain`, `Fair use`…).",

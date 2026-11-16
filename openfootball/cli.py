@@ -18,7 +18,7 @@ from openfootball.careers import import_profiles, import_careers, import_careers
 from openfootball.schema_doc import build_schema_doc
 from openfootball.awards import import_ballon_dor
 from openfootball.nationals import import_national_titles
-from openfootball.honours import fill_winners_from_wikipedia, import_winners, resolve_competition_qids
+from openfootball.honours import ensure_cups, fill_winners_from_wikipedia, import_winners, resolve_competition_qids
 from openfootball.reconstruct import reconstruct, reconstruct_from_careers
 from openfootball.stats import COUNTRIES, StatsClient, import_stats, select_all_players, select_players, select_without_stats
 from openfootball.transfers import mark_moves_from_careers, apply_transfers, drop_stale_current_rows, drop_summer_departures
@@ -593,6 +593,7 @@ def honours_cmd(args: argparse.Namespace) -> int:
     """Palmarès : le vainqueur de chaque saison de chaque compétition, d'après Wikidata."""
     con = connect(args.db)
     migrate(con)
+    ensure_cups(con, WikipediaClient(args.cache))
     resolve_competition_qids(con, WikipediaClient(args.cache))
     import_winners(con, WikidataClient(args.wd_cache))
     fill_winners_from_wikipedia(con, WikipediaClient(args.cache))

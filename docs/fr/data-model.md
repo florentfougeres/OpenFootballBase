@@ -172,7 +172,7 @@ Tous les clubs de football connus (≈ 43 000, source : Wikidata). `has_squads` 
 
 Les compétitions couvertes : championnats du périmètre, championnats partiels de pays hors périmètre, et coupes d'Europe (`UEFA-CL`).
 
-- Fichiers : `competition/competition.642aa784.parquet` — **129 lignes**
+- Fichiers : `competition/competition.34d7328b.parquet` — **152 lignes**
 - Clé : code
 
 | Colonne | Type | Description |
@@ -181,7 +181,7 @@ Les compétitions couvertes : championnats du périmètre, championnats partiels
 | `name_en` | VARCHAR | Nom anglais. |
 | `name_fr` | VARCHAR | Nom français. |
 | `country_code` | VARCHAR | Pays du championnat (`country.code`). |
-| `level` | INTEGER | Niveau dans la pyramide (1 = première division). |
+| `level` | INTEGER | Niveau dans la pyramide (1 = première division). 5 : coupe nationale ou supercoupe (aucun club ni effectif par saison, seulement un palmarès). |
 | `wikidata_qid` | VARCHAR | QID Wikidata du championnat, s'il est renseigné. |
 | `wikipedia_title` | VARCHAR | Titre de la page Wikipedia anglaise du championnat. |
 | `logo_url` | VARCHAR | Miniature du logo du championnat lue dans l'infobox de sa page Wikipedia (hébergée par Wikimedia). Souvent **non libre** : voir `logo_license`. |
@@ -191,7 +191,7 @@ Les compétitions couvertes : championnats du périmètre, championnats partiels
 
 Les pays couverts par `competition`.
 
-- Fichiers : `country/country.a9f5f721.parquet` — **115 lignes**
+- Fichiers : `country/country.27c6bb64.parquet` — **116 lignes**
 - Clé : code
 
 | Colonne | Type | Description |
@@ -345,7 +345,7 @@ Provenance des statistiques : la page lue pour chaque joueur (une ligne par joue
 
 Palmarès : le vainqueur de chaque saison d'une compétition, d'après Wikidata (une ligne par vainqueur ; un co-vainqueur donne deux lignes).
 
-- Fichiers : `winner/winner.ce811b24.parquet` — **4 339 lignes**
+- Fichiers : `winner/winner.def31300.parquet` — **5 615 lignes**
 - Clé : (competition, season_start, winner_qid)
 
 | Colonne | Type | Description |
@@ -379,7 +379,7 @@ Classements de récompenses individuelles : une ligne par joueur classé d'une �
 
 Titres en équipe nationale : pour chaque édition d'une compétition de sélections (Coupe du monde, Euro, Copa América, Coupe d'Afrique des nations, Coupe d'Asie, Gold Cup, Coupe des confédérations), la liste des joueurs de l'équipe victorieuse, d'après la page Wikipedia des effectifs de l'édition. Un joueur de la liste a pu ne pas jouer.
 
-- Fichiers : `national_title/national_title.438dd2eb.parquet` — **2 975 lignes**
+- Fichiers : `national_title/national_title.4eff70be.parquet` — **2 975 lignes**
 - Clé : (competition, year, player_name)
 
 | Colonne | Type | Description |

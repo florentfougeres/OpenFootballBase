@@ -18,7 +18,7 @@ export const app = $state({
 });
 
 /** Pseudo-pays qui portent les coupes continentales (Europe, Amérique du Sud, Afrique, Asie) et leur emblème. */
-const AREA_FLAG: Record<string, string> = { EUR: "europe", SAM: "world", AFR: "world", ASI: "world" };
+const AREA_FLAG: Record<string, string> = { EUR: "europe", SAM: "world", AFR: "world", ASI: "world", WLD: "world" };
 export const isArea = (code?: string | null): boolean => !!code && code in AREA_FLAG;
 export const areaFlag = (code?: string | null): string | null => (code ? AREA_FLAG[code] ?? null : null);
 

@@ -24,6 +24,60 @@ def season_start(label: str) -> int | None:
     return int(m.group(1)) if m else None
 
 
+# Coupes nationales, coupes de la Ligue, supercoupes et compétitions internationales de clubs : elles n'ont ni clubs ni effectifs dans la base, seulement un palmarès.
+# Pas de Supercoupe d'Espagne, d'Italie ni du Portugal : leur édition passe d'août à janvier (Arabie saoudite) et Wikidata et Wikipedia ne comptent pas l'année pareil.
+# (code, nom anglais, nom français, pays ou zone, niveau, noms de la page Wikipedia anglaise — le premier sert à retrouver le QID). Niveau 5 : coupe nationale.
+CUPS: tuple[tuple[str, str, str, str, int, tuple[str, ...]], ...] = (
+    ("ENG-FAC", "FA Cup", "FA Cup", "ENG", 5, ("FA Cup",)),
+    ("ENG-EFL", "EFL Cup", "Coupe de la Ligue anglaise", "ENG", 5, ("EFL Cup", "Football League Cup")),
+    ("ENG-CS", "FA Community Shield", "Community Shield", "ENG", 5, ("FA Community Shield", "FA Charity Shield")),
+    ("ESP-CDR", "Copa del Rey", "Coupe du Roi", "ESP", 5, ("Copa del Rey",)),
+    ("FRA-CDF", "Coupe de France", "Coupe de France", "FRA", 5, ("Coupe de France",)),
+    ("FRA-CDL", "Coupe de la Ligue", "Coupe de la Ligue", "FRA", 5, ("Coupe de la Ligue",)),
+    ("FRA-TDC", "Trophée des champions", "Trophée des champions", "FRA", 5, ("Trophée des Champions",)),
+    ("ITA-CI", "Coppa Italia", "Coupe d'Italie", "ITA", 5, ("Coppa Italia",)),
+    ("DEU-DFB", "DFB-Pokal", "Coupe d'Allemagne", "DEU", 5, ("DFB-Pokal",)),
+    ("DEU-SC", "DFL-Supercup", "Supercoupe d'Allemagne", "DEU", 5, ("DFL-Supercup", "DFB-Supercup")),
+    ("NLD-KNVB", "KNVB Cup", "Coupe des Pays-Bas", "NLD", 5, ("KNVB Cup",)),
+    ("NLD-JCS", "Johan Cruyff Shield", "Supercoupe des Pays-Bas", "NLD", 5, ("Johan Cruyff Shield", "Johan Cruijff Shield")),
+    ("PRT-TP", "Taça de Portugal", "Coupe du Portugal", "PRT", 5, ("Taça de Portugal",)),
+    ("PRT-TL", "Taça da Liga", "Coupe de la Ligue portugaise", "PRT", 5, ("Taça da Liga",)),
+    ("SCO-SC", "Scottish Cup", "Coupe d'Écosse", "SCO", 5, ("Scottish Cup",)),
+    ("SCO-LC", "Scottish League Cup", "Coupe de la Ligue écossaise", "SCO", 5, ("Scottish League Cup",)),
+    ("TUR-TC", "Turkish Cup", "Coupe de Turquie", "TUR", 5, ("Turkish Cup",)),
+    ("BRA-CB", "Copa do Brasil", "Coupe du Brésil", "BRA", 5, ("Copa do Brasil",)),
+    ("ARG-CA", "Copa Argentina", "Coupe d'Argentine", "ARG", 5, ("Copa Argentina",)),
+    ("UEFA-SC", "UEFA Super Cup", "Supercoupe de l'UEFA", "EUR", 2, ("UEFA Super Cup",)),
+    ("UEFA-CWC", "UEFA Cup Winners' Cup", "Coupe des coupes", "EUR", 2, ("UEFA Cup Winners' Cup",)),
+    ("FIFA-CWC", "FIFA Club World Cup", "Coupe du monde des clubs", "WLD", 2, ("FIFA Club World Cup",)),
+    ("FIFA-IC", "Intercontinental Cup", "Coupe intercontinentale", "WLD", 2, ("Intercontinental Cup (football)", "Intercontinental Cup")),
+)
+
+
+def ensure_cups(con: duckdb.DuckDBPyConnection, wp, *, log: Callable[[str], None] = print) -> int:
+    """Crée les compétitions de `CUPS` qui manquent (sans club ni effectif) et retrouve leur QID Wikidata par le titre de leur page Wikipedia."""
+    if not con.execute("SELECT 1 FROM country WHERE code = 'WLD'").fetchone():
+        con.execute("INSERT INTO country (code, name_en, name_fr) VALUES ('WLD', 'World', 'Monde')")
+    known = {r[0] for r in con.execute("SELECT code FROM competition").fetchall()}
+    made = 0
+    for code, name_en, name_fr, country, level, pages in CUPS:
+        if code in known:
+            continue
+        cid = con.execute("SELECT coalesce(max(id), 0) + 1 FROM competition").fetchone()[0]
+        con.execute("INSERT INTO competition (id, code, name_en, name_fr, country_code, level) VALUES (?, ?, ?, ?, ?, ?)", [cid, code, name_en, name_fr, country, level])
+        made += 1
+    qids = club_qids(wp, [c[5][0] for c in CUPS])
+    taken = {r[0] for r in con.execute("SELECT qid FROM competition_wikidata").fetchall()}
+    for code, _, _, _, _, pages in CUPS:
+        q = qids.get(pages[0])
+        row = con.execute("SELECT id FROM competition WHERE code = ?", [code]).fetchone()
+        if q and q not in taken and row and not con.execute("SELECT 1 FROM competition_wikidata WHERE competition_id = ?", [row[0]]).fetchone():
+            con.execute("INSERT INTO competition_wikidata VALUES (?, ?)", [row[0], q])
+            taken.add(q)
+    log(f"  coupes : {made} compétitions créées, {len(CUPS)} au total")
+    return made
+
+
 def resolve_competition_qids(con: duckdb.DuckDBPyConnection, wp, *, log: Callable[[str], None] = print) -> int:
     """QID Wikidata de chaque compétition sans QID, par le titre de sa page Wikipedia anglaise. Un QID déjà pris par une autre compétition est ignoré."""
     rows = con.execute("""SELECT c.id, coalesce(i.wikipedia_title, c.name_en) FROM competition c LEFT JOIN competition_info i ON i.code = c.code
@@ -127,6 +181,7 @@ _LEAGUE_NAMES: dict[str, tuple[str, ...]] = {
     "UZB-L1": ("Uzbekistan Super League",), "VEN-L1": ("Venezuelan Primera División",), "WAL-L1": ("Cymru Premier", "Welsh Premier League"),
     "XKS-L1": ("Football Superleague of Kosovo",), "NGA-L1": ("Nigeria Professional Football League",), "MYS-L1": ("Malaysia Super League",),
     "SCO-L1": ("Scottish Premier League", "Scottish Premiership"),
+    **{code: pages for code, _, _, _, _, pages in CUPS},
 }
 
 
@@ -137,16 +192,21 @@ def _season_titles(name: str, year: int, extra: tuple[str, ...]) -> list[str]:
 
 
 def fill_winners_from_wikipedia(con: duckdb.DuckDBPyConnection, wp, *, since: int = 2000, log: Callable[[str], None] = print) -> int:
-    """Saisons de la base sans vainqueur (Wikidata ne le renseigne pas) : on le lit dans l'infobox de la page Wikipedia de la saison.
-    Le vainqueur est relié à un club de la base par son QID (via la page) ; la ligne porte `season_qid = 'enwiki:<page>'`."""
+    """Vainqueur de chaque saison de la base depuis `since`, lu dans l'infobox de la page Wikipedia de la saison. La page fait foi : elle comble les
+    saisons que Wikidata ne renseigne pas ET corrige celles où Wikidata se trompe (deux vainqueurs, un autre club). Le vainqueur est relié à un club de
+    la base par son QID (via la page) ; la ligne porte `season_qid = 'enwiki:<page>'`."""
     from openfootball.scopes import load_scopes
     extra = {s.competition_code: s.page_names for s in load_scopes()}
     todo = con.execute("""
         SELECT co.id, co.code, co.name_en, s.start_year FROM (
             SELECT competition_id, season_id FROM club_season UNION SELECT competition_id, season_id FROM competition_entry) x
         JOIN competition co ON co.id = x.competition_id JOIN season s ON s.id = x.season_id
-        WHERE s.start_year >= ? AND NOT EXISTS (SELECT 1 FROM competition_winner w WHERE w.competition_id = co.id AND w.season_start = s.start_year)
+        WHERE s.start_year >= ?
         GROUP BY ALL ORDER BY co.code, s.start_year""", [since]).fetchall()
+    todo += con.execute("""
+        SELECT co.id, co.code, co.name_en, s.start_year FROM competition co CROSS JOIN season s
+        WHERE co.code IN (SELECT unnest(?::VARCHAR[])) AND s.start_year >= ? AND s.start_year < year(current_date)""",
+                        [[c[0] for c in CUPS], since]).fetchall()
     log(f"  {len(todo)} saisons sans vainqueur à chercher sur Wikipedia")
     candidates = {(cid, y): _season_titles(*((_LEAGUE_NAMES[code][0], y, _LEAGUE_NAMES[code][1:] + extra.get(code, ())) if code in _LEAGUE_NAMES
                                               else (LEAGUE_PAGES.get(name, name), y, extra.get(code, ())))) for cid, code, name, y in todo}
@@ -165,18 +225,25 @@ def fill_winners_from_wikipedia(con: duckdb.DuckDBPyConnection, wp, *, since: in
                 found[(cid, y)] = (w[0], w[1], t)
                 break
     qids = club_qids(wp, sorted({w[0] for w in found.values()})) if found else {}
-    n = 0
+    n = fixed = 0
     con.execute("BEGIN")
     try:
         for (cid, y), (target, label, page) in sorted(found.items()):
             qid = qids.get(target)
             club = con.execute("SELECT id FROM club WHERE wikidata_qid = ? OR wikipedia_title = ?", [qid, target]).fetchone() if (qid or target) else None
+            club_id = club[0] if club else None
+            old = con.execute("SELECT club_id, winner_qid FROM competition_winner WHERE competition_id = ? AND season_start = ?", [cid, y]).fetchall()
+            if len(old) == 1 and ((club_id is not None and old[0][0] == club_id) or old[0][1] == qid):
+                continue                                              # Wikidata et la page disent la même chose
+            if old:
+                fixed += 1                                           # la page diffère : elle remplace les lignes Wikidata de la saison
+                con.execute("DELETE FROM competition_winner WHERE competition_id = ? AND season_start = ?", [cid, y])
             con.execute("INSERT INTO competition_winner VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING",
-                        [cid, y, qid or f"enwiki:{target}", label, club[0] if club else None, f"enwiki:{page}"])
+                        [cid, y, qid or f"enwiki:{target}", label, club_id, f"enwiki:{page}"])
             n += 1
         con.execute("COMMIT")
     except Exception:
         con.execute("ROLLBACK")
         raise
-    log(f"  vainqueurs lus sur les pages de saison : {n} / {len(todo)}")
+    log(f"  vainqueurs lus sur les pages de saison : {n} ajoutés ou corrigés ({fixed} remplacent une ligne Wikidata) sur {len(todo)} saisons")
     return n

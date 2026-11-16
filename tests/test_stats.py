@@ -131,3 +131,9 @@ def test_titres_en_selection():
             "===Italy===\n{{nat fs player|no=1|name=[[Buffon]]}}\n")
     got = players(team_section(page, "France"))
     assert [(g["name"], g["no"], g["pos"]) for g in got] == [("Patrick Vieira", 6, "MF"), ("Zinedine Zidane", 10, "MF")]
+
+
+def test_equipe_victorieuse_sous_son_nom():
+    from openfootball.nationals import champion
+    for code, name in (("FRG", "West Germany"), ("TCH", "Czechoslovakia"), ("NED", "Netherlands"), ("US", "United States")):
+        assert champion("{{Infobox\n|champion = %s\n}}" % code) == name

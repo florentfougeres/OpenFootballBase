@@ -27,7 +27,7 @@
 
 - **Des effectifs saison par saison, de 2000/01 à 2026/27** (5 grands championnats dès 2000/01, les autres dès 2010/11), avec numéro, poste, nationalité et âge, pour 18 championnats de première et deuxième division et les coupes d'Europe de clubs.
 - **Des fiches joueur** : frise de carrière, clubs, prêts, sélections nationales, date et lieu de naissance, et — pour environ 27 000 joueurs — des **statistiques de carrière** par club, saison, compétition et sélection.
-- **Un palmarès** : le vainqueur de chaque saison de 97 compétitions (championnats et coupes continentales, depuis leurs premières saisons), les titres des clubs, les titres des joueurs avec l'effectif listé, et le classement du **Ballon d'Or** depuis 2000.
+- **Un palmarès** : le vainqueur de chaque saison de 119 compétitions (championnats, coupes nationales et coupes continentales, depuis leurs premières saisons), les titres des clubs, les titres des joueurs avec l'effectif listé, et le classement du **Ballon d'Or** depuis 2000.
 - **Des données ouvertes et réutilisables** : fichiers Parquet publiés à chaque [release](https://github.com/florentfougeres/OpenFootballBase/releases), lisibles avec DuckDB, pandas, Polars ou tout lecteur Parquet.
 - **Traçables** : chaque effectif cite la page Wikipedia et la révision d'où il vient. Rien n'est inventé ; un effectif absent reste absent et est signalé comme tel.
 - **Un site statique bilingue** (français / anglais) qui interroge les fichiers Parquet directement dans le navigateur avec DuckDB-WASM — sans serveur, sans analytique, sans cookies.
@@ -43,7 +43,7 @@
 | Joueurs | 85 099 |
 | Lignes d'effectif | 327 375 |
 | Lignes de carrière | 479 110 |
-| Compétitions | 129 (championnats et coupes continentales) |
+| Compétitions | 152 (championnats, coupes nationales et coupes continentales) |
 
 Chiffres au 2026-11-14. L'état à jour de chaque championnat et de chaque saison est dans [PROGRESS.md](PROGRESS.md).
 

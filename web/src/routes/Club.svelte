@@ -3,8 +3,9 @@
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
   import { downloadCsv, RELEASES_URL } from "../lib/download";
-  import { clubName, clubOf, commonsLogo, compName, countryName, fmtFounded, hostLang, seasonAge, wikiUrl } from "../lib/format";
+  import { compKind, titleYear, clubName, clubOf, commonsLogo, compName, countryName, fmtFounded, hostLang, seasonAge, wikiUrl } from "../lib/format";
   import Trophy from "../components/Trophy.svelte";
+  import CompLogo from "../components/CompLogo.svelte";
   import Badge from "../components/Badge.svelte";
   import Crumbs from "../components/Crumbs.svelte";
   import Flag from "../components/Flag.svelte";
@@ -34,6 +35,7 @@
   });
 
   const d = $derived(res.data);
+  const KINDS = ["league", "cup", "intl"] as const;
 
   // Titres : les compétitions que le club a gagnées (palmarès Wikidata), regroupées par compétition.
   const honours = resource(async () => {
@@ -219,7 +221,7 @@
           <p class="mt-3 flex flex-wrap items-center gap-2" aria-label={t("honours")}>
             {#each honours.data.slice(0, 4) as h (h.code)}
               <a class="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm font-semibold no-underline hover:border-accent hover:text-accent" href={href("competition", h.code)}>
-                <Trophy size={15} /><span class="tabular-nums">{h.years.length}×</span> {compName(h.code)}</a>
+                <CompLogo code={h.code} size={18} /><span class="tabular-nums">{h.years.length}×</span> {compName(h.code)}</a>
             {/each}
           </p>
         {/if}
@@ -433,23 +435,30 @@
         <h2 class="mb-2 flex items-center gap-2 text-xl font-bold"><Trophy size={20} />{t("honours")}</h2>
         <div class="card mb-6 px-4 py-3">
           <div class="flex items-baseline gap-2 border-b border-line pb-2"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{total}</span><span class="font-semibold">{total > 1 ? t("titlesN") : t("titleN")}</span></div>
-          <ul class="divide-y divide-line/60">
-            {#each honours.data as h (h.code)}
-              <li class="py-2.5">
-                <details class="group">
-                  <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
-                    <span class="display w-8 text-2xl font-bold tabular-nums">{h.years.length}</span>
-                    <span class="min-w-0 flex-1">
-                      <a class="block truncate font-semibold no-underline hover:text-accent" href={href("competition", h.code)}>{compName(h.code)}</a>
-                      <span class="block truncate text-xs tabular-nums text-muted">{h.years.slice(0, 4).map((y) => `${y}/${String(y + 1).slice(2)}`).join(" · ")}{h.years.length > 4 ? " …" : ""}</span>
-                    </span>
-                    {#if h.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
-                  </summary>
-                  {#if h.years.length > 4}<p class="mt-1.5 pl-11 text-sm leading-relaxed tabular-nums text-muted">{h.years.map((y) => `${y}/${String(y + 1).slice(2)}`).join(" · ")}</p>{/if}
-                </details>
-              </li>
-            {/each}
-          </ul>
+          {#each KINDS as kind (kind)}
+            {@const rows = honours.data.filter((h) => compKind(h.code) === kind)}
+            {#if rows.length}
+              <h3 class="mt-3 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wide text-muted"><span>{t("kind_" + kind)}</span><span class="tabular-nums">{rows.reduce((n, h) => n + h.years.length, 0)}</span></h3>
+              <ul class="divide-y divide-line/60">
+                {#each rows as h (h.code)}
+                  <li class="py-2.5">
+                    <details class="group">
+                      <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                        <span class="display w-8 text-2xl font-bold tabular-nums">{h.years.length}</span>
+                        <CompLogo code={h.code} size={32} />
+                        <span class="min-w-0 flex-1">
+                          <a class="block truncate font-semibold no-underline hover:text-accent" href={href("competition", h.code)}>{compName(h.code)}</a>
+                          <span class="block truncate text-xs tabular-nums text-muted">{h.years.slice(0, 4).map((y) => titleYear(h.code, y)).join(" · ")}{h.years.length > 4 ? " …" : ""}</span>
+                        </span>
+                        {#if h.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
+                      </summary>
+                      {#if h.years.length > 4}<p class="mt-1.5 pl-[4.75rem] text-sm leading-relaxed tabular-nums text-muted">{h.years.map((y) => titleYear(h.code, y)).join(" · ")}</p>{/if}
+                    </details>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          {/each}
           <p class="border-t border-line pt-2 text-xs text-muted">{t("honoursClubNote")}</p>
         </div>
       {/if}
