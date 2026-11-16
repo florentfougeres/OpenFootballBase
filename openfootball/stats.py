@@ -61,6 +61,21 @@ def select_without_stats(con: duckdb.DuckDBPyConnection) -> list[tuple[int, str]
                           WHERE s.club_rows = 0 AND s.national_rows = 0 AND p.link_lang = 'en' AND p.link_title IS NOT NULL ORDER BY p.id""").fetchall()
 
 
+MIN_IMPLAUSIBLE_GOALS = 10      # sous ce seuil, beaucoup de buts pour peu de matches reste possible (un triplé, un quadruplé)
+MAX_GOALS_PER_APP = 3
+
+
+def implausible_goals(apps: int | None, goals: int | None) -> bool:
+    """Plus de 3 buts de moyenne par match (et au moins 10 buts) : une faute de frappe de la source (« 11 matches, 100 buts »), pas un fait."""
+    return bool(apps and apps > 0 and goals is not None and goals >= MIN_IMPLAUSIBLE_GOALS and goals > MAX_GOALS_PER_APP * apps)
+
+
+def clean_implausible_goals(con: duckdb.DuckDBPyConnection) -> int:
+    """Vide les buts impossibles déjà en base (un nombre inconnu vaut mieux qu'un nombre faux) ; rend le nombre de lignes corrigées."""
+    return len(con.execute(f"""UPDATE player_stat_club SET goals = NULL WHERE apps > 0 AND goals >= {MIN_IMPLAUSIBLE_GOALS}
+                            AND goals > {MAX_GOALS_PER_APP} * apps RETURNING 1""").fetchall())
+
+
 def import_stats(con: duckdb.DuckDBPyConnection, client: WikipediaClient, players: list[tuple[int, str]], *,
                  log: Callable[[str], None] = print) -> tuple[int, int, int]:
     """Lit et écrit les statistiques de `players`. Idempotent (remplace les lignes du joueur).
@@ -89,7 +104,7 @@ def import_stats(con: duckdb.DuckDBPyConnection, client: WikipediaClient, player
                     con.execute(f"DELETE FROM {t} WHERE player_id = ?", [pid])
                 if club:
                     con.executemany("INSERT INTO player_stat_club VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                    [(pid, k, s.club, s.club_link, s.season, s.division, s.group, s.apps, s.goals, s.assists)
+                                    [(pid, k, s.club, s.club_link, s.season, s.division, s.group, s.apps, None if implausible_goals(s.apps, s.goals) else s.goals, s.assists)
                                      for k, s in enumerate(club, 1)])
                 if nat:
                     con.executemany("INSERT INTO player_stat_national VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

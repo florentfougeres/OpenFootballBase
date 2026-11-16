@@ -8,6 +8,7 @@ import os
 from collections import Counter
 from pathlib import Path
 
+from openfootball.audit import run_audit
 from openfootball.backfill import run_backfill
 from openfootball.checks import run_checks
 from openfootball.db import connect, migrate
@@ -20,7 +21,7 @@ from openfootball.awards import import_ballon_dor
 from openfootball.nationals import import_national_titles
 from openfootball.honours import drop_vacant, ensure_cups, fill_winners_from_wikipedia, import_winners, resolve_competition_qids
 from openfootball.reconstruct import reconstruct, reconstruct_from_careers
-from openfootball.stats import COUNTRIES, StatsClient, import_stats, select_active_players, select_all_players, select_players, select_without_stats
+from openfootball.stats import COUNTRIES, StatsClient, clean_implausible_goals, import_stats, select_active_players, select_all_players, select_players, select_without_stats
 from openfootball.transfers import mark_moves_from_careers, apply_transfers, drop_stale_current_rows, drop_summer_departures
 from openfootball.reconcile import apply_player_aliases, normalize_player_names, reconcile_by_infobox, reconcile_by_name, reconcile_by_wikidata, reconcile_players
 from openfootball.export import export_all, pack, verify_continuity
@@ -369,6 +370,17 @@ def status_cmd(args: argparse.Namespace) -> int:
     return 0
 
 
+def audit_cmd(args: argparse.Namespace) -> int:
+    """Contrôles de cohérence sur toute la base ; code de sortie 1 s'il y a un problème bloquant (ou un avertissement avec --strict)."""
+    con = connect(args.db)
+    probs = run_audit(con)
+    for p in probs:
+        print(f"  [{p.severity}] {p.check} — {p.scope}: {p.detail}")
+    blocking = sum(1 for p in probs if p.severity == "blocking")
+    print(f"{blocking} bloquant(s), {len(probs) - blocking} avertissement(s)")
+    return 1 if blocking or (args.strict and probs) else 0
+
+
 def known_gap_cmd(args: argparse.Namespace) -> int:
     """Valide explicitement des trous (D2). Ne touche qu'aux club-saisons SANS effectif attesté."""
     con = connect(args.db)
@@ -586,6 +598,9 @@ def stats_cmd(args: argparse.Namespace) -> int:
     print(f"{len(players)} joueurs à lire")
     read, with_table, rows = import_stats(con, StatsClient(args.cache), players)
     print(f"{read} pages lues, {with_table} avec un tableau club, {rows} lignes")
+    cleaned = clean_implausible_goals(con)
+    if cleaned:
+        print(f"  {cleaned} nombre(s) de buts impossible(s) vidé(s)")
     return 0
 
 
@@ -736,6 +751,10 @@ def main(argv: list[str] | None = None) -> int:
     t = sub.add_parser("status", help="état d'une saison et invariants")
     common(t)
     t.set_defaults(func=status_cmd)
+    au = sub.add_parser("audit", help="contrôles de cohérence sur toute la base (palmarès, statistiques, carrières) avant publication")
+    au.add_argument("--db", default=DB_DEFAULT)
+    au.add_argument("--strict", action="store_true", help="échoue aussi sur les avertissements")
+    au.set_defaults(func=audit_cmd)
     k = sub.add_parser("known-gap", help="valide explicitement des club-saisons sans effectif (D2)")
     common(k)
     k.add_argument("--reason", required=True)

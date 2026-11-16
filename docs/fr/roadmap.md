@@ -29,7 +29,7 @@ Détail : [spec.md](spec.md), « Palmarès et statistiques ».
 ### Données
 
 - **Résultats de matchs, classements par saison et par journée.** Source envisagée : les dépôts ouverts [openfootball](https://github.com/openfootball) (domaine public, CC0). **Décision à prendre avant tout** : le produit n'a, jusqu'ici, qu'une règle de source (Wikipedia + Wikidata) ; ajouter une troisième source la change et doit être inscrite dans la SPEC (attribution, vérification de la licence de chaque dépôt). Travail : lecteur du format texte, rapprochement des noms de clubs avec les nôtres, calcul des classements (points, différence de buts, règles de départage propres à chaque championnat), page « Classement » avec choix de la journée. Couverture à mesurer (grands championnats surtout). **L.**
-- **Effectifs des 20 pays en « liste seulement »** : passer `squads = true` pays par pays et lancer `backfill` (la disponibilité des pages varie beaucoup). **M** par groupe de pays.
+- **Effectifs des 20 pays en « liste seulement »** : passer `squads = true` pays par pays et lancer `backfill` (la disponibilité des pages varie beaucoup). **M** par groupe de pays. *Sondage (16/11/2026) : des pages anglaises de saison de club n'existent que pour 2 trous sur 80 tirés entre 2000 et 2010, le rendement attendu est donc faible ; les autres trous sont des clubs de pays hors périmètre.*
 - **Site sans DuckDB-WASM** (JSON statiques pré-calculés) : voir [spec.md](spec.md), « Pistes ultérieures ». Utile aussi à l'application iOS, et supprime le téléchargement du moteur (35 Mo). **L.**
 
 ### Site

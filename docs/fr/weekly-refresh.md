@@ -7,7 +7,7 @@
 1. restaure la base depuis la dernière release si le serveur n'en a pas, puis la sauvegarde (3 sauvegardes conservées) ;
 2. `careers --active --fresh` : relit l'infobox de carrière et le profil, en ignorant le cache ;
 3. `reconcile --names --wikidata`, puis `stats --active --fresh` : relit les tableaux « Career statistics » ;
-4. `enrich --what players careerclubs labels`, `progress` ;
+4. `enrich --what players careerclubs labels`, `progress`, `audit` (un problème bloquant arrête le script avant l'export) ;
 5. exporte avec `--previous` (refusé si une saison figée a changé) et **publie** une release GitHub `data-X.Y.(Z+1)` (version corrective suivant la dernière), puis relance le déploiement du site.
 
 Un verrou (`data/work/weekly.lock`) empêche deux passages simultanés (DuckDB n'a qu'un écrivain). Journal : `data/work/logs/weekly_AAAAMMJJ.log`.

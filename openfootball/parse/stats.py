@@ -95,7 +95,8 @@ def _cells(row: str) -> list[tuple[bool, str, int, int]]:
         for seg in segs:
             parts = split_top_level(seg, "|")
             attrs, content = (parts[0], "|".join(parts[1:])) if len(parts) > 1 and "=" in parts[0] and "[[" not in parts[0] else ("", seg)
-            spans = {k.lower(): int(v) for k, v in _SPAN.findall(attrs)}
+            stray = attrs.lstrip().startswith("!")                    # « |!colspan="2"|[[2010 …|2010]] » : en-tête collé par erreur, le colspan ne décrit pas la cellule
+            spans = {} if stray else {k.lower(): int(v) for k, v in _SPAN.findall(attrs)}
             out.append((head, content.strip(), spans.get("rowspan", 1), spans.get("colspan", 1)))
     return out
 

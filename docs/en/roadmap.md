@@ -29,7 +29,7 @@ Detail: [spec.md](spec.md), "Honours and statistics".
 ### Data
 
 - **Match results, standings per season and per matchday.** Envisaged source: the open [openfootball](https://github.com/openfootball) repositories (public domain, CC0). **A decision is needed before anything**: so far the product has a single source rule (Wikipedia + Wikidata); adding a third source changes it and must be written into the spec (attribution, licence check of each repository). Work: reader of the text format, matching of club names with ours, computing standings (points, goal difference, tie-break rules specific to each league), a "Standings" page with matchday choice. Coverage to be measured (big leagues mostly). **L.**
-- **Squads for the 20 list-only countries**: flip `squads = true` country by country and run `backfill` (page availability varies a lot). **M** per group of countries.
+- **Squads for the 20 list-only countries**: flip `squads = true` country by country and run `backfill` (page availability varies a lot). **M** per group of countries. *Probe (2026-11-16): English club-season pages exist for only 2 of 80 sampled 2000-2010 gaps, so the expected yield is low; the remaining gaps are clubs of countries without a scope.*
 - **A site without DuckDB-WASM** (pre-computed static JSON): see [spec.md](spec.md), "Later leads". Useful for the iOS application too, and it would remove the 35 MB engine download. **L.**
 
 ### Site

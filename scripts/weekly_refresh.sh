@@ -23,9 +23,10 @@ ls -1t data/work/backups/*.duckdb | tail -n +4 | xargs -r rm -f   # garde les 3 
 
 $OF careers --active --fresh                           # infobox de carrière + profil
 $OF reconcile --names --wikidata
-$OF stats --active --fresh --cache cache/wikipedia_stats_v2   # tableaux « Career statistics »
+$OF stats --active --fresh --cache cache/wikipedia_stats_v2   # tableaux « Career statistics » des joueurs en activité, relus
 $OF enrich --what players careerclubs labels
 $OF progress
+$OF audit                                               # cohérence de toute la base : un problème bloquant arrête avant l'export
 
 mkdir -p /tmp/prev && gh release download "$LAST" --pattern "*-data.tar.gz" --dir /tmp/prev --clobber
 tar -xzOf /tmp/prev/*-data.tar.gz manifest.json > /tmp/prev/manifest.json

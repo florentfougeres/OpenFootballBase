@@ -49,6 +49,7 @@ Reminder: `export OPENFOOTBALL_CONTACT="your-contact"` before any command that q
 | Command | What it does | Useful options |
 |---|---|---|
 | `progress` | Writes `PROGRESS.md`: progress by season and league, gaps, to-do. | `--out` |
+| `audit` | Consistency checks over the whole database before publishing: vacated titles that came back, winners without any squad, statistics or careers before the age of 14 (merged namesakes), impossible goal counts, national-team squads of odd size. Exit code 1 on a blocking problem. | `--strict` (also fail on warnings) |
 | `export --out DIR` | Writes the Parquet files, `manifest.json` and the data dictionary (`SCHEMA.md` in English, `SCHEMA.fr.md` in French). | `--archive FILE.tar.gz` (release archive), `--previous manifest.json` (continuity guard: refuses the export if a frozen season changed) |
 | `verify-release --new A --previous B` | Compares two manifests: a frozen season must not change. | |
 | `schema --data DIR --out FILE` | Regenerates [data-model.md](data-model.md) (both languages: `docs/fr/` and `docs/en/`) from an export. | |

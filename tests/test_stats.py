@@ -149,3 +149,29 @@ def test_titre_vacant_retire_du_palmares():
     con.execute("INSERT INTO competition_winner VALUES (1, 1992, 'Q132885'), (1, 1993, 'Q1'), (2, 2004, 'Q1'), (2, 2005, 'Q2')")
     assert drop_vacant(con, log=lambda _: None) == 2
     assert con.execute("SELECT competition_id, season_start FROM competition_winner ORDER BY 1, 2").fetchall() == [(1, 1993), (2, 2005)]
+
+
+def test_cellule_saison_avec_entete_colle_ne_decale_pas_les_colonnes():
+    """`|!colspan="2"|[[2010 …|2010]]` (source de Nukri Revishvili) : la saison ne doit pas être lue comme un nombre de matches."""
+    wikitext = """==Career statistics==
+{| class="wikitable"
+!rowspan=2|Club!!rowspan=2|Season!!colspan=2|League!!colspan=2|Cup!!colspan=2|Total
+|-
+!Apps!!Goals!!Apps!!Goals!!Apps!!Goals
+|-
+| rowspan="2" |[[FC Anzhi Makhachkala|Anzhi Makhachkala]]
+|!colspan="2"|[[2010 Russian Premier League|2010]]
+|14||0||0||0||14||0
+|-
+|!colspan="2"|[[2011–12 Russian Premier League|2011–12]]
+|26||2||3||0||29||2
+|}"""
+    rows = parse_club_stats(wikitext)
+    league = [(r.season, r.apps, r.goals) for r in rows if r.group == "League"]
+    assert league == [("2010", 14, 0), ("2011–12", 26, 2)]
+
+
+def test_buts_impossibles_vides():
+    from openfootball.stats import implausible_goals
+    assert implausible_goals(11, 100) and implausible_goals(1, 44)
+    assert not implausible_goals(10, 30) and not implausible_goals(2, 6) and not implausible_goals(None, 40) and not implausible_goals(5, None)

@@ -8,6 +8,7 @@ Les releases de données publiées, la plus récente d'abord. Les noms suivent l
 - **Titres vacants** : Marseille 1992/93 (affaire VA-OM) et la Juventus 2004/05 (Calciopoli) ne sont plus comptés comme titres de champion, les fédérations les ayant déclarés vacants (Marseille : 9 titres de Ligue 1, pas 10). Wikidata cite encore le club arrivé premier.
 
 ## Data 1.18.1 — 2026-11-16
+- **Audit de cohérence** (`audit`) : contrôle toute la base avant chaque publication, lancé par le script hebdomadaire (un problème bloquant l'arrête). Statistiques : les nombres de buts impossibles (plus de 3 par match et au moins 10, fautes de frappe de Wikipedia comme « 11 matchs, 100 buts ») sont désormais laissés vides au lieu d'être affichés ; les tableaux dont la cellule de saison porte un `!colspan` parasite ne décalent plus les colonnes.
 - **Mise à jour hebdomadaire** (premier passage de `scripts/weekly_refresh.sh`) : infobox de carrière et tableaux de statistiques relus pour les 29 000 joueurs encore en activité (544 634 lignes de statistiques).
 
 ## Data 1.18.0 — 2026-11-16
