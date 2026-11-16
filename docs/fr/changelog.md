@@ -4,6 +4,12 @@
 
 Les releases de données publiées, la plus récente d'abord. Les noms suivent le [versionnage sémantique](https://semver.org/lang/fr/) : **majeure** = changement de schéma incompatible, **mineure** = nouvelles données (championnat, pays, coupe, table, colonne), **correctif** = corrections de données. Chaque release s'appelle `Data X.Y.Z` avec le tag `data-X.Y.Z` ([comment publier](publishing-a-release.md)). Les changements du site et des outils qui ne sont pas liés à une release de données sont listés sous « Site et outils ».
 
+## Data 1.18.2 — 2026-11-16
+- **Titres vacants** : Marseille 1992/93 (affaire VA-OM) et la Juventus 2004/05 (Calciopoli) ne sont plus comptés comme titres de champion, les fédérations les ayant déclarés vacants (Marseille : 9 titres de Ligue 1, pas 10). Wikidata cite encore le club arrivé premier.
+
+## Data 1.18.1 — 2026-11-16
+- **Mise à jour hebdomadaire** (premier passage de `scripts/weekly_refresh.sh`) : infobox de carrière et tableaux de statistiques relus pour les 29 000 joueurs encore en activité (544 634 lignes de statistiques).
+
 ## Data 1.18.0 — 2026-11-16
 - **Coupes et supercoupes dans le palmarès** : 23 nouvelles compétitions avec leurs vainqueurs, d'après Wikidata et les pages de saison Wikipedia — les coupes nationales et coupes de la Ligue de l'Angleterre, de l'Espagne, de la France, de l'Italie, de l'Allemagne, des Pays-Bas, du Portugal, de l'Écosse, de la Turquie, du Brésil et de l'Argentine, les supercoupes d'août (Community Shield, Trophée des champions, DFL-Supercup, Johan Cruyff Shield), la Supercoupe de l'UEFA, la Coupe des coupes et la Coupe du monde des clubs. 5 615 vainqueurs sur 119 compétitions au total (4 339 sur 97 avant). Ces compétitions n'ont ni clubs ni effectifs par saison : seulement un palmarès (`competition.level = 5` pour les nationales).
 - **La page de saison Wikipedia d'abord** : à partir de 2000/01, le vainqueur écrit sur la page de la saison remplace un vainqueur différent donné par Wikidata (21 corrections, par exemple deux vainqueurs pour une saison de Liga).
@@ -113,6 +119,9 @@ Les releases de données publiées, la plus récente d'abord. Les noms suivent l
 - **Première publication** : 5 championnats (Premier League, La Liga, Serie A, Bundesliga, Ligue 1), saisons 2010/11 à 2026/27 (en cours), issues de Wikipedia et Wikidata uniquement. Fichiers Parquet + `manifest.json` ; le site est déployé à partir de cette release.
 
 ## Site et outils
+
+### 2026-11-16
+- **Mise à jour hebdomadaire** (`scripts/weekly_refresh.sh`, [weekly-refresh.md](weekly-refresh.md)) : script pour un cron sur serveur qui relit les joueurs encore en activité (infobox de carrière et tableaux de statistiques), exporte et publie une release. Nouvelle option `stats --active`.
 
 ### 2026-11-13
 - **Sécurité et vitesse** : politique de sécurité de contenu (CSP) ; le moteur DuckDB est vérifié par une empreinte SHA-384 et son extension Parquet est hébergée avec le site (voir [security.md](security.md), [website.md](website.md)) ; `restore-db` vérifie le SHA-256 de chaque fichier ; le déploiement télécharge la release qui l'a déclenché ; actions GitHub figées par SHA ; Dependabot, analyse de secrets et protection au push activés.

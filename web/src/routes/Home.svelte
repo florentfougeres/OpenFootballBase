@@ -51,6 +51,12 @@
   });
   const countries = $derived((data.data?.countries ?? []).map((c) => ({ ...c, name: app.lang === "fr" ? c.name_fr : c.name_en }))
     .sort((a, b) => a.name.localeCompare(b.name, app.lang)));
+  // 116 pays d'un coup font une liste interminable : les mieux couverts d'abord, le reste derrière un bouton.
+  const TOP = 12;
+  let showAll = $state(false);
+  const topCountries = $derived([...countries].sort((a, b) => b.clubs - a.clubs).slice(0, TOP).sort((a, b) => a.name.localeCompare(b.name, app.lang)));
+  const topCodes = $derived(new Set(topCountries.map((c) => c.code)));
+  const otherCountries = $derived(countries.filter((c) => !topCodes.has(c.code)));
 </script>
 
 <section class="border-b border-line bg-surface">
@@ -130,20 +136,35 @@
     </div>
 
     <section class="card mt-4 overflow-hidden" aria-labelledby="by-country">
-      <div class="border-b border-line px-4 py-2.5">
+      <div class="flex items-baseline justify-between gap-3 border-b border-line px-4 py-2.5">
         <h2 id="by-country" class="text-sm font-bold">{t("byCountry")}</h2>
+        <span class="text-xs text-muted">{t("topCountries")}</span>
       </div>
+      {#snippet row(c: (typeof countries)[number])}
+        <li>
+          <a class="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm no-underline transition hover:bg-surface-2" href={href("country", c.code)}>
+            <Flag code={areaFlag(c.code) ?? c.flag} label={c.name} size={20} />
+            <span class="min-w-0 flex-1 truncate font-medium">{c.name}</span>
+            <span class="shrink-0 text-xs tabular-nums text-muted">{c.clubs || ""}</span>
+          </a>
+        </li>
+      {/snippet}
       <ul class="grid gap-x-2 gap-y-0.5 p-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {#each countries as c (c.code)}
-          <li>
-            <a class="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm no-underline transition hover:bg-surface-2" href={href("country", c.code)}>
-              <Flag code={areaFlag(c.code) ?? c.flag} label={c.name} size={20} />
-              <span class="min-w-0 flex-1 truncate font-medium">{c.name}</span>
-              <span class="shrink-0 text-xs tabular-nums text-muted">{c.clubs || ""}</span>
-            </a>
-          </li>
-        {/each}
+        {#each topCountries as c (c.code)}{@render row(c)}{/each}
       </ul>
+      {#if otherCountries.length}
+        <div class="border-t border-line">
+          <button type="button" class="flex w-full items-center justify-between px-4 py-2.5 text-sm font-semibold transition hover:bg-surface-2" aria-expanded={showAll} aria-controls="other-countries" onclick={() => (showAll = !showAll)}>
+            <span>{showAll ? t("fewerCountries") : t("moreCountries")} <span class="font-normal tabular-nums text-muted">· {otherCountries.length}</span></span>
+            <span class="text-muted transition {showAll ? 'rotate-90' : ''}" aria-hidden="true">›</span>
+          </button>
+          {#if showAll}
+            <ul id="other-countries" class="grid gap-x-2 gap-y-0.5 border-t border-line p-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {#each otherCountries as c (c.code)}{@render row(c)}{/each}
+            </ul>
+          {/if}
+        </div>
+      {/if}
     </section>
   {/if}
 </div>

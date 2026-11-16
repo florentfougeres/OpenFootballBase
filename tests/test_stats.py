@@ -137,3 +137,15 @@ def test_equipe_victorieuse_sous_son_nom():
     from openfootball.nationals import champion
     for code, name in (("FRG", "West Germany"), ("TCH", "Czechoslovakia"), ("NED", "Netherlands"), ("US", "United States")):
         assert champion("{{Infobox\n|champion = %s\n}}" % code) == name
+
+
+def test_titre_vacant_retire_du_palmares():
+    import duckdb
+    from openfootball.honours import drop_vacant
+    con = duckdb.connect(":memory:")
+    con.execute("CREATE TABLE competition (id INTEGER, code VARCHAR)")
+    con.execute("CREATE TABLE competition_winner (competition_id INTEGER, season_start INTEGER, winner_qid VARCHAR)")
+    con.execute("INSERT INTO competition VALUES (1, 'FRA-L1'), (2, 'ITA-SA')")
+    con.execute("INSERT INTO competition_winner VALUES (1, 1992, 'Q132885'), (1, 1993, 'Q1'), (2, 2004, 'Q1'), (2, 2005, 'Q2')")
+    assert drop_vacant(con, log=lambda _: None) == 2
+    assert con.execute("SELECT competition_id, season_start FROM competition_winner ORDER BY 1, 2").fetchall() == [(1, 1993), (2, 2005)]

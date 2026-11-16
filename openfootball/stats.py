@@ -49,6 +49,12 @@ def select_all_players(con: duckdb.DuckDBPyConnection) -> list[tuple[int, str]]:
     return con.execute("SELECT id, link_title FROM player WHERE link_lang = 'en' AND link_title IS NOT NULL ORDER BY id").fetchall()
 
 
+def select_active_players(con: duckdb.DuckDBPyConnection) -> list[tuple[int, str]]:
+    """[(id joueur, titre)] des joueurs encore en activité (mêmes critères que `careers --active`) : à relire chaque semaine."""
+    from openfootball.careers import _ACTIVE
+    return con.execute(f"SELECT p.id, p.link_title FROM player p WHERE p.link_lang = 'en' AND p.link_title IS NOT NULL {_ACTIVE} ORDER BY p.id").fetchall()
+
+
 def select_without_stats(con: duckdb.DuckDBPyConnection) -> list[tuple[int, str]]:
     """[(id joueur, titre)] des joueurs déjà lus mais sans aucune ligne de statistiques (à relire après un élargissement du lecteur)."""
     return con.execute("""SELECT p.id, p.link_title FROM player p JOIN player_stat_source s ON s.player_id = p.id

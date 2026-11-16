@@ -158,6 +158,22 @@ _PARAM = re.compile(r"^\s*\|\s*(?:champions?(?:_other)?|winners?)\s*=\s*(.+)$", 
 _LINK = re.compile(r"\[\[(?!File:|Image:)([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]")
 
 
+# Titres retirés sans être réattribués : Wikidata crédite encore le club qui a fini premier, la fédération a déclaré le titre vacant.
+# Olympique de Marseille 1992/93 (corruption, Valenciennes) ; Juventus 2004/05 (Calciopoli : 2005/06 est allé à l'Inter, 2004/05 est resté vacant).
+VACANT = (("FRA-L1", 1992), ("ITA-SA", 2004))
+
+
+def drop_vacant(con: duckdb.DuckDBPyConnection, *, log: Callable[[str], None] = print) -> int:
+    """Retire de `competition_winner` les saisons dont le titre est vacant (voir `VACANT`)."""
+    n = 0
+    for code, y in VACANT:
+        n += len(con.execute("DELETE FROM competition_winner WHERE season_start = ? AND competition_id = (SELECT id FROM competition WHERE code = ?) RETURNING 1",
+                             [y, code]).fetchall())
+    if n:
+        log(f"  {n} titre(s) vacant(s) retiré(s)")
+    return n
+
+
 def infobox_winner(wikitext: str) -> tuple[str, str] | None:
     """(titre de la page du vainqueur, libellé) d'après le paramètre `winners` / `champions` de l'infobox d'une page de saison ; None si absent."""
     head = wikitext[:6000]

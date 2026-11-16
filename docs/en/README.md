@@ -29,6 +29,7 @@
 | Fetch missing logos in bulk | [bulk-logos.md](bulk-logos.md) |
 | See every command and option | [commands.md](commands.md) |
 | Rebuild a DuckDB database from a release | [restoring-a-database.md](restoring-a-database.md) |
+| Weekly refresh of active players on a server (cron) | [weekly-refresh.md](weekly-refresh.md) |
 | Publish a release (data + site) | [publishing-a-release.md](publishing-a-release.md) |
 | Solve a problem (lock, 429, refused deployment…) | [troubleshooting.md](troubleshooting.md) |
 | Contribute | [contributing.md](contributing.md) |

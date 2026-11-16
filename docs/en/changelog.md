@@ -4,6 +4,12 @@
 
 Published data releases, newest first. Names follow [semantic versioning](https://semver.org): **major** = incompatible schema change, **minor** = new data (league, country, cup, table, column), **patch** = data fixes. Each release is `Data X.Y.Z` with tag `data-X.Y.Z` ([how to publish](publishing-a-release.md)). Changes to the site and tooling that are not tied to a data release are listed under "Site and tooling".
 
+## Data 1.18.2 — 2026-11-16
+- **Vacant titles**: Marseille 1992/93 (bribery scandal) and Juventus 2004/05 (Calciopoli) are no longer credited as league titles, as the federations declared them vacant (Marseille: 9 Ligue 1 titles, not 10). Wikidata still lists the club that finished first.
+
+## Data 1.18.1 — 2026-11-16
+- **Weekly refresh** (first run of `scripts/weekly_refresh.sh`): career infobox and statistics tables re-read for the 29,000 players still active (544,634 statistics rows).
+
 ## Data 1.18.0 — 2026-11-16
 - **Cups and supercups in the honours**: 23 new competitions with their winners from Wikidata and the Wikipedia season pages — the national cups and league cups of England, Spain, France, Italy, Germany, the Netherlands, Portugal, Scotland, Turkey, Brazil and Argentina, the August supercups (Community Shield, Trophée des champions, DFL-Supercup, Johan Cruyff Shield), the UEFA Super Cup, the Cup Winners' Cup and the FIFA Club World Cup. 5,615 winners over 119 competitions in all (4,339 over 97 before). These competitions have no clubs or squads per season: only a palmarès (`competition.level = 5` for the national ones).
 - **Wikipedia season page first**: from 2000/01, the winner written on the season page replaces a different winner given by Wikidata (21 corrections, for example two winners for a La Liga season).
@@ -113,6 +119,9 @@ Published data releases, newest first. Names follow [semantic versioning](https:
 - **First public release**: 5 leagues (Premier League, La Liga, Serie A, Bundesliga, Ligue 1), seasons 2010/11 to 2026/27 (open), built from Wikipedia and Wikidata only. Parquet files + `manifest.json`; the site is deployed from this release.
 
 ## Site and tooling
+
+### 2026-11-16
+- **Weekly refresh** (`scripts/weekly_refresh.sh`, [weekly-refresh.md](weekly-refresh.md)): script for a server cron that re-reads the players still active (career infobox and statistics tables), exports and publishes a release. New option `stats --active`.
 
 ### 2026-11-13
 - **Security and speed**: Content-Security-Policy; the DuckDB engine is verified by a SHA-384 integrity hash and its Parquet extension is hosted with the site (see [security.md](security.md), [website.md](website.md)); `restore-db` verifies every file's SHA-256; deployment downloads the release that triggered it; GitHub Actions pinned by SHA; Dependabot, secret scanning and push protection enabled.

@@ -29,6 +29,7 @@
 | Récupérer en masse les logos manquants | [bulk-logos.md](bulk-logos.md) |
 | Connaître toutes les commandes et leurs options | [commands.md](commands.md) |
 | Reconstituer une base DuckDB à partir d'une release | [restoring-a-database.md](restoring-a-database.md) |
+| Mise à jour hebdomadaire des joueurs en activité sur un serveur (cron) | [weekly-refresh.md](weekly-refresh.md) |
 | Publier une release (données + site) | [publishing-a-release.md](publishing-a-release.md) |
 | Résoudre un problème (verrou, 429, déploiement refusé…) | [troubleshooting.md](troubleshooting.md) |
 | Contribuer | [contributing.md](contributing.md) |
