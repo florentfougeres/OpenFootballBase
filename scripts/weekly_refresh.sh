@@ -17,9 +17,10 @@ trap 'rmdir "$LOCK"' EXIT
 
 echo "##### début $(date +%FT%T)"
 LAST=$(gh release list --limit 1 --json tagName -q '.[0].tagName')
-if [ ! -f "$DB" ]; then $OF restore-db --release "$LAST" --db "$DB"; fi
-cp "$DB" "data/work/backups/openfootball_$STAMP.duckdb"
-ls -1t data/work/backups/*.duckdb | tail -n +4 | xargs -r rm -f   # garde les 3 dernières sauvegardes
+# Base de travail reconstruite à chaque passage depuis la dernière release publiée : on repart toujours de ce que le site affiche, sans dérive ni reste d'un essai.
+if [ -f "$DB" ]; then mv "$DB" "data/work/backups/openfootball_avant_$STAMP.duckdb"; fi   # l'ancienne base est gardée (3 dernières)
+ls -1t data/work/backups/*.duckdb | tail -n +4 | xargs -r rm -f
+$OF restore-db --release "$LAST" --db "$DB"
 
 $OF careers --active --fresh                           # infobox de carrière + profil
 $OF reconcile --names --wikidata

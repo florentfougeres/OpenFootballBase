@@ -4,7 +4,7 @@
 
 `scripts/weekly_refresh.sh` tient à jour les joueurs **encore en activité** (dans un effectif en cours, ou avec une ligne de carrière ouverte) :
 
-1. restaure la base depuis la dernière release si le serveur n'en a pas, puis la sauvegarde (3 sauvegardes conservées) ;
+1. **reconstruit la base de travail depuis la dernière release publiée** à chaque passage (`restore-db`) : on repart toujours de ce que montre le site ; l'ancienne base est déplacée dans `data/work/backups/` (3 conservées) ;
 2. `careers --active --fresh` : relit l'infobox de carrière et le profil, en ignorant le cache ;
 3. `reconcile --names --wikidata`, puis `stats --active --fresh` : relit les tableaux « Career statistics » ;
 4. `enrich --what players careerclubs labels`, `coaches` (un échec de Wikidata est toléré : la table précédente est conservée), `progress`, `audit` (un problème bloquant arrête le script avant l'export) ;
