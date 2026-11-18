@@ -238,3 +238,20 @@ def test_championnat_de_world_rattache_a_notre_competition():
     assert _txt_target("world", "africa/zambia/2024_zm9.txt")[:2] == ("OF:zm9", "2024")            # sans équivalent chez nous : reste « OF:* »
     assert _txt_target("club-worldcup", "2022/clubworldcup.txt")[:2] == ("FIFA-CWC", "2022")
     assert _txt_target("south-america", "copa-libertadores/2023_copal.txt")[0] == "CONMEBOL-CL"
+
+
+def test_annee_d_un_tournoi_liste_par_groupe_et_passage_du_nouvel_an():
+    from openfootball.matches import parse_txt_timed
+    grp = """▪ Group A
+  Tue Mar 3 2020
+    21:00  A v B   1-1
+  Wed Dec 9
+    21:00  C v D   2-0
+▪ Group B
+  Wed Mar 10
+    21:00  E v F   0-1
+"""
+    a, b, c = parse_txt_timed(grp, 2020, "x")
+    assert [m.day.isoformat() for m in (a, b, c)] == ["2020-03-03", "2020-12-09", "2020-03-10"]          # décembre puis mars : toujours 2020
+    ny = parse_txt_timed("▪ Final stage\n  Sat Dec 30 2023\n    21:00  A v B   1-1\n  Sat Jan 13\n    21:00  C v D   2-0\n", 2023, "x")
+    assert [m.day.isoformat() for m in ny] == ["2023-12-30", "2024-01-13"]                                  # le Nouvel An passe une fois

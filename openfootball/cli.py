@@ -11,6 +11,7 @@ from pathlib import Path
 from openfootball.audit import run_audit
 from openfootball.backfill import run_backfill
 from openfootball.coaches import import_coaches
+from openfootball.playersdata import import_players
 from openfootball.wikiresults import import_wikipedia_results
 from openfootball.matches import OpenFootballClient, import_full, import_leagues, import_tournaments, import_txt_repos, link_match_players, purge_unseen
 from openfootball.checks import run_checks
@@ -655,6 +656,14 @@ def coaches_cmd(args: argparse.Namespace) -> int:
     return 0
 
 
+def players_data_cmd(args: argparse.Namespace) -> int:
+    """Taille et lieu de naissance (dépôt `players` d'OpenFootball, CC0) là où Wikipedia n'en a pas ; reliés par nom + date de naissance exacte."""
+    con = connect(args.db)
+    migrate(con)
+    import_players(con, OpenFootballClient(args.cache))
+    return 0
+
+
 def matches_cmd(args: argparse.Namespace) -> int:
     """Matchs (scores, buteurs, calendriers) des championnats et coupes : données ouvertes OpenFootball (CC0). Remplace les matchs de chaque compétition-saison lue."""
     con = connect(args.db)
@@ -889,6 +898,10 @@ def main(argv: list[str] | None = None) -> int:
     co.add_argument("--db", default=DB_DEFAULT)
     co.add_argument("--wd-cache", default="cache/wikidata")
     co.set_defaults(func=coaches_cmd)
+    pd_ = sub.add_parser("players-data", help="taille et lieu de naissance des joueurs (OpenFootball, CC0), reliés par nom + date de naissance exacte")
+    pd_.add_argument("--db", default=DB_DEFAULT)
+    pd_.add_argument("--cache", default="cache/openfootball")
+    pd_.set_defaults(func=players_data_cmd)
     ma = sub.add_parser("matches", help="matchs : résultats, buteurs et calendriers des championnats et coupes (données ouvertes OpenFootball, CC0)")
     ma.add_argument("--db", default=DB_DEFAULT)
     ma.add_argument("--cache", default="cache/openfootball")

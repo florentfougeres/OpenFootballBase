@@ -110,3 +110,21 @@ def test_club_d_une_page_francaise_reconnu_par_son_titre_dans_cette_langue(con):
 def parse_foot_resultat_for_test():
     from openfootball.wikiresults import parse_foot_resultat
     return parse_foot_resultat(FR)
+
+
+def test_score_pour_un_match_a_venir_ou_invraisemblable_refuse(con):
+    import datetime
+    write_matches(con, "ENG-PL", "2026/27", [
+        Match("Arsenal FC", "Aston Villa FC", day=datetime.date(2026, 11, 23), source_ref="x"),          # prévu dans le futur : Wikipedia dit 0-10, ce n'est pas un score
+        Match("Aston Villa FC", "Arsenal FC", day=datetime.date(2026, 11, 1), source_ref="x")])           # joué, mais sans score chez OpenFootball
+    page = """|name_ARS=[[Arsenal F.C.|Arsenal]]
+|name_AVL=[[Aston Villa F.C.|Aston Villa]]
+|name_BOU=[[AFC Bournemouth|Bournemouth]]
+| match_ARS_AVL = 0-10
+| match_AVL_ARS = 2-1
+| match_BOU_ARS = 9-1
+| match_BOU_AVL = 4-4"""
+    names, ms = parse_matrix(page)
+    rep = apply_results(con, "ENG-PL", "2026/27", names, ms, "wikipedia:test", today=datetime.date(2026, 11, 18))
+    assert (rep.updated, rep.inserted, len(rep.skipped)) == (1, 1, 2)                  # seul AVL–ARS 2-1 est pris ; ARS–AVL (à venir) et BOU–ARS 9-0 (invraisemblable) refusés
+    assert con.execute("SELECT home_name, ft_home FROM match ORDER BY id").fetchall()[:2] == [("Arsenal FC", None), ("Aston Villa FC", 2)]      # 4-4 : créé (plausible)

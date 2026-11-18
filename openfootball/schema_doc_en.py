@@ -356,6 +356,15 @@ TABLES_EN: dict[str, tuple[str, str, dict[str, str]]] = {
             "kind": "`yellow` or `red`.",
         },
     ),
+    "player_openfootball": (
+        "Height and birthplace from the `players` repository of OpenFootball (public domain), **only where the Wikipedia profile (`player_profile`) has none**: a Wikipedia value is never overwritten. "
+        "A player is linked only by name AND exact birth date, never by name alone.", "(player_qid)",
+        {
+            "player_qid": "Wikidata QID of the player (join key with `player_profile.player_qid`).",
+            "height_cm": "Height in centimetres; empty if Wikipedia already has one.",
+            "birth_place": "Birthplace (city); empty if Wikipedia already has one.",
+        },
+    ),
     "player_profile": (
         "Profile read from the English Wikipedia infobox: full name, birthplace, height, death and **photo** (one row per player "
         "with at least one of these). Values **published as is by Wikipedia, unverified**.",

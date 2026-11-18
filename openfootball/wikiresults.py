@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Callable
 
 import duckdb
@@ -84,8 +85,12 @@ def parse_matrix(wikitext: str) -> tuple[dict[str, tuple[str, str]], list[WikiMa
     return names, list(matches.values())
 
 
+SUSPECT_MARGIN = 8       # une matrice de Wikipedia est éditée à la main : un écart de 8 buts ou plus (0-10), que personne ne confirme, n'est pas repris (7-0 ou 4-4 le sont)
+
+
 @dataclass
 class Report:
+    skipped: list[str] = field(default_factory=list)       # scores refusés : match à venir, ou invraisemblable sans confirmation
     updated: int = 0
     inserted: int = 0
     same: int = 0
@@ -94,7 +99,7 @@ class Report:
 
 
 def apply_results(con: duckdb.DuckDBPyConnection, code: str, label: str, names: dict[str, tuple[str, str]],
-                  matches: list[WikiMatch], ref: str, lang: str = "en") -> Report:
+                  matches: list[WikiMatch], ref: str, lang: str = "en", today: date | None = None) -> Report:
     """Complète `match` (voir l'en-tête du module). Les équipes sans club reconnu sont rapportées, leurs matchs ignorés."""
     report = Report()
     index = _club_index(con, code, label)
@@ -109,11 +114,16 @@ def apply_results(con: duckdb.DuckDBPyConnection, code: str, label: str, names: 
         if club_of[team] is None:
             report.unresolved.add(shown)
     next_id = con.execute("SELECT coalesce(max(id), 0) + 1 FROM match").fetchone()[0]
+    today = today or date.today()
     for m in matches:
         hid, aid = club_of.get(m.home), club_of.get(m.away)
         if hid is None or aid is None:
             continue
-        row = con.execute("SELECT id, ft_home, ft_away FROM match WHERE competition_code = ? AND season_label = ? AND home_club_id = ? AND away_club_id = ?",
+        label_m = f"{code} {label} {names[m.home][1]} – {names[m.away][1]}"
+        if abs(m.ft[0] - m.ft[1]) >= SUSPECT_MARGIN:                                     # invraisemblable : écarté, même si OpenFootball n'a rien (s'il a le même score, il le portera lui-même)
+            report.skipped.append(f"{label_m} : score {m.ft[0]}-{m.ft[1]} invraisemblable (écart d'au moins {SUSPECT_MARGIN} buts), non repris")
+            continue
+        row = con.execute("SELECT id, ft_home, ft_away, match_date FROM match WHERE competition_code = ? AND season_label = ? AND home_club_id = ? AND away_club_id = ?",
                           [code, label, hid, aid]).fetchone()
         if row is None:
             con.execute("""INSERT INTO match (id, competition_code, season_label, home_name, away_name, home_club_id, away_club_id, ft_home, ft_away, source_ref)
@@ -122,6 +132,8 @@ def apply_results(con: duckdb.DuckDBPyConnection, code: str, label: str, names: 
             con.execute("INSERT INTO match_result_source VALUES (?, 'wikipedia')", [next_id])
             next_id += 1
             report.inserted += 1
+        elif row[1] is None and row[3] is not None and row[3] > today:      # le calendrier d'OpenFootball dit que le match n'a pas eu lieu
+            report.skipped.append(f"{label_m} : score {m.ft[0]}-{m.ft[1]} pour un match prévu le {row[3]}, non repris")
         elif row[1] is None:
             con.execute("UPDATE match SET ft_home = ?, ft_away = ? WHERE id = ?", [m.ft[0], m.ft[1], row[0]])
             con.execute("INSERT INTO match_result_source VALUES (?, 'wikipedia') ON CONFLICT DO NOTHING", [row[0]])
@@ -165,4 +177,6 @@ def import_wikipedia_results(con: duckdb.DuckDBPyConnection, wps: dict, *, leagu
         log_fn(f"  {code} {label} : Wikipedia {len(matches)} scores -> {rep.updated} complétés, {rep.inserted} créés, {rep.same} identiques{extra}{miss}")
         for c in rep.conflicts[:10]:
             log_fn(f"    désaccord : {c}")
+        for c in rep.skipped[:10]:
+            log_fn(f"    refusé : {c}")
     return out

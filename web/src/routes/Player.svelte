@@ -24,9 +24,13 @@
     if (p.qid && app.has.birth) birth = (await q(`SELECT birth_date, precision FROM birth WHERE player_qid = ?`, [p.qid]))[0] ?? null;
     const career = app.has.career ? await q(`SELECT c.seq, c.start_year, c.end_year, c.years_raw, c.club_name, c.club_link, c.loan, c.apps, c.goals, c.source_title, w.wikidata_qid AS club_qid, w.logo_url AS club_logo, w.colors_hex AS club_colors
         FROM career c LEFT JOIN club w ON ${app.careerHasClubQid ? "w.wikidata_qid = c.club_qid" : "w.wikipedia_title = c.club_link"} WHERE COALESCE(c.player_qid, 'name:' || c.player) = ? ORDER BY c.seq`, [key]) : [];
-    const profile = app.has.player_profile
+    let profile: any = app.has.player_profile
       ? (await q(`SELECT full_name, birth_place, height_cm, photo_caption, photo_url, photo_page, photo_license, photo_author FROM player_profile
           WHERE COALESCE(player_qid, 'name:' || player) = ?`, [key]))[0] ?? null : null;
+    if (p.qid && app.has.player_openfootball) {                    // taille et lieu de naissance que Wikipedia n'a pas (OpenFootball, relié par nom + date de naissance)
+      const o = (await q(`SELECT height_cm, birth_place FROM player_openfootball WHERE player_qid = ?`, [p.qid]))[0];
+      if (o) profile = { ...(profile ?? {}), birth_place: profile?.birth_place ?? o.birth_place, height_cm: profile?.height_cm ?? o.height_cm };
+    }
     const national = app.has.national ? await q(`SELECT years_raw, team_name, team_link, caps, goals FROM national
         WHERE COALESCE(player_qid, 'name:' || player) = ? ORDER BY seq`, [key]) : [];
     const statClub = app.has.stat_club ? await q(`SELECT c.seq, c.club, c.club_link, c.club_qid, w.logo_url AS club_logo, w.colors_hex AS club_colors, c.season, c.division,

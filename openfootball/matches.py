@@ -564,7 +564,7 @@ def _calendar(hint_year: int, split: bool = False):
             state["year"] = int(m["year"])
         elif split:
             state["year"] = hint_year if mon >= 7 else hint_year + 1
-        elif state["month"] - mon >= 6:
+        elif state["month"] >= 11 and mon <= 2 and state["year"] == hint_year:      # novembre/décembre -> janvier/février : le tournoi passe le Nouvel An (une seule fois)
             state["year"] += 1
         state["month"] = mon
         try:

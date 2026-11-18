@@ -361,6 +361,15 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
             "kind": "`yellow` ou `red`.",
         },
     ),
+    "player_openfootball": (
+        "Taille et lieu de naissance venus du dépôt `players` d'OpenFootball (domaine public), **seulement là où le profil Wikipedia (`player_profile`) n'en a pas** : une valeur Wikipedia n'est jamais écrasée. "
+        "Un joueur n'est relié que par son nom ET sa date de naissance exacte, jamais par le nom seul.", "(player_qid)",
+        {
+            "player_qid": "QID Wikidata du joueur (clé de jointure avec `player_profile.player_qid`).",
+            "height_cm": "Taille en centimètres ; vide si Wikipedia en a déjà une.",
+            "birth_place": "Lieu de naissance (ville) ; vide si Wikipedia en a déjà un.",
+        },
+    ),
     "player_profile": (
         "Profil lu dans l'infobox Wikipedia anglaise : nom complet, lieu de naissance, taille, décès et **photo** (une ligne par joueur "
         "ayant au moins une de ces informations). Valeurs **publiées telles quelles par Wikipedia, non vérifiées**.",
@@ -398,7 +407,7 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
     ),
 }
 
-ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach", "match", "match_competition", "match_goal", "match_lineup", "match_card", "player_profile", "birth", "entity_wiki"]
+ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach", "match", "match_competition", "match_goal", "match_lineup", "match_card", "player_openfootball", "player_profile", "birth", "entity_wiki"]
 
 INTRO = """# OpenFootballBase — dictionnaire de données
 

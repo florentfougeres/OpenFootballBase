@@ -109,7 +109,7 @@ def restore_database(data_dir: str | Path, db_path: str | Path, *, log: Callable
         con.execute(f"CREATE TEMP VIEW {view} AS SELECT * FROM read_parquet({_paths(data, files)}, union_by_name = true)")
 
     for name in ("club", "competition", "country", "season", "career", "national", "birth", "entity_wiki", "player_profile",
-                 "squad_source", "known_gap", "competition_club", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach", "match", "match_goal", "match_lineup", "match_card", "match_competition"):
+                 "squad_source", "known_gap", "competition_club", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach", "match", "match_goal", "match_lineup", "match_card", "match_competition", "player_openfootball"):
         if name in tables:
             stage(f"x_{name}", [tables[name]])
     stage("x_squad", [s["files"]["squad"]["path"] for s in seasons.values()])
@@ -192,6 +192,8 @@ def restore_database(data_dir: str | Path, db_path: str | Path, *, log: Callable
         con.execute("""INSERT INTO player_birth (player_id, birth_date, precision)
                        SELECT p.id, CAST(b.birth_date AS DATE), b.precision FROM x_birth b JOIN _players p ON p.qid = b.player_qid""")
 
+        if "player_openfootball" in tables:
+            con.execute("INSERT INTO player_openfootball SELECT p.id, x.height_cm, x.birth_place FROM x_player_openfootball x JOIN _players p ON p.qid = x.player_qid")
         if "match" in tables:                  # après les joueurs : les liens `player_qid` redeviennent des `player_id`. Les identifiants de match sont conservés.
             con.execute("""INSERT INTO match SELECT x.match_id, x.competition, x.season, x.round, x.group_name, x.match_date, x.kickoff, x.home_name,
                            x.away_name, h.id, a.id, x.ft_home, x.ft_away, x.ht_home, x.ht_away, x.et_home, x.et_away, x.pen_home, x.pen_away,

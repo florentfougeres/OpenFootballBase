@@ -128,6 +128,8 @@ _MATCH_LINEUP = """SELECT l.match_id, l.side, l.seq, l.player_name, w.qid AS pla
 FROM match_lineup l LEFT JOIN player_wikidata w ON w.player_id = l.player_id ORDER BY l.match_id, l.side, l.seq"""
 _MATCH_CARD = """SELECT c.match_id, c.seq, c.side, c.player_name, w.qid AS player_qid, c.minute, c.kind
 FROM match_card c LEFT JOIN player_wikidata w ON w.player_id = c.player_id ORDER BY c.match_id, c.seq"""
+_PLAYER_OPENFOOTBALL = """SELECT w.qid AS player_qid, o.height_cm, o.birth_place
+FROM player_openfootball o JOIN player_wikidata w ON w.player_id = o.player_id ORDER BY w.qid"""
 _MATCH_COMPETITION = """SELECT mc.code, mc.name, i.wikipedia_title, i.logo_url, i.logo_license
 FROM match_competition mc LEFT JOIN competition_info i ON i.code = mc.code ORDER BY mc.code"""
 
@@ -260,6 +262,8 @@ def export_all(con: duckdb.DuckDBPyConnection, out_dir: str | Path) -> dict:
         if con.execute("SELECT count(*) FROM match_lineup").fetchone()[0]:
             manifest["tables"]["match_lineup"] = _write(con, _MATCH_LINEUP, out, "match_lineup", "match_lineup")
             manifest["tables"]["match_card"] = _write(con, _MATCH_CARD, out, "match_card", "match_card")
+    if con.execute("SELECT count(*) FROM player_openfootball").fetchone()[0]:                # taille et lieu d'OpenFootball : publiés seulement si `players-data` a été lancé
+        manifest["tables"]["player_openfootball"] = _write(con, _PLAYER_OPENFOOTBALL, out, "player_openfootball", "player_openfootball")
     manifest["tables"]["player_profile"] = _write(con, _PROFILE, out, "player_profile", "player_profile")
     manifest["tables"]["squad_source"] = _write(con, _SQUAD_SOURCE, out, "squad_source", "squad_source")
     manifest["tables"]["known_gap"] = _write(con, """
