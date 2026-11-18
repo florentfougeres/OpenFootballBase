@@ -37,7 +37,7 @@ Une release publiée dans le dépôt données ne lance pas seule un workflow du 
 1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token.
 2. Repository access : *Only select repositories* → `OpenFootballBase` uniquement.
 3. Permissions : *Actions → Read and write*, rien d'autre.
-4. Expiration : un an au plus. **À l'expiration, le site cesse de se redéployer sans bruit** : notez la date dans le dépôt et renouvelez avant.
+4. Expiration : aucune (choix du propriétaire). Sans expiration, le site ne cesse jamais de se redéployer sans bruit ; révoquez et recréez le jeton s'il a pu fuiter.
 5. Le ranger dans le dépôt données :
 
 ```bash

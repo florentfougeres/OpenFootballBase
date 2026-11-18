@@ -37,7 +37,7 @@ A release published in the data repository does not start a workflow of the appl
 1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token.
 2. Repository access: *Only select repositories* → `OpenFootballBase` only.
 3. Permissions: *Actions → Read and write*, nothing else.
-4. Expiration: one year at most. **When it expires the site silently stops redeploying**: note the date in the repository and renew it before.
+4. Expiration: none (the owner's choice). Without an expiry the site never silently stops redeploying; revoke and recreate the token if it may have leaked.
 5. Store it in the data repository:
 
 ```bash
