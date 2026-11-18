@@ -13,12 +13,14 @@
 
   type Title = { competition: string; years: number[]; clubs: string[] };
   const data = resource(async () => {
+    // pkey et qid sont lus ICI, avant le premier await : seules les valeurs lues avant sont suivies. Lire qid plus loin laissait le Ballon d'Or du joueur précédent à l'écran.
+    const key = pkey, id = qid;
     const titles: Title[] = [];
     if (app.has.winner) {
       const rows = await q(`SELECT w.competition, w.season_start, s.club FROM squad s
           JOIN winner w ON w.club = s.club AND w.season_start = CAST(left(s.season, 4) AS INTEGER)
           WHERE COALESCE(s.player_qid, 'name:' || s.player) = ? AND COALESCE(s.stint, '') NOT IN ('loan_out', 'left_mid')
-          GROUP BY ALL ORDER BY w.competition, w.season_start DESC`, [pkey]);
+          GROUP BY ALL ORDER BY w.competition, w.season_start DESC`, [key]);
       const by = new Map<string, Title>();
       for (const r of rows) {
         const g = by.get(r.competition) ?? { competition: r.competition as string, years: [], clubs: [] };
@@ -30,9 +32,9 @@
     }
     // Titres en équipe nationale : par QID, ou par nom quand le joueur n'a pas d'élément Wikidata.
     const national = app.has.national_title
-      ? await q(`SELECT competition, year, team FROM national_title WHERE ${qid ? "player_qid = ?" : "player_qid IS NULL AND player_name = ?"} ORDER BY year DESC`, [qid ?? pkey.replace(/^name:/, "")])
+      ? await q(`SELECT competition, year, team FROM national_title WHERE ${id ? "player_qid = ?" : "player_qid IS NULL AND player_name = ?"} ORDER BY year DESC`, [id ?? key.replace(/^name:/, "")])
       : [];
-    const awards = qid && app.has.award ? await q(`SELECT year, rank, club_name, points FROM award WHERE player_qid = ? ORDER BY year`, [qid]) : [];
+    const awards = id && app.has.award ? await q(`SELECT year, rank, club_name, points FROM award WHERE player_qid = ? ORDER BY year`, [id]) : [];
     return { titles, awards, national };
   });
   const NAT_ORDER = ["WORLD_CUP", "EURO", "COPA_AMERICA", "AFCON", "ASIAN_CUP", "GOLD_CUP", "CONFEDERATIONS_CUP"];
@@ -60,27 +62,17 @@
   const total = $derived(sorted.reduce((n, g) => n + g.years.length, 0));
   const wins = $derived((data.data?.awards ?? []).filter((a) => a.rank === 1));
   const podium = $derived((data.data?.awards ?? []).filter((a) => a.rank === 2 || a.rank === 3));
+  const winYears = $derived(wins.map((a) => a.year as number).sort((x, y) => y - x));
+  const more = $derived(winYears.length > 4 || (wins.length > 0 && podium.length > 0));
   const KINDS = ["league", "cup", "intl"] as const;
   const ord = (n: number) => (app.lang === "fr" ? `${n}e` : n === 2 ? "2nd" : "3rd");
   const season = (y: number) => `${y}/${String(y + 1).slice(2)}`;
 </script>
 
-{#if data.data && (total || nationalTotal || data.data.awards.length)}
+<!-- pas de palmarès d'un autre joueur pendant le chargement : la ressource garde l'ancien résultat tant que le nouveau n'est pas arrivé -->
+{#if data.data && !data.loading && (total || nationalTotal || data.data.awards.length)}
   <section class="card mt-6 overflow-hidden" aria-labelledby="player-honours">
     <div class="flex items-center gap-2 px-5 pt-4"><Trophy size={20} /><h2 id="player-honours" class="text-lg font-bold">{t("honours")}</h2></div>
-
-    {#if data.data.awards.length}
-      <div class="mx-5 mt-3 rounded-xl border border-line bg-accent-soft px-4 py-3">
-        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          {#if wins.length}<span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{wins.length}</span><a class="font-semibold no-underline hover:text-accent" href={href("ballon-dor")}>{t("balloon")}</a>{/if}
-          {#if wins.length}<span class="text-sm tabular-nums text-muted">{wins.map((a) => a.year).join(" · ")}</span>{/if}
-        </div>
-        {#if podium.length}
-          <p class="mt-1.5 text-sm text-muted">{t("podium")} : {podium.map((a) => `${a.year} (${ord(a.rank)})`).join(" · ")}</p>
-        {/if}
-        {#if !wins.length && !podium.length}<p class="text-sm text-muted">{t("balloonRanked")} : {data.data.awards.map((a) => `${a.year} (${a.rank})`).join(" · ")}</p>{/if}
-      </div>
-    {/if}
 
     {#if nationalTotal}
       <div class="mt-4 px-5">
@@ -98,6 +90,31 @@
             </span>
           </li>
         {/each}
+      </ul>
+    {/if}
+
+    {#if data.data.awards.length}
+      <h3 class="mt-4 px-5 text-xs font-semibold uppercase tracking-wide text-muted">{t("honoursIndividual")}</h3>
+      <ul class="divide-y divide-line/60 px-5">
+        <li class="py-2.5">
+          <details class="group">
+            <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+              <span class="display w-8 text-2xl font-bold tabular-nums">{wins.length || ""}</span>
+              <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted"><Trophy size={18} /></span>
+              <span class="min-w-0 flex-1">
+                <a class="block truncate font-semibold no-underline hover:text-accent" href={href("ballon-dor")}>{t("balloon")}</a>
+                <span class="block truncate text-xs tabular-nums text-muted">{#if wins.length}{winYears.slice(0, 4).join(" · ")}{winYears.length > 4 ? " …" : ""}{:else}{t("balloonRanked")} : {data.data.awards.map((a) => `${a.year} (${a.rank})`).join(" · ")}{/if}</span>
+              </span>
+              {#if more}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
+            </summary>
+            {#if more}
+              <p class="mt-1.5 pl-[4.75rem] text-sm leading-relaxed tabular-nums text-muted">
+                {#if winYears.length > 4}<span class="block">{winYears.join(" · ")}</span>{/if}
+                {#if podium.length}<span class="block">{t("podium")} : {podium.map((a) => `${a.year} (${ord(a.rank)})`).join(" · ")}</span>{/if}
+              </p>
+            {/if}
+          </details>
+        </li>
       </ul>
     {/if}
 
