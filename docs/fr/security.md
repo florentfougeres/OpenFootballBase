@@ -21,7 +21,7 @@ Il n'y a pas de serveur, pas de compte, pas de contenu produit par les visiteurs
 | Releases | Une saison figée ne peut pas changer (`verify-release`) ; une release est construite de façon reproductible (archive normalisée). Les tags sont `data-X.Y.Z`. |
 | Déploiement | Le workflow télécharge la release **qui l'a déclenché** ; les actions GitHub sont **figées par SHA de commit** ; `permissions` minimales ; Dependabot met à jour actions, npm et pip. |
 | Site | Une **politique de sécurité de contenu (CSP)** limite scripts, workers, données et images aux origines attendues ; pas de `innerHTML` ni de `{@html}` ; le moteur de requêtes est chargé avec une **empreinte d'intégrité SHA-384** calculée au build ; l'extension Parquet est hébergée par le site ; `referrer: no-referrer`. |
-| Dépendances | `npm audit` et alertes Dependabot ; peu de dépendances Python (`duckdb`, `requests`). |
+| Dépendances | `npm audit` et alertes Dependabot ; les dépendances Python du pipeline (`duckdb`, `requests`) sont suivies dans le dépôt des données. |
 
 ## Limites connues
 
@@ -33,4 +33,4 @@ Il n'y a pas de serveur, pas de compte, pas de contenu produit par les visiteurs
 
 ## Pour les mainteneurs
 
-Avant de publier : `pytest -q`, `npm run check`, `openfootball export --previous <manifeste>` (garde de continuité). Ne jamais commiter `data/work/`, `cache/` ni `*.duckdb`. Relire les pull requests de Dependabot avant de les fusionner.
+Avant de fusionner : `npm run check`. Le pipeline de données a ses propres contrôles dans le dépôt des données (`pytest -q`, garde de continuité `openfootball export --previous <manifeste>`). Ne jamais commiter `web/public/data`, `cache/` ni `*.duckdb`. Le jeton de déploiement `SITE_DEPLOY_TOKEN` est dans le dépôt des données (fine-grained, ce dépôt seul, *Actions : lecture et écriture*, un an au plus). Relire les pull requests de Dependabot avant de les fusionner.

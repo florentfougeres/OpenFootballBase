@@ -7,9 +7,9 @@ Une application statique d'une seule page dans `web/` : **Svelte 5 + Vite + Type
 ## Développer
 
 ```bash
-openfootball export --out web/public/data      # ou : restore-db d'une release, puis export
 cd web
 npm install
+npm run data          # télécharge la dernière release de données (OpenFootballBase-Data) dans web/public/data
 npm run dev          # http://localhost:5173
 npm run check        # svelte-check (types), aussi lancé par la CI
 npm run build        # build de production dans web/dist

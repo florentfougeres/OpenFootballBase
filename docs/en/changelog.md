@@ -2,146 +2,20 @@
 
 [Français](../fr/changelog.md)
 
-Published data releases, newest first. Names follow [semantic versioning](https://semver.org): **major** = incompatible schema change, **minor** = new data (league, country, cup, table, column), **patch** = data fixes. Each release is `Data X.Y.Z` with tag `data-X.Y.Z` ([how to publish](publishing-a-release.md)). Changes to the site and tooling that are not tied to a data release are listed under "Site and tooling".
+Changes to the website and its tooling, newest first. The data releases (`Data X.Y.Z`, with tag `data-X.Y.Z`) and their notes live in the data repository.
 
-## Data 1.21.0 — 2026-11-18
-- **Height and birthplace from OpenFootball** (new table `player_openfootball`, new command `players-data`): the `players` repository (public domain) fills the height or birthplace that Wikipedia does not have, for 651 players. A player is linked only by name **and exact birth date** (18,378 players linked, 640 ambiguous pairs left out); a Wikipedia value is never overwritten. The player page shows these values when Wikipedia has none.
-- **Fixes in the match data** (published in 1.20.0): a score typed by hand on a Wikipedia season page for a match not yet played (Juventus–Venezia "0-10") is no longer taken: a score is refused for a match the calendar dates in the future, and so is a goal difference of 8 or more that no other source confirms. 35 Copa Libertadores 2020 matches that carried a 2027 date (the year was wrongly rolled over when a file lists matches by group) now have their real 2020 date.
-
-## Data 1.20.0 — 2026-11-18
-- **Matches** (new tables `match`, `match_goal`, `match_lineup`, `match_card`, `match_competition`; new command `matches`): 161,703 matches (155,515 played) of 73 competitions: 26 championships since 2010, the Champions League, World Cups, Euros, the Club World Cup, the Libertadores and Sudamericana, national-team matches since 1872 and a dozen other championships. Scores, half-times, extra time, penalty shoot-outs, grounds, and goalscorers (48,147 goals). The six big championships of 2025/26 also have line-ups with substitutions, cards, attendance and referee. Source: the open data of the OpenFootball project (CC0), a third source next to Wikipedia and Wikidata, used for matches only.
-- **Current season completed from Wikipedia**: OpenFootball's automatic updates stopped in September, so the missing scores of the nine first divisions are read from the results matrix of the Wikipedia season pages (444 matches; `result_source` column of `match`). On the hundreds of matches present in both sources, the scores are identical.
-- **Names matched to our data**: team names to our clubs (club aliases), and goalscorers, line-ups and cards to the squad players of the club that season when the name is unambiguous (`player_qid` columns).
-- **Competition pages**: Wikipedia page and logo of the competitions that exist only in the match source (`match_competition`: `wikipedia_title`, `logo_url`, `logo_license`).
-- **Fixes**: squad rows held by a player whose age or career rules them out (the 56-year-old "Fran González" of Deportivo listed at Real Madrid in 2025/26) are detached and re-identified: 499 rows found, 35 left (mostly records sections read as squads, to be fixed in the parser). New audit check `homonym_stay`.
-
-## Data 1.19.0 — 2026-11-16
-- **Coaches** (new table `coach`, new command `coaches`): the head-coach tenures of the clubs, with start and end dates, from Wikidata (8,091 tenures, 1,381 of the 2,815 clubs with squads; the big clubs are well covered, small ones less). The club page shows them in the side column, most recent first; a coach who was also a player in our data links to his player page.
-- **Fixes**: 12 birth dates taken from the wrong Wikidata item are no longer shown (a player "born in 2026", a career that starts before the birth); 165 impossible goal counts are left empty (Wikipedia typos such as "11 matches, 100 goals"); statistics tables whose season cell carries a stray `!colspan` no longer shift their columns.
-
-## Data 1.18.2 — 2026-11-16
-- **Vacant titles**: Marseille 1992/93 (bribery scandal) and Juventus 2004/05 (Calciopoli) are no longer credited as league titles, as the federations declared them vacant (Marseille: 9 Ligue 1 titles, not 10). Wikidata still lists the club that finished first.
-
-## Data 1.18.1 — 2026-11-16
-- **Weekly refresh** (first run of `scripts/weekly_refresh.sh`): career infobox and statistics tables re-read for the 29,000 players still active (544,634 statistics rows).
-
-## Data 1.18.0 — 2026-11-16
-- **Cups and supercups in the honours**: 23 new competitions with their winners from Wikidata and the Wikipedia season pages — the national cups and league cups of England, Spain, France, Italy, Germany, the Netherlands, Portugal, Scotland, Turkey, Brazil and Argentina, the August supercups (Community Shield, Trophée des champions, DFL-Supercup, Johan Cruyff Shield), the UEFA Super Cup, the Cup Winners' Cup and the FIFA Club World Cup. 5,615 winners over 119 competitions in all (4,339 over 97 before). These competitions have no clubs or squads per season: only a palmarès (`competition.level = 5` for the national ones).
-- **Wikipedia season page first**: from 2000/01, the winner written on the season page replaces a different winner given by Wikidata (21 corrections, for example two winners for a La Liga season).
-- **Site**: the club page groups its titles into leagues, domestic cups and continental / international competitions (Real Madrid: 36 league titles, 20 Copa del Rey, 15 Champions Leagues…); the player page does the same for club titles. A competition page works for a cup (palmarès only).
-- **Fix**: the winning national team of an edition is stored under its name ("West Germany", "Netherlands", "United States"), not under a code ("FRG", "NED", "US"), so that it gets its flag.
-- Not included: the Spanish, Italian and Portuguese supercups (edition moved from August to January, years counted differently by Wikidata and Wikipedia) and the old Intercontinental Cup (no winner in its infobox).
-
-## Data 1.17.0 — 2026-11-14
-- **National-team titles** (new table `national_title`, new command `nationals`): for every edition of the World Cup (22 of 22), the European Championship (17 of 17), the Copa América (19 editions from 1975), the Africa Cup of Nations (34 of 35), the AFC Asian Cup (17 of 18), the Gold Cup (18) and the Confederations Cup (10), the players of the winning team, read from the Wikipedia squads page of the edition: 2,975 players. A player of the list may not have played. The player page shows them under "with the national team" (Patrick Vieira: World Cup 1998, Euro 2000, Confederations Cup 2001).
-- **Site**: player search ranks well-known players first and tolerates typos ("ronaldo" finds Cristiano Ronaldo, "viera" and "patrick vieira" find Patrick Vieira, "mbape" finds Kylian Mbappé).
-
-## Data 1.16.0 — 2026-11-14
-- **Ballon d'Or** (new table `award`, new command `awards`): the ranking of every edition since 2000 (609 rows, 25 editions; no 2020 edition; 2010-2015 only the podium), read from the Wikipedia page of each edition. New "Ballon d'Or" page on the site with the winners and the edition-by-edition rankings, and the player page shows a player's Ballon d'Or wins and podiums.
-- **Honours completed**: the winner of 655 more seasons read from the infobox of the Wikipedia season page when Wikidata does not record it (Ligue 1 2024/25, the UEFA Cup 2000-2008, small top flights…): 4,339 winners over 97 competitions. A Wikidata winner who is not among the participants of the season is dropped (Wikidata credited the Real Madrid with the MLS 2011 and 2012).
-- **Player honours** on the site: the titles won with a club whose listed squad includes the player in the season of the title (an approximation, shown as such); **club honours** redesigned, with title chips in the club header.
-- **Site**: Season / Honours tabs on a competition page; a bottom tab bar replaces the top-right menu on mobile; matches and goals in two columns in player statistics.
-
-## Data 1.15.0 — 2026-11-14
-- **Honours** (new table `winner`, new command `honours`): the winner of each season of 69 competitions, from Wikidata (3,730 winners): the main leagues back to their first seasons (Serie A from 1898, La Liga from 1929, Ligue 1 from 1932, Bundesliga from 1963, Eredivisie from 1888, Primeira Liga from 1934) and the Champions League from 1955. Seasons whose winner Wikidata does not record are absent (for example Ligue 1 2024/25). The site shows the winner of the season and the most successful clubs on each competition page, and the titles of a club on its page.
-- **Dutch Wikipedia squads**: 11 more Eredivisie squads read (273 → 284 of 469 club-seasons), from the tables "Naam | Duels" as well; titles guessed even when Wikidata links another page.
-- **Mid-season moves**: for 2,368 more squad rows, the club a player left and the club he joined in mid-season are marked (`left_mid` / `arrived_mid`), deduced from the chronological order of his career.
-- **Site**: reconstructed squads (deduced from careers, not read from a page) carry a notice on the club page.
-- 85,099 players, 327,375 squad entries and 479,110 career rows in total.
-
-## Data 1.14.2 — 2026-11-14
-- **Eredivisie squads from the Dutch Wikipedia** (`<club> in het seizoen YYYY/YY`): 32 more squads read (241 → 273 of 469 club-seasons), the first team only (departures, arrivals, youth and reserve-team tables are left out).
-- **Partial squads from careers** extended to the Primeira Liga, La Liga and Ligue 1 (+3, +1, +5 club-seasons). The Primeira Liga has almost no club-season pages in Portuguese (2 of 292 missing).
-- The database now holds 84,899 players, 326,795 squad entries and 478,872 career rows.
-
-## Data 1.14.1 — 2026-11-14
-- **Career statistics for 26,835 players** (736 more) and 911,338 club rows: tables cut short by a malformed reference tag (`<ref name="14/15"/>`), pages that write the columns in another order than their header (Sergei Ignashevich) and pages that title the section "Statistics" or "Club statistics" are now read.
-- **Fix**: flags. Former Yugoslavia written "YUG 1992-2003" and East Germany "RDA" no longer fall back to a code without a flag; the flags of the Soviet Union, East Germany, Corsica, Brittany, the Netherlands Antilles and Guam are added to the site.
-
-## Data 1.14.0 — 2026-11-14
-- **UEFA Cup from 2000/01 to 2008/09 and Europa League 2009/10** (new option `uefa --cup UC`): the 32 clubs of the round of 32 up to 2002/03 and 2003/04, the 40-club group stage from 2004/05, then the 48 clubs of the 2009/10 Europa League (328 UEFA Cup participations, 48 Europa League ones).
-- **Second divisions from 2000/01 to 2009/10** for England, France, Germany, Spain and Italy: 915 of 1,055 club-seasons with a squad.
-- **Partial squads built from the players' careers** (`reconstruct --from-careers`): for 969 club-seasons without a Wikipedia page (Liga, Ligue 1, Süper Lig, Eredivisie, Primeira Liga, Belgian league, second divisions, continental cup clubs), the players whose statistics table or infobox places them at the club that season (at least 10 players). 18,061 rows, all marked `inferred`; the club-season keeps its documented gap.
-- **Career statistics for 26,099 players**; the database now holds 84,679 players and 326,072 squad entries.
-- **Fix**: the 2000-2003 English second division (then "Football League First Division"), the French "Division 2" before 2002 and the size of the Serie B (20, 24, then 22 clubs) are now recognised.
-
-## Data 1.13.0 — 2026-11-14
-- **UEFA Champions League from 2000/01 to 2009/10**: participants of the group stage (320 participations, 299 with a squad) and the squads of the clubs from every country, with the other top-flight seasons of the clubs already seen (`complete-clubs`). The Portugal, Netherlands, Belgium and Türkiye leagues are read back to 2000/01 (Türkiye 2000/01 has no page on Wikipedia).
-- **Squads of the continental cup clubs** (new option `continental --squads`): Copa Libertadores 263 of 544 participations with a squad, CAF Champions League 103 of 226, AFC Champions League 339 of 552 (2010 → 2026). Clubs without a season page stay empty and are listed as gaps.
-- **Career statistics for 23,923 players** (instead of 4,134): every player with an English Wikipedia page was read (42,740 pages), 797,717 club rows and 45,534 national-team rows.
-- **Fix**: flags. 38,377 squad rows written in Dutch ("Vlag van Nederland"), two-letter codes ("AR"), adjectives ("German", "Swiss"), Turkish and Dutch names, and former countries (Serbia and Montenegro, FR Yugoslavia, Czechoslovakia) had no flag; only 67 rows of 259,346 are left without one (values that are not countries). The site no longer maps "Germany" to the retired code `dd`, and Trinidad and Tobago, Saint Kitts and Nevis, Antigua and Barbuda, Saint Lucia, Catalonia, the Basque Country and Galicia have their flag.
-- **Fix**: a Wikipedia page without any revision (malformed title) no longer stops a whole batch.
-- **Site**: tall full-length player photos are aligned to the top so the face stays visible; the Players page has a name search, position buttons with counts, removable filter chips and sortable columns; the career statistics panel opens expanded and has a redesigned national-team view; home-screen icon for phones.
-
-## Data 1.12.0 — 2026-11-13
-- **Career statistics** (new tables `stat_club`, `stat_national`, `stat_source`): appearances and goals by club, season and competition (league, national cup, league cup, continental, other), then by national team and year, read from the "Career statistics" section of the English Wikipedia page of 4,695 players of clubs from France, England, Italy, Spain, the Netherlands, Portugal and Germany in a Champions League season since 2010 (4,134 have a club table, 161,480 rows). Values as published, unverified. New "Career statistics" block on the player page: by season, by club, by competition, national team.
-- **Player page**: the career totals use this table (all competitions) when it exists, instead of the infobox (league only).
-
-## Data 1.11.0 — 2026-11-13
-- **Seasons 2000/01 to 2009/10 for the five major leagues** (Premier League, La Liga, Serie A, Bundesliga, Ligue 1): 10 more seasons, 932 club-seasons, 789 squads read. Without a "club season" page on Wikipedia the squad stays empty and is listed as such (mostly La Liga and Ligue 1 before 2005).
-- **Reconstructed squads** (new command `reconstruct`): when a club-season has no squad but its page lists transfers in and out, the squad is rebuilt as the previous season's squad minus departures plus arrivals. Rows are marked `inferred` (never `attested`) and the gap stays documented. First use: Holstein Kiel and VfL Bochum 2024/25.
-- **Fix**: squad tables without a "No." column (Blackburn Rovers 2008/09) are now read.
-
-## Data 1.10.1 — 2026-11-13
-- **Fix**: status icons written as images (`[[File:Injury icon 2.svg|15px]]`) were read as players named "15px" or "14px" and hid the real player (Maccabi Haifa 2025/26-2026/27, San Lorenzo 2022/23-2024/25, Palmeiras 2014/15-2016/17, Santos 2016/17); the affected seasons were re-read.
-- **Fix**: a surname written as a piped link is shown with the full page title ("Lloris" → "Hugo Lloris"); first names and nicknames are left as written.
-- **Fix**: "Abou Kanté" (Stade Lavallois 2026/27) is linked to his page "Aboubakary Kanté".
-
-## Data 1.10.0 — 2026-11-13
-- **New competitions**: Copa Libertadores, CAF Champions League and AFC Champions League, participants of the group / league stage from 2010 to 2026 (list only; [guide](continental-cups.md)).
-- **Fix**: pool championships were undercounted (China 2020 and 2021, Tunisia 2012, 2016 and 2021, Egypt 2012 and 2013): the group tables are now merged.
-
-## Data 1.9.0 — 2026-11-13
-- **20 countries in "list only" mode**: Mexico, Japan, Australia, China, South Korea, Colombia, Ecuador, Chile, Egypt, Peru, Morocco, South Africa, Qatar, United Arab Emirates, Paraguay, Uruguay, Bolivia, Algeria, Vietnam, Tunisia. First-division league and clubs of each season since 2010, no squads yet. For the open season without a season page, the league's generic page is read.
-
-## Data 1.8.0 — 2026-11-13
-- **UEFA Conference League**: participants and squads from 2021/22 to 2026/27, with the national leagues of its clubs. About half of the clubs of small countries have no "club season" page and stay "Without squad".
-
-## Data 1.7.0 — 2026-11-13
-- **New leagues**: Brazil (Série A) and Argentina (Primera División) from 2010 to 2026, squads read in English, Portuguese and Spanish (partial coverage: many clubs have no "club season" page).
-- Summer departures removed from squads; player profiles (birthplace, height, photo).
-
-## Data 1.6.1 — 2026-11-13
-- **Squad fixes**: a player who left a club in the summer window (before 2 September) and is present in another club the same season is no longer listed in the former club (Lewandowski and Ferran Torres at Barça 2026/27; 1,003 rows over 17 seasons).
-
-## Data 1.6.0 — 2026-11-13
-- **Player profiles**: birthplace, height, full name, death and infobox photo (new table `player_profile`).
-
-## Data 1.5.1 — 2026-11-13
-- Removed the wrong logo of Athletic Newham (Wikipedia showed Atlético de Madrid's there).
-
-## Data 1.5.0 — 2026-11-13
-- **New**: Europa League, second divisions (ENG/ESP/FRA/DEU/ITA), MLS and Saudi Pro League, every club of the national leagues seen in a European cup, career clubs added.
-- Squad fixes (Roster, current season, Jr/Junior duplicates).
-
-## Data 1.4.0 — 2026-11-12
-- `home.json` (instant home page), league logos in the competition table, loan statuses only for real loans (loan returns are no longer labelled loans), cross-club loan consistency.
-
-## Data 1.3.0 — 2026-11-12
-- Same content as 1.2.0; the `club` table is now ordered with squad clubs first in small row groups, so the site reads about 170 KB instead of 3.2 MB at start-up.
-
-## Data 1.2.0 — 2026-11-12
-- Squads are the union of all language pages; loans cross-checked between clubs (a loaned player is not listed by the lender); players absent from a squad page are never added; Wikidata identification of players without links; dated movements published in `squad_movement`. Data dictionary `SCHEMA.md` in the archive.
-
-## Data 1.1.0 — 2026-11-12
-- Squads are the union of every language page of the country (main source first), with provenance (`squad_source`, `squad.listed_in`).
-- Fixed players merged by mistake (`sortname` `dab=` parameter), e.g. Schalke 04 2026/27 / Diogo Leite.
-- Loaned-out players no longer in their parent club's squad.
-- International caps and goals; club logos (17,000+); English names for non-Latin stadiums, leagues and cities; country reference with es/it/de names (flags).
-- `SCHEMA.md`: data dictionary of the Parquet files.
-
-## Data 1.0.0 — 2026-11-12
-- **First public release**: 5 leagues (Premier League, La Liga, Serie A, Bundesliga, Ligue 1), seasons 2010/11 to 2026/27 (open), built from Wikipedia and Wikidata only. Parquet files + `manifest.json`; the site is deployed from this release.
+Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](https://github.com/florentfougeres/OpenFootballBase-Data/blob/main/docs/en/changelog.md).
 
 ## Site and tooling
 
 ### 2026-11-18
+- **Two repositories**: the website stays here; the data, the pipeline and the releases moved to [OpenFootballBase-Data](https://github.com/florentfougeres/OpenFootballBase-Data). A release published there starts the site deployment (`notify-site.yml`, token `SITE_DEPLOY_TOKEN`); `deploy.yml` takes the release tag as input; `npm run data` downloads the data for development. Plan: [migration-two-repos.md](migration-two-repos.md).
 - **Competitions page**: a Clubs view (by confederation, then a "World" section for intercontinental cups, no longer mixed with UEFA) and a National teams view (finals, qualifiers, friendlies), with icons and the competitions' Wikipedia logos; competitions known only from the match source sit in their continent.
 - **Results tab** on every competition page: computed standings with form, matches by matchday with goalscorers; honours tab aligned with the club honours panel. Weekly script: `matches` (results, then current-season completion from Wikipedia) and `enrich --what leaguelogos` after it.
 
 ### 2026-11-16
 - **Consistency audit** (`audit`): checks the whole database before every publication, run by the weekly script (a blocking problem stops it). Statistics: goal counts that are impossible (more than 3 per match and at least 10, typos in Wikipedia such as "11 matches, 100 goals") are now left empty instead of displayed; tables whose season cell carries a stray `!colspan` no longer shift the columns.
-- **Weekly refresh** (`scripts/weekly_refresh.sh`, [weekly-refresh.md](weekly-refresh.md)): script for a server cron that re-reads the players still active (career infobox and statistics tables), exports and publishes a release. New option `stats --active`.
+- **Weekly refresh** (`scripts/weekly_refresh.sh`, [weekly-refresh.md](https://github.com/florentfougeres/OpenFootballBase-Data/blob/main/docs/en/weekly-refresh.md)): script for a server cron that re-reads the players still active (career infobox and statistics tables), exports and publishes a release. New option `stats --active`.
 
 ### 2026-11-13
 - **Security and speed**: Content-Security-Policy; the DuckDB engine is verified by a SHA-384 integrity hash and its Parquet extension is hosted with the site (see [security.md](security.md), [website.md](website.md)); `restore-db` verifies every file's SHA-256; deployment downloads the release that triggered it; GitHub Actions pinned by SHA; Dependabot, secret scanning and push protection enabled.
@@ -158,4 +32,4 @@ Published data releases, newest first. Names follow [semantic versioning](https:
 - Project renamed OpenFootballBase; first deployment to GitHub Pages.
 
 ### 2026-11-11
-- Project started from zero (see [spec.md](spec.md), §2): pipeline, declarative scopes, frozen seasons, identity by Wikidata QID, careers from infoboxes, world clubs, logos.
+- Project started from zero (see [spec.md](https://github.com/florentfougeres/OpenFootballBase-Data/blob/main/docs/en/spec.md), §2): pipeline, declarative scopes, frozen seasons, identity by Wikidata QID, careers from infoboxes, world clubs, logos.
