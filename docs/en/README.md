@@ -14,6 +14,7 @@
 | [security.md](security.md) | Reporting, controls in place, known limits |
 | [spec.md](spec.md) | Design log: decisions and measured results |
 | [roadmap.md](roadmap.md) | What is done, decided and ideas |
+| [migration-two-repos.md](migration-two-repos.md) | Plan to split the application and the data into two repositories |
 | [changelog.md](changelog.md) | Published releases and site/tooling changes |
 
 ## Operate

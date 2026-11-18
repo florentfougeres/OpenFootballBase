@@ -1,12 +1,17 @@
 name: Deploy site
 
-# D9 : le site est publié avec les données de la DERNIÈRE release GitHub.
+# D9 : le site est publié avec les données de la DERNIÈRE release GitHub du dépôt de données (OpenFootballBase-Data).
 # Un navigateur ne peut pas lire un asset de release directement (pas de CORS) : on le télécharge
 # ici, côté serveur, et on le sert depuis le même domaine que la page.
+# Une release du dépôt de données lance ce workflow via .github/workflows/notify-site.yml de ce dépôt (jeton SITE_DEPLOY_TOKEN),
+# en donnant son tag ; lancé à la main sans tag, ou par un push de web/**, on prend la dernière release.
 on:
-  release:
-    types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag de la release de données (data-X.Y.Z) ; vide = la dernière"
+        required: false
+        type: string
   push:
     branches: [main]
     paths: ["web/**"]
@@ -32,11 +37,12 @@ jobs:
       - name: Download data from the latest release
         env:
           GH_TOKEN: ${{ github.token }}
-          # Déclenché par une release : on prend CETTE release (« la dernière » peut ne pas encore être celle qui vient d'être publiée).
-          # Lancé à la main ou par un push : la dernière release.
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          # Lancé par la release du dépôt de données : on prend CETTE release (« la dernière » peut ne pas encore être celle qui vient d'être publiée).
+          # Lancé à la main sans tag ou par un push : la dernière release.
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
-          gh release download ${RELEASE_TAG:+"$RELEASE_TAG"} --repo "$GITHUB_REPOSITORY" --pattern "*-data.tar.gz" --dir "$RUNNER_TEMP"
+          case "$RELEASE_TAG" in ""|data-[0-9]*) ;; *) echo "tag invalide : $RELEASE_TAG"; exit 1 ;; esac
+          gh release download ${RELEASE_TAG:+"$RELEASE_TAG"} --repo florentfougeres/OpenFootballBase-Data --pattern "*-data.tar.gz" --dir "$RUNNER_TEMP"
           archive=$(ls "$RUNNER_TEMP"/*-data.tar.gz)
           if tar -tzf "$archive" | grep -Eq '(^/|(^|/)\.\.(/|$))'; then echo "archive suspecte (chemin absolu ou « .. »)"; exit 1; fi
           mkdir -p web/public/data
