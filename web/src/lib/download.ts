@@ -12,5 +12,5 @@ export function downloadCsv(filename: string, columns: string[], rows: (string |
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/** Les données complètes (Parquet) sont publiées avec chaque release GitHub. */
-export const RELEASES_URL = "https://github.com/florentfougeres/OpenFootballBase/releases/latest";
+/** Les données complètes (Parquet) sont publiées avec chaque release GitHub du dépôt de données (OpenFootballBase-Data). */
+export const RELEASES_URL = "https://github.com/florentfougeres/OpenFootballBase-Data/releases/latest";

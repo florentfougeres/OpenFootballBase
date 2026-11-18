@@ -14,6 +14,7 @@
 | [security.md](security.md) | Signalement, protections en place, limites connues |
 | [spec.md](spec.md) | Journal de conception : décisions et résultats mesurés |
 | [roadmap.md](roadmap.md) | Ce qui est fait, décidé, et les idées |
+| [migration-two-repos.md](migration-two-repos.md) | Plan de séparation de l'application et des données en deux dépôts |
 | [changelog.md](changelog.md) | Releases publiées et changements du site et des outils |
 
 ## Exploiter
