@@ -1,8 +1,9 @@
 # Project rules for Claude Code
 
-- **Documentation is bilingual — always.** Any change to `README.md` must be mirrored in `README.fr.md`, and any change to a page under `docs/en/` must be mirrored in the same file under `docs/fr/` (and vice versa). This includes `spec.md`, `roadmap.md` and `changelog.md`. New docs go in both indexes (`docs/en/README.md`, `docs/fr/README.md`). Website strings go in both languages of `web/src/lib/i18n.ts`; data-dictionary descriptions in both `openfootball/schema_doc.py` and `openfootball/schema_doc_en.py`.
-- **Releases**: tag `data-X.Y.Z`, title exactly `Data X.Y.Z` (no "v", no date). Release notes use the common template (English then French, see `docs/en/publishing-a-release.md`). Add a changelog entry in both languages.
+This repository is the **application** (the website, `web/`). The data pipeline and the releases are in the sibling repository `OpenFootballBase-Data` (`../OpenFootballBase-Data`), which has its own `CLAUDE.md`.
+
+- **Documentation is bilingual — always.** Any change to `README.md` must be mirrored in `README.fr.md`, and any change to a page under `docs/en/` must be mirrored in the same file under `docs/fr/` (and vice versa), including `changelog.md`. New docs go in both indexes (`docs/en/README.md`, `docs/fr/README.md`). Website strings go in both languages of `web/src/lib/i18n.ts`.
 - **Commit and push only when the user asks** ("Commit" = commit only, "Commit push" = commit and push). Never commit the Impeccable install folders (`.claude/agents`, `.claude/skills`, `.github/agents`, `.github/hooks`, `.github/skills`), databases or caches.
-- **Contact in the User-Agent** is always `OPENFOOTBALL_CONTACT="https://github.com/florentfougeres/OpenFootballBase"`, never a personal e-mail.
+- **The site shows the data of a release of `OpenFootballBase-Data`** (`deploy.yml` takes the tag as input). Data releases, their naming (`Data X.Y.Z`, tag `data-X.Y.Z`) and their changelog are in that repository; site changes go in this repository's changelog, "Site and tooling" section, in both languages.
+- **Contact in the User-Agent** (when a script of this repository calls Wikipedia/Wikidata) is always `OPENFOOTBALL_CONTACT="https://github.com/florentfougeres/OpenFootballBase"`, never a personal e-mail.
 - Do not propose `enrich --what photos`.
-- One writing command at a time on the DuckDB database; back it up before long or destructive runs.

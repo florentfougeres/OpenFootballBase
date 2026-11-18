@@ -21,7 +21,7 @@ There is no backend, no account, no user-generated content and no secret in the 
 | Releases | A frozen season cannot change (`verify-release`); a release is built reproducibly (normalised archive). Tags are `data-X.Y.Z`. |
 | Deployment | The workflow downloads the release **that triggered it**; GitHub Actions are **pinned by commit SHA**; minimal `permissions`; Dependabot updates actions, npm and pip. |
 | Website | A **Content-Security-Policy** limits scripts, workers, data and images to their expected origins; no `innerHTML`/`{@html}`; the query engine is loaded with a **SHA-384 integrity hash** computed at build time; the Parquet extension is hosted by the site; `referrer: no-referrer`. |
-| Dependencies | `npm audit` and Dependabot alerts; Python dependencies are few (`duckdb`, `requests`). |
+| Dependencies | `npm audit` and Dependabot alerts; the pipeline's Python dependencies (`duckdb`, `requests`) are tracked in the data repository. |
 
 ## Known limits
 
@@ -33,4 +33,4 @@ There is no backend, no account, no user-generated content and no secret in the 
 
 ## For maintainers
 
-Before publishing: `pytest -q`, `npm run check`, `openfootball export --previous <manifest>` (continuity guard). Never commit `data/work/`, `cache/` or `*.duckdb`. Review Dependabot pull requests before merging.
+Before merging: `npm run check`. The data pipeline has its own checks in the data repository (`pytest -q`, `openfootball export --previous <manifest>` continuity guard). Never commit `web/public/data`, `cache/` or `*.duckdb`. The deployment token `SITE_DEPLOY_TOKEN` lives in the data repository (fine-grained, this repository only, *Actions: read and write*, one year at most). Review Dependabot pull requests before merging.
