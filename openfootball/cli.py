@@ -24,7 +24,8 @@ from openfootball.honours import drop_vacant, ensure_cups, fill_winners_from_wik
 from openfootball.reconstruct import reconstruct, reconstruct_from_careers
 from openfootball.stats import COUNTRIES, StatsClient, clean_implausible_goals, import_stats, select_active_players, select_all_players, select_players, select_without_stats
 from openfootball.transfers import mark_moves_from_careers, apply_transfers, drop_stale_current_rows, drop_summer_departures
-from openfootball.reconcile import apply_player_aliases, normalize_player_names, reconcile_by_infobox, reconcile_by_name, reconcile_by_wikidata, reconcile_players
+from openfootball.reconcile import (apply_player_aliases, normalize_player_names, reconcile_by_infobox, reconcile_by_name,
+                                    reconcile_by_wikidata, reconcile_players, split_implausible_stays)
 from openfootball.export import export_all, pack, verify_continuity
 from openfootball.scopes import load_scopes
 from openfootball.store import FreezeRefused, SeasonFrozen, freeze
@@ -461,6 +462,16 @@ def reconcile_cmd(args: argparse.Namespace) -> int:
     renamed = normalize_player_names(con)
     if renamed:
         print(f"{renamed} noms de joueurs complétés d'après le titre de leur page (« Lloris » -> « Hugo Lloris »)")
+    split = split_implausible_stays(con)
+    if split.merged or split.blocked:
+        print(f"{split.merged} lignes d'effectif détachées d'un homonyme impossible (âge ou carrière incompatibles), rendues à un joueur sans lien")
+        for b in split.blocked:
+            print("  refusé :", b)
+    split = split_implausible_stays(con)
+    if split.merged or split.blocked:
+        print(f"{split.merged} lignes d'effectif détachées d'un homonyme impossible (âge ou carrière incompatibles), rendues à un joueur sans lien")
+        for b in split.blocked:
+            print("  refusé :", b)
     before = con.execute("SELECT count(*) FROM player").fetchone()[0]
     r = reconcile_players(con, clients)
     after = con.execute("SELECT count(*) FROM player").fetchone()[0]

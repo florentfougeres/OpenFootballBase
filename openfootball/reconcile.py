@@ -179,6 +179,65 @@ def reconcile_by_name(con: duckdb.DuckDBPyConnection) -> ReconcileReport:
     return report
 
 
+# --------------------------------------------------------------------------------------------------
+# Homonymes mal rattachés : le lien de la page du club mène à un autre joueur du même nom.
+
+MIN_AGE, MAX_AGE = 14, 46     # hors de ces âges (date de naissance précise au moins à l'année), nul ne figure dans un effectif…
+RETIRED_YEARS = 3             # … ni un joueur dont la carrière s'est terminée plus de 3 saisons avant
+
+_IMPLAUSIBLE_STAYS = f"""
+    WITH span AS (SELECT player_id, max(coalesce(end_year, 9999)) AS last_end FROM player_career GROUP BY 1)
+    SELECT pcs.id, pcs.player_id, pcs.club_season_id, p.name, s.start_year, s.label, cl.name_en, s.status,
+           year(b.birth_date), span.last_end
+    FROM player_club_season pcs JOIN player p ON p.id = pcs.player_id
+    JOIN club_season cs ON cs.id = pcs.club_season_id JOIN season s ON s.id = cs.season_id JOIN club cl ON cl.id = cs.club_id
+    LEFT JOIN span ON span.player_id = pcs.player_id
+    LEFT JOIN player_birth b ON b.player_id = pcs.player_id AND b.precision >= 9
+    WHERE NOT EXISTS (SELECT 1 FROM player_career c WHERE c.player_id = pcs.player_id        -- une période de carrière couvre la saison : plausible
+                      AND coalesce(c.start_year, 0) <= s.start_year + 1 AND coalesce(c.end_year, 9999) >= s.start_year)
+      AND (span.last_end <= s.start_year - {RETIRED_YEARS}
+           OR year(b.birth_date) > s.start_year - {MIN_AGE} OR year(b.birth_date) < s.start_year - {MAX_AGE})
+    ORDER BY s.start_year DESC, cl.name_en, p.name"""
+
+
+def implausible_stays(con: duckdb.DuckDBPyConnection) -> list[tuple]:
+    """Lignes d'effectif qu'un joueur lié ne peut pas avoir tenues : âge impossible pour la saison, ou carrière (infobox) terminée
+    plus de `RETIRED_YEARS` saisons avant, sans période qui couvre la saison. C'est la signature d'un homonyme : la page du club
+    lie un autre joueur du même nom (ex. Fran González, gardien né en 2005 au Real Madrid, lié au Fran de 1969 du Deportivo).
+    Rend (id de la ligne, joueur, club-saison, nom, année, saison, club, statut de la saison, année de naissance, fin de carrière)."""
+    return con.execute(_IMPLAUSIBLE_STAYS).fetchall()
+
+
+def split_implausible_stays(con: duckdb.DuckDBPyConnection) -> ReconcileReport:
+    """Détache ces lignes du faux homonyme et les rend à un joueur SANS lien du même nom (identité faible) ; les étapes
+    `reconcile --names/--wikidata/--infobox` l'identifient ensuite, preuve de carrière à l'appui, ou le laissent sans identité.
+    Idempotent : un joueur sans lien n'a ni carrière ni naissance, donc plus rien à détacher. `merged` = lignes déplacées."""
+    report = ReconcileReport()
+    for row_id, pid, csid, name, year, label, club, status, *_ in implausible_stays(con):
+        if status == "frozen":
+            report.blocked.append(f"{name} ({club} {label}) : saison figée")
+            continue
+        loose = con.execute("SELECT id FROM player WHERE name = ? AND link_title IS NULL", [name]).fetchone()
+        if loose is None:
+            new_id = con.execute("SELECT coalesce(max(id), 0) + 1 FROM player").fetchone()[0]
+            con.execute("INSERT INTO player (id, name) VALUES (?, ?)", [new_id, name])
+            loose = (new_id,)
+        con.execute("INSERT INTO squad_row_source SELECT club_season_id, ?, source_lang FROM squad_row_source "
+                    "WHERE club_season_id = ? AND player_id = ? ON CONFLICT DO NOTHING", [loose[0], csid, pid])
+        con.execute("INSERT INTO squad_movement SELECT club_season_id, ?, direction, kind, moved_on, transfer_window, other_club, "
+                    "other_club_link, mid_season, source_title FROM squad_movement "
+                    "WHERE club_season_id = ? AND player_id = ? ON CONFLICT DO NOTHING", [loose[0], csid, pid])
+        con.execute("DELETE FROM squad_row_source WHERE club_season_id = ? AND player_id = ?", [csid, pid])
+        con.execute("DELETE FROM squad_movement WHERE club_season_id = ? AND player_id = ?", [csid, pid])
+        if con.execute("SELECT count(*) FROM player_club_season WHERE player_id = ? AND club_season_id = ?",
+                       [loose[0], csid]).fetchone()[0]:
+            con.execute("DELETE FROM player_club_season WHERE id = ?", [row_id])          # le joueur sans lien y figure déjà
+        else:
+            con.execute("UPDATE player_club_season SET player_id = ? WHERE id = ?", [loose[0], row_id])
+        report.merged += 1
+    return report
+
+
 def _attach_qid(con, pid: int, qid: str, report: ReconcileReport) -> None:
     """Donne ce QID à ce joueur, ou le fusionne dans le joueur qui l'a déjà (refusé si une saison figée est touchée)."""
     owner = con.execute("SELECT player_id FROM player_wikidata WHERE qid = ?", [qid]).fetchone()

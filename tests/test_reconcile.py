@@ -283,3 +283,18 @@ def test_merge_moves_national_rows_and_birth_of_the_duplicate():
     _merge(con, 1, 2)
     assert con.execute("SELECT player_id FROM player_national").fetchall() == [(1,)]
     assert con.execute("SELECT count(*) FROM player").fetchone()[0] == 1
+
+
+def test_homonyme_impossible_detache_puis_rendu_a_un_joueur_sans_lien(con):
+    """Cas Fran González : la page du club lie le joueur né en 1969 (carrière finie en 2005) pour la saison 2024."""
+    from openfootball.reconcile import implausible_stays, split_implausible_stays
+    con.execute("INSERT INTO player_birth VALUES (1, DATE '1969-07-14', 11)")
+    con.execute("INSERT INTO player_career (id, player_id, seq, start_year, end_year, club_name, source_lang, source_title) "
+                "VALUES (1, 1, 1, 1988, 2005, 'Deportivo', 'en', 'x')")
+    con.execute("INSERT INTO player_club_season (id, player_id, club_season_id, confidence, source) "
+                "VALUES (9, 1, 2, 'attested', 'wikipedia_season')")        # saison 2024, Toulouse
+    assert sorted(r[0] for r in implausible_stays(con)) == [1, 9]          # Everton 2020 aussi : carrière finie en 2005
+    assert split_implausible_stays(con).merged == 2
+    loose = con.execute("SELECT id FROM player WHERE name = 'Joshua King' AND link_title IS NULL").fetchone()[0]
+    assert con.execute("SELECT player_id FROM player_club_season WHERE id = 9").fetchone()[0] == loose
+    assert implausible_stays(con) == []                                    # idempotent

@@ -10,6 +10,7 @@ import duckdb
 
 from openfootball.checks import Problem
 from openfootball.honours import VACANT
+from openfootball.reconcile import implausible_stays
 
 MIN_FIELD = 10            # une compétition-saison n'est « connue en entier » qu'avec au moins ce nombre de clubs inscrits
 MIN_AGE_STATS = 13        # âge minimal pour une ligne de statistiques (Falcao joue à 13 ans) ; la carrière commence avec les équipes de jeunes, dès 7 ans
@@ -57,6 +58,15 @@ def run_audit(con: duckdb.DuckDBPyConnection) -> list[Problem]:
         FROM player_career c JOIN player_birth b ON b.player_id = c.player_id JOIN player p ON p.id = c.player_id
         WHERE b.precision >= 9 AND c.start_year < year(b.birth_date) + {MIN_AGE_CAREER}
         GROUP BY p.name, b.birth_date ORDER BY p.name""", "joueurs avec une carrière avant leurs 7 ans")
+
+    stays = implausible_stays(con)
+    out += [Problem("homonym_stay", "warning", f"{name} — {club} {label}",
+                    (f"carrière terminée en {last_end}" if last_end and last_end < 9999 else f"né en {born}")
+                    + " : homonyme lié à tort ? (`openfootball reconcile` le détache)")
+            for _, _, _, name, _, label, club, _, born, last_end in stays[:LIMIT]]
+    if len(stays) > LIMIT:
+        out.append(Problem("homonym_stay", "warning", f"{len(stays)} cas",
+                           f"lignes d'effectif tenues par un joueur dont l'âge ou la carrière l'interdit (les {LIMIT} premières sont listées)"))
 
     out += _scan(con, "stats_implausible", "warning", f"""
         SELECT p.name || ' — ' || s.club || ' ' || s.season, s.apps || ' matches, ' || s.goals || ' buts (' || coalesce(s.competition_group, '?') || ')'
