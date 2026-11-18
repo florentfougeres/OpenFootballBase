@@ -221,7 +221,8 @@
     </section>
   {/if}
 
-  <PlayerHonours pkey={key} qid={d.p.qid ?? null} />
+  <!-- monté quand la fiche est chargée : `d` reste celui du joueur précédent tant que le chargement dure -->
+  {#if !res.loading}<PlayerHonours pkey={key} qid={d.p.qid ?? null} />{/if}
 
   {#if d.statClub.length}
     <PlayerStats club={d.statClub} national={d.statNat} source={d.statSource} />

@@ -13,9 +13,9 @@
 
   let { code, slug }: { code: string; slug?: string } = $props();
   import Results from "../components/Results.svelte";
-  let view = $state<"season" | "honours" | "results">("season");
+  let chosen = $state<"season" | "honours" | "results" | null>(null);       // l'onglet que la personne a choisi ; sans choix, on arrive sur le premier onglet disponible (la saison)
   const hasMatches = resource(async () => (app.has.match ? ((await q(`SELECT count(*) AS n FROM match WHERE competition = ?`, [code]))[0]?.n as number) > 0 : false));
-  $effect(() => { code; view = "season"; });
+  $effect(() => { code; chosen = null; });
   const comp = $derived(app.comps.get(code));
   const country = $derived(countryOf(comp?.country_code));
 
@@ -46,7 +46,8 @@
   // Vues disponibles d'après ce que la compétition a : effectifs par saison, résultats, palmarès. Une coupe sans effectifs arrive directement sur ses résultats.
   const TAB_KEY: Record<string, string> = { season: "seasonTab", results: "resTab", honours: "honours" };
   const views = $derived<("season" | "results" | "honours")[]>([...(hasSeasons ? ["season" as const] : []), ...(hasMatches.data ? ["results" as const] : []), ...(winners.data?.length ? ["honours" as const] : [])]);
-  $effect(() => { if (views.length && !views.includes(view)) view = views[0]; });
+  // Calculé, pas mémorisé : les onglets apparaissent au fil des chargements (les résultats peuvent arriver avant la liste des saisons), et un choix par défaut figé tôt restait sur « Résultats ».
+  const view = $derived(chosen && views.includes(chosen) ? chosen : (views[0] ?? "season"));
   const seasonName = (y: number) => (YEAR_ONLY.has(code) ? String(y) : seasons.data?.find((s) => startYear(s) === y) ?? `${y}/${String(y + 1).slice(2)}`);
   const winnersOfSeason = $derived(label ? (winners.data ?? []).filter((w) => w.season_start === startYear(label)) : []);
   /** Clubs les plus titrés : nombre de saisons gagnées (une seule fois par saison), puis la plus récente. */
@@ -81,7 +82,7 @@
     <div class="mt-6 inline-flex rounded-lg border border-line bg-surface p-0.5" role="tablist" aria-label={t("compView")}>
       {#each views.map((x) => [x, TAB_KEY[x]]) as [v, k]}
         <button type="button" role="tab" aria-selected={view === v} class="flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-semibold transition {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
-          onclick={() => (view = v as typeof view)}>{#if v === "honours"}<Trophy size={15} />{/if}{t(k)}</button>
+          onclick={() => (chosen = v as typeof view)}>{#if v === "honours"}<Trophy size={15} />{/if}{t(k)}</button>
       {/each}
     </div>
   {/if}
@@ -163,7 +164,7 @@
             <ul class="max-h-[32rem] divide-y divide-line/60 overflow-y-auto pr-1">
               {#each winners.data as w (w.season_start + w.winner_qid)}
                 <li class="flex items-center gap-3 py-2 {winnersOfSeason.includes(w) ? 'font-semibold' : ''}">
-                  {#if hasSeasons}<a class="w-16 shrink-0 text-sm tabular-nums text-muted no-underline hover:text-accent" href={href("competition", code, seasonSlug(seasonName(w.season_start)))} onclick={() => (view = "season")}>{seasonName(w.season_start)}</a>{:else}<span class="w-16 shrink-0 text-sm tabular-nums text-muted">{seasonName(w.season_start)}</span>{/if}
+                  {#if hasSeasons}<a class="w-16 shrink-0 text-sm tabular-nums text-muted no-underline hover:text-accent" href={href("competition", code, seasonSlug(seasonName(w.season_start)))} onclick={() => (chosen = "season")}>{seasonName(w.season_start)}</a>{:else}<span class="w-16 shrink-0 text-sm tabular-nums text-muted">{seasonName(w.season_start)}</span>{/if}
                   {#if w.c}<Logo club={w.c} size={26} />{:else}<span class="size-[26px] shrink-0"></span>{/if}
                   <span class="min-w-0 flex-1 truncate">{#if w.club}<a class="no-underline hover:text-accent" href={href("club", enc(w.club))}>{clubName(w.c)}</a>{:else}{w.winner_name}{/if}</span>
                 </li>
