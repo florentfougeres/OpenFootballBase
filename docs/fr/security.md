@@ -33,4 +33,4 @@ Il n'y a pas de serveur, pas de compte, pas de contenu produit par les visiteurs
 
 ## Pour les mainteneurs
 
-Avant de fusionner : `npm run check`. Le pipeline de données a ses propres contrôles dans le dépôt des données (`pytest -q`, garde de continuité `openfootball export --previous <manifeste>`). Ne jamais commiter `web/public/data`, `cache/` ni `*.duckdb`. Le jeton de déploiement `SITE_DEPLOY_TOKEN` est dans le dépôt des données (fine-grained, ce dépôt seul, *Actions : lecture et écriture*, un an au plus). Relire les pull requests de Dependabot avant de les fusionner.
+Avant de fusionner : `npm run check`. Le pipeline de données a ses propres contrôles dans le dépôt des données (`pytest -q`, garde de continuité `openfootball export --previous <manifeste>`). Ne jamais commiter `web/public/data`, `cache/` ni `*.duckdb`. Le jeton de déploiement `SITE_DEPLOY_TOKEN` est dans le dépôt des données (fine-grained, ce dépôt seul, *Actions : lecture et écriture*, sans expiration ; à révoquer et recréer s'il a pu fuiter). Relire les pull requests de Dependabot avant de les fusionner.

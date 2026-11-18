@@ -43,7 +43,7 @@ npm run check       # vérification des types (svelte-check), aussi lancée par 
 
 ## Comment le site est déployé
 
-Publier une release dans le dépôt des données lance le déploiement toute seule (`notify-site.yml` là-bas lance [`deploy.yml`](.github/workflows/deploy.yml) ici, avec le tag de la release). Un push de `web/**` sur `main` redéploie avec la dernière release. Le jeton qui autorise la première étape, ses droits et son expiration sont décrits dans le [guide du dépôt des données](https://github.com/florentfougeres/OpenFootballBase-Data/blob/main/docs/fr/publishing-a-release.md).
+Publier une release dans le dépôt des données lance le déploiement toute seule (`notify-site.yml` là-bas lance [`deploy.yml`](.github/workflows/deploy.yml) ici, avec le tag de la release). Un push de `web/**` sur `main` redéploie avec la dernière release. Le jeton qui autorise la première étape, ses droits sont décrits dans le [guide du dépôt des données](https://github.com/florentfougeres/OpenFootballBase-Data/blob/main/docs/fr/publishing-a-release.md).
 
 Pour redéployer à la main :
 

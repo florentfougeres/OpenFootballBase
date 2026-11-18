@@ -43,7 +43,7 @@ npm run check       # type check (svelte-check), also run by the CI
 
 ## How the site is deployed
 
-Publishing a release in the data repository starts the deployment by itself (`notify-site.yml` there starts [`deploy.yml`](.github/workflows/deploy.yml) here, with the tag of the release). A push of `web/**` to `main` redeploys with the latest release. The token that allows the first step, its rights and its expiration are described in the [data repository's guide](https://github.com/florentfougeres/OpenFootballBase-Data/blob/main/docs/en/publishing-a-release.md).
+Publishing a release in the data repository starts the deployment by itself (`notify-site.yml` there starts [`deploy.yml`](.github/workflows/deploy.yml) here, with the tag of the release). A push of `web/**` to `main` redeploys with the latest release. The token that allows the first step, its rights are described in the [data repository's guide](https://github.com/florentfougeres/OpenFootballBase-Data/blob/main/docs/en/publishing-a-release.md).
 
 To redeploy by hand:
 

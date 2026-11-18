@@ -33,4 +33,4 @@ There is no backend, no account, no user-generated content and no secret in the 
 
 ## For maintainers
 
-Before merging: `npm run check`. The data pipeline has its own checks in the data repository (`pytest -q`, `openfootball export --previous <manifest>` continuity guard). Never commit `web/public/data`, `cache/` or `*.duckdb`. The deployment token `SITE_DEPLOY_TOKEN` lives in the data repository (fine-grained, this repository only, *Actions: read and write*, one year at most). Review Dependabot pull requests before merging.
+Before merging: `npm run check`. The data pipeline has its own checks in the data repository (`pytest -q`, `openfootball export --previous <manifest>` continuity guard). Never commit `web/public/data`, `cache/` or `*.duckdb`. The deployment token `SITE_DEPLOY_TOKEN` lives in the data repository (fine-grained, this repository only, *Actions: read and write*, no expiry; revoke and recreate it if it may have leaked). Review Dependabot pull requests before merging.
