@@ -62,25 +62,81 @@
   const scorers = (id: number, side: string) => (goals.data?.get(id) ?? []).filter((g) => g.side === side)
     .map((g) => `${nice(g.player_name as string)} ${g.minute ?? ""}'${g.kind === "penalty" ? ` (${t("resPenAbbr")})` : g.kind === "own_goal" ? ` (${t("resOgAbbr")})` : ""}`);
 
-  // Un classement n'a de sens que pour un championnat : toutes les journées s'appellent « Matchday N ».
-  const isLeague = $derived(rounds.length > 0 && rounds.every((r) => /^Matchday \d+$/.test(r)));
+  // Un classement n'a de sens que pour un championnat : des journées numérotées (« Matchday 12 », « 23. Round », « Apertura, Matchday 5 »).
+  // Les championnats à deux phases (Apertura / Clausura, saison régulière / poule finale) ont un classement PAR phase.
+  type RoundInfo = { phase: string; no: number };
+  /** La phase n'est montrée que si elle apprend quelque chose (« Clausura », « Championship ») : « Group » ne fait que répéter les titres de groupes. */
+  const phaseName = (ph: string) => (ph === "Group" ? "" : ph);
+  const parseRound = (r: string): RoundInfo | null => {
+    let m = /^(.+?), Matchday (\d+)$/.exec(r);
+    if (m) return { phase: m[1], no: Number(m[2]) };
+    m = /^[▪•]?\s*Matchday (\d+)$/.exec(r) ?? /^(\d+)\. Round$/.exec(r);
+    return m ? { phase: "", no: Number(m[1]) } : null;
+  };
+  /** « Round 3 » est aussi le tour d'une coupe : on ne le prend pour une journée que si chaque tour réunit à peu près autant de matchs (un tableau à élimination se réduit de tour en tour). */
+  const looksLikeLeagueRounds = (names: string[]) => {
+    if (names.length < 4) return false;
+    const size = names.map((r) => (matches.data ?? []).filter((m) => m.round === r).length);
+    return Math.min(...size) >= 0.6 * Math.max(...size);
+  };
+  const info = $derived.by(() => {
+    const out = new Map<string, RoundInfo>();
+    for (const r of rounds) { const i = parseRound(r); if (i) out.set(r, i); }
+    const plain = rounds.filter((r) => /^Round \d+$/.test(r));
+    if (!out.size && looksLikeLeagueRounds(plain)) for (const r of plain) out.set(r, { phase: "", no: Number(r.slice(6)) });
+    return out;
+  });
+  const isLeague = $derived.by(() => {
+    if (info.size < 4) return false;
+    const played = (matches.data ?? []).filter((m) => info.has((m.round as string) ?? "—")).length;
+    return played >= 0.7 * (matches.data ?? []).length;                  // le reste (finales, barrages) ne compte pas dans le classement
+  });
+  const phases = $derived([...new Set([...info.values()].map((i) => i.phase))]);
+  /** La phase du classement : celle de la journée affichée ; sur une journée sans numéro (finale, barrage), la phase la plus récente. */
+  const lastPhase = $derived.by(() => { let ph = phases[0] ?? ""; for (const m of matches.data ?? []) { const i = info.get((m.round as string) ?? "—"); if (i && m.ft_home != null) ph = i.phase; } return ph; });
+  const tablePhase = $derived(info.get(round)?.phase ?? lastPhase);
+  const upto = $derived.by(() => {
+    const i = info.get(round);
+    if (i) return i.no;
+    return Math.max(0, ...[...info.values()].filter((x) => x.phase === tablePhase).map((x) => x.no));
+  });
+  /** « Matchday 12 » devient « Journée 12 » (« Matchday 12 » en anglais), précédé de la phase s'il y en a ; les autres tours gardent le nom de la source. */
+  const roundLabel = (r: string) => { const i = isLeague ? info.get(r) : undefined; return i ? `${phaseName(i.phase) ? phaseName(i.phase) + " · " : ""}${t("resRound")} ${i.no}` : r; };
   type Line = { key: string; club: string | null; name: string; p: number; w: number; d: number; l: number; gf: number; ga: number; pts: number; form: ("w" | "d" | "l")[] };
-  const table = $derived.by(() => {
-    if (!isLeague) return [] as Line[];
-    const by = new Map<string, Line>();
-    const add = (club: string | null, name: string, gf: number, ga: number) => {
-      const key = club ?? name;
-      const l = by.get(key) ?? { key, club, name, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0, form: [] };
-      l.p++; l.gf += gf; l.ga += ga;
-      if (gf > ga) { l.w++; l.pts += 3; l.form.push("w"); } else if (gf === ga) { l.d++; l.pts += 1; l.form.push("d"); } else { l.l++; l.form.push("l"); }
-      by.set(key, l);
-    };
-    for (const m of matches.data ?? []) {                              // dans l'ordre du calendrier : la forme est donc la fin de la liste
-      if (m.ft_home == null) continue;
+  /** Un classement par groupe : dans une phase de groupes, les équipes qui se rencontrent forment des ensembles disjoints (la source n'en donne pas toujours le nom). Un championnat est un seul groupe. */
+  const tables = $derived.by(() => {
+    if (!isLeague) return [] as { title: string; lines: Line[] }[];
+    const inPhase = (matches.data ?? []).filter((m) => info.get((m.round as string) ?? "—")?.phase === tablePhase);
+    const team = (club: string | null, name: string) => club ?? name;
+    const parent = new Map<string, string>();
+    const find = (x: string): string => { let r = x; while ((parent.get(r) ?? r) !== r) r = parent.get(r)!; parent.set(x, r); return r; };
+    for (const m of inPhase) {
+      const h = team(m.home_club, m.home_name), a = team(m.away_club, m.away_name);
+      if (!parent.has(h)) parent.set(h, h);
+      if (!parent.has(a)) parent.set(a, a);
+      parent.set(find(h), find(a));
+    }
+    const groups = new Map<string, { title: string; by: Map<string, Line> }>();
+    for (const m of inPhase) {                                         // dans l'ordre du calendrier : la forme est donc la fin de la liste
+      const g = groups.get(find(team(m.home_club, m.home_name))) ?? { title: "", by: new Map<string, Line>() };
+      if (!g.title && m.group_name) g.title = m.group_name as string;
+      groups.set(find(team(m.home_club, m.home_name)), g);
+      if (m.ft_home == null || (info.get((m.round as string) ?? "—")?.no ?? Infinity) > upto) continue;
+      const add = (club: string | null, name: string, gf: number, ga: number) => {
+        const key = team(club, name);
+        const l = g.by.get(key) ?? { key, club, name, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0, form: [] };
+        l.p++; l.gf += gf; l.ga += ga;
+        if (gf > ga) { l.w++; l.pts += 3; l.form.push("w"); } else if (gf === ga) { l.d++; l.pts += 1; l.form.push("d"); } else { l.l++; l.form.push("l"); }
+        g.by.set(key, l);
+      };
       add(m.home_club, m.home_name, m.ft_home, m.ft_away);
       add(m.away_club, m.away_name, m.ft_away, m.ft_home);
     }
-    return [...by.values()].sort((a, b) => b.pts - a.pts || b.gf - b.ga - (a.gf - a.ga) || b.gf - a.gf || a.name.localeCompare(b.name));
+    const many = groups.size > 1;
+    return [...groups.values()].map((g, i) => ({
+      title: many ? g.title || `${t("resGroup")} ${i + 1}` : "",
+      lines: [...g.by.values()].sort((x, y) => y.pts - x.pts || y.gf - y.ga - (x.gf - x.ga) || y.gf - x.gf || x.name.localeCompare(y.name)),
+    })).filter((g) => g.lines.length);
   });
   const FORM_LABEL = { w: "resW", d: "resD", l: "resL" } as const;
 
@@ -103,13 +159,62 @@
   {/if}
 {/snippet}
 
+{#snippet standing(table: Line[])}
+  <div class="card overflow-x-auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th class="w-9 !pr-0">#</th><th>{t("resTeam")}</th>
+          <th class="num" title={t("resPlayed")}>{t("resP")}</th>
+          <th class="num max-sm:hidden">{t("resW")}</th><th class="num max-sm:hidden">{t("resD")}</th><th class="num max-sm:hidden">{t("resL")}</th>
+          <th class="num max-md:hidden">{t("resGF")}</th><th class="num max-md:hidden">{t("resGA")}</th>
+          <th class="num">{t("resGD")}</th><th class="num">{t("resPts")}</th>
+          <th class="max-2xl:hidden">{t("resForm")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each table as l, i (l.key)}
+          <tr>
+            <td class="!pr-0 tabular-nums"><span class="inline-grid size-6 place-items-center rounded-md text-xs font-bold {i === 0 ? 'bg-accent text-accent-fg' : 'text-muted'}">{i + 1}</span></td>
+            <td class="max-w-[10rem] font-medium sm:max-w-[13rem]">{@render team(l.club, l.name)}</td>
+            <td class="num">{l.p}</td>
+            <td class="num max-sm:hidden">{l.w}</td><td class="num max-sm:hidden">{l.d}</td><td class="num max-sm:hidden">{l.l}</td>
+            <td class="num max-md:hidden">{l.gf}</td><td class="num max-md:hidden">{l.ga}</td>
+            <td class="num">{l.gf - l.ga > 0 ? "+" : ""}{l.gf - l.ga}</td>
+            <td class="num display text-base font-bold">{l.pts}</td>
+            <td class="max-2xl:hidden">
+              <span class="flex gap-1" role="img" aria-label={l.form.slice(-5).map((f) => t(FORM_LABEL[f])).join(" ")}>
+                {#each l.form.slice(-5) as f}
+                  <span class="grid size-5 place-items-center rounded text-[0.65rem] font-bold {f === 'w' ? 'bg-accent text-accent-fg' : f === 'd' ? 'bg-surface-2 text-muted' : 'bg-warn-soft text-warn'}" aria-hidden="true">{t(FORM_LABEL[f])}</span>
+                {/each}
+              </span>
+            </td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
+{/snippet}
+
+{#snippet roundNav()}
+  <div class="inline-flex items-center rounded-lg border border-line bg-surface p-0.5">
+    <button type="button" class="grid size-8 place-items-center rounded-md text-lg text-muted transition hover:text-fg disabled:opacity-30" aria-label={t("resPrev")}
+      disabled={roundIdx <= 0} onclick={() => (roundPick = rounds[roundIdx - 1])}>‹</button>
+    <select class="max-w-[11rem] cursor-pointer appearance-none bg-transparent px-2 text-center text-sm font-semibold" aria-label={t("resRound")} value={round} onchange={(e) => (roundPick = e.currentTarget.value)}>
+      {#each rounds as r}<option value={r}>{roundLabel(r)}</option>{/each}
+    </select>
+    <button type="button" class="grid size-8 place-items-center rounded-md text-lg text-muted transition hover:text-fg disabled:opacity-30" aria-label={t("resNext")}
+      disabled={roundIdx >= rounds.length - 1} onclick={() => (roundPick = rounds[roundIdx + 1])}>›</button>
+  </div>
+{/snippet}
+
 {#if seasons.loading && !seasons.data}
   <Spinner />
 {:else if !seasons.data?.length}
   <p class="mt-6 text-muted">{t("resNone")}</p>
 {:else}
   <h2 class="mt-7 text-lg font-bold">{t("allSeasons")}</h2>
-  <div class="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={t("allSeasons")}>
+  <div class="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={t("allSeasons")}>
     {#each seasons.data as s}
       <button type="button" role="tab" aria-selected={s === season} onclick={() => { picked = s; roundPick = null; }}
         class="shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold tabular-nums transition {s === season ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface hover:bg-surface-2'}">{s}</button>
@@ -119,43 +224,23 @@
   {#if matches.loading && !matches.data}
     <Spinner />
   {:else}
-    <div class="mt-6 grid grid-cols-[minmax(0,1fr)] items-start gap-6 {table.length ? 'xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] max-w-4xl xl:max-w-none' : 'max-w-3xl'}">
-      {#if table.length}
+    {#if isLeague}
+      <div class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
+        {@render roundNav()}
+        <span class="text-xs text-muted">{t("resNavHint")}</span>
+      </div>
+    {/if}
+    <div class="mt-4 grid grid-cols-[minmax(0,1fr)] items-start gap-6 {tables.length ? 'xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] max-w-4xl xl:max-w-none' : 'max-w-3xl'}">
+      {#if tables.length}
         <section aria-labelledby="res-table">
-          <h2 id="res-table" class="mb-2 text-xl font-bold">{t("resTable")} <span class="font-semibold tabular-nums text-muted">{season}</span></h2>
-          <div class="card overflow-x-auto">
-            <table class="tbl">
-              <thead>
-                <tr>
-                  <th class="w-9 !pr-0">#</th><th>{t("resTeam")}</th>
-                  <th class="num" title={t("resPlayed")}>{t("resP")}</th>
-                  <th class="num max-sm:hidden">{t("resW")}</th><th class="num max-sm:hidden">{t("resD")}</th><th class="num max-sm:hidden">{t("resL")}</th>
-                  <th class="num max-md:hidden">{t("resGF")}</th><th class="num max-md:hidden">{t("resGA")}</th>
-                  <th class="num">{t("resGD")}</th><th class="num">{t("resPts")}</th>
-                  <th class="max-2xl:hidden">{t("resForm")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {#each table as l, i (l.key)}
-                  <tr>
-                    <td class="!pr-0 tabular-nums"><span class="inline-grid size-6 place-items-center rounded-md text-xs font-bold {i === 0 ? 'bg-accent text-accent-fg' : 'text-muted'}">{i + 1}</span></td>
-                    <td class="max-w-[13rem] font-medium">{@render team(l.club, l.name)}</td>
-                    <td class="num">{l.p}</td>
-                    <td class="num max-sm:hidden">{l.w}</td><td class="num max-sm:hidden">{l.d}</td><td class="num max-sm:hidden">{l.l}</td>
-                    <td class="num max-md:hidden">{l.gf}</td><td class="num max-md:hidden">{l.ga}</td>
-                    <td class="num">{l.gf - l.ga > 0 ? "+" : ""}{l.gf - l.ga}</td>
-                    <td class="num display text-base font-bold">{l.pts}</td>
-                    <td class="max-2xl:hidden">
-                      <span class="flex gap-1" role="img" aria-label={l.form.slice(-5).map((f) => t(FORM_LABEL[f])).join(" ")}>
-                        {#each l.form.slice(-5) as f}
-                          <span class="grid size-5 place-items-center rounded text-[0.65rem] font-bold {f === 'w' ? 'bg-accent text-accent-fg' : f === 'd' ? 'bg-surface-2 text-muted' : 'bg-warn-soft text-warn'}" aria-hidden="true">{t(FORM_LABEL[f])}</span>
-                        {/each}
-                      </span>
-                    </td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
+          <h2 id="res-table" class="mb-2 text-xl font-bold">{t("resTable")} <span class="font-semibold tabular-nums text-muted">{season}{#if isLeague}{#if phases.length > 1 && phaseName(tablePhase)}{" · "}{tablePhase}{/if}{" · "}{t("resAfterRound")} {upto}{/if}</span></h2>
+          <div class="grid gap-5">
+            {#each tables as tb (tb.title)}
+              <div>
+                {#if tb.title}<h3 class="mb-1.5 text-sm font-semibold text-muted">{tb.title}</h3>{/if}
+                {@render standing(tb.lines)}
+              </div>
+            {/each}
           </div>
           <p class="mt-2 text-xs text-muted">{t("resTableNote")}</p>
         </section>
@@ -164,15 +249,7 @@
       <section aria-labelledby="res-matches">
         <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
           <h2 id="res-matches" class="text-xl font-bold">{t("resMatches")}</h2>
-          <div class="inline-flex items-center rounded-lg border border-line bg-surface p-0.5">
-            <button type="button" class="grid size-8 place-items-center rounded-md text-lg text-muted transition hover:text-fg disabled:opacity-30" aria-label={t("resPrev")}
-              disabled={roundIdx <= 0} onclick={() => (roundPick = rounds[roundIdx - 1])}>‹</button>
-            <select class="max-w-[11rem] cursor-pointer appearance-none bg-transparent px-2 text-center text-sm font-semibold" aria-label={t("resRound")} value={round} onchange={(e) => (roundPick = e.currentTarget.value)}>
-              {#each rounds as r}<option value={r}>{r}</option>{/each}
-            </select>
-            <button type="button" class="grid size-8 place-items-center rounded-md text-lg text-muted transition hover:text-fg disabled:opacity-30" aria-label={t("resNext")}
-              disabled={roundIdx >= rounds.length - 1} onclick={() => (roundPick = rounds[roundIdx + 1])}>›</button>
-          </div>
+          {#if !isLeague}{@render roundNav()}{/if}
         </div>
         <div class="card px-4 py-1">
           {#each days as d (d.day)}
