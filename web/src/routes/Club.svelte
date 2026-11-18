@@ -456,7 +456,7 @@
                         <span class="display w-8 text-2xl font-bold tabular-nums">{h.years.length}</span>
                         <CompLogo code={h.code} size={32} />
                         <span class="min-w-0 flex-1">
-                          <a class="block truncate font-semibold no-underline hover:text-accent" href={href("competition", h.code)}>{compName(h.code)}</a>
+                          <a class="line-clamp-2 font-semibold leading-snug no-underline hover:text-accent" href={href("competition", h.code)}>{compName(h.code)}</a>
                           <span class="block truncate text-xs tabular-nums text-muted">{h.years.slice(0, 4).map((y) => titleYear(h.code, y)).join(" · ")}{h.years.length > 4 ? " …" : ""}</span>
                         </span>
                         {#if h.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}

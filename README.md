@@ -3,7 +3,7 @@
 <h1 align="center">OpenFootballBase</h1>
 
 <p align="center">
-  <strong>An open database of football club squads, season by season, built only from Wikipedia and Wikidata.</strong><br>
+  <strong>An open database of football club squads, season by season, built from Wikipedia and Wikidata (match results from the open OpenFootball data).</strong><br>
   Who played for which club, with which shirt number, at what age — plus every player's career and caps.
 </p>
 

@@ -11,9 +11,11 @@ from pathlib import Path
 from openfootball.audit import run_audit
 from openfootball.backfill import run_backfill
 from openfootball.coaches import import_coaches
+from openfootball.wikiresults import import_wikipedia_results
+from openfootball.matches import OpenFootballClient, import_full, import_leagues, import_tournaments, import_txt_repos, link_match_players, purge_unseen
 from openfootball.checks import run_checks
 from openfootball.db import connect, migrate
-from openfootball.enrich import add_career_clubs, enrich_player_photos, enrich_birth_dates, enrich_career_clubs, enrich_context_labels, enrich_league_logos, enrich_logos, enrich_wiki_links
+from openfootball.enrich import add_career_clubs, enrich_match_competition_logos, enrich_player_photos, enrich_birth_dates, enrich_career_clubs, enrich_context_labels, enrich_league_logos, enrich_logos, enrich_wiki_links
 from openfootball.progress import build_progress
 from openfootball.world_clubs import import_world_clubs, purge_non_clubs
 from openfootball.careers import import_profiles, import_careers, import_careers_by_qid, prune_after_career_end
@@ -556,6 +558,7 @@ def enrich_cmd(args: argparse.Namespace) -> int:
         enrich_context_labels(con, wd)
     if "leaguelogos" in what:
         enrich_league_logos(con, wp)
+        enrich_match_competition_logos(con, wp)
     if "logos" in what:
         enrich_logos(con, wp, refresh=args.refresh_logos, all_clubs=args.all_clubs, limit=args.logo_limit)
     return 0
@@ -649,6 +652,26 @@ def coaches_cmd(args: argparse.Namespace) -> int:
     con = connect(args.db)
     migrate(con)
     import_coaches(con, WikidataClient(args.wd_cache))
+    return 0
+
+
+def matches_cmd(args: argparse.Namespace) -> int:
+    """Matchs (scores, buteurs, calendriers) des championnats et coupes : données ouvertes OpenFootball (CC0). Remplace les matchs de chaque compétition-saison lue."""
+    con = connect(args.db)
+    migrate(con)
+    client = OpenFootballClient(args.cache)
+    done = import_leagues(con, client, since=args.since, keys=args.only.split(",") if args.only else None, fresh_seasons=args.fresh_seasons)
+    if not args.only:
+        done |= import_tournaments(con, client)
+        import_full(con, client)                       # après les championnats : ils recréent les matchs, donc leur détail
+        done |= import_txt_repos(con, client, already=set(done))
+        os.environ["OPENFOOTBALL_FRESH"] = "1"                         # les pages de résultats changent chaque jour : toujours relues
+        import_wikipedia_results(con, {l: WikipediaClient(f"cache/wikipedia_results_{l}", lang=l) for l in ("en", "fr", "es")})        # saison en cours : complète OpenFootball (en retard)
+        purged = purge_unseen(con, {k.split(" ")[0] for k in done})
+        if purged:
+            print(f"  {purged} compétitions OF:* retirées (plus de fichier source, ou rattachées à une compétition à nous)")
+    link_match_players(con)                            # buteurs, compositions et cartons -> joueurs de l'effectif (les lignes sont recréées à chaque import)
+    print(f"{sum(r.matches for r in done.values())} matchs, {len(done)} compétitions-saisons")
     return 0
 
 
@@ -866,6 +889,13 @@ def main(argv: list[str] | None = None) -> int:
     co.add_argument("--db", default=DB_DEFAULT)
     co.add_argument("--wd-cache", default="cache/wikidata")
     co.set_defaults(func=coaches_cmd)
+    ma = sub.add_parser("matches", help="matchs : résultats, buteurs et calendriers des championnats et coupes (données ouvertes OpenFootball, CC0)")
+    ma.add_argument("--db", default=DB_DEFAULT)
+    ma.add_argument("--cache", default="cache/openfootball")
+    ma.add_argument("--since", type=int, default=2010, help="première saison lue (année de début)")
+    ma.add_argument("--only", help="clés de championnat séparées par des virgules (ex. en.1,fr.1) ; par défaut toutes")
+    ma.add_argument("--fresh-seasons", type=int, default=2, help="nombre de dernières saisons relues à chaque passage (les autres viennent du cache)")
+    ma.set_defaults(func=matches_cmd)
     aw = sub.add_parser("awards", help="Ballon d'Or : classement de chaque édition (pages Wikipedia)")
     aw.add_argument("--db", default=DB_DEFAULT)
     aw.add_argument("--cache", default="cache/wikipedia")

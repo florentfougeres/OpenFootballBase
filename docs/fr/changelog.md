@@ -4,6 +4,13 @@
 
 Les releases de données publiées, la plus récente d'abord. Les noms suivent le [versionnage sémantique](https://semver.org/lang/fr/) : **majeure** = changement de schéma incompatible, **mineure** = nouvelles données (championnat, pays, coupe, table, colonne), **correctif** = corrections de données. Chaque release s'appelle `Data X.Y.Z` avec le tag `data-X.Y.Z` ([comment publier](publishing-a-release.md)). Les changements du site et des outils qui ne sont pas liés à une release de données sont listés sous « Site et outils ».
 
+## Data 1.20.0 — 2026-11-18
+- **Matchs** (nouvelles tables `match`, `match_goal`, `match_lineup`, `match_card`, `match_competition` ; nouvelle commande `matches`) : 161 703 matchs (155 515 joués) de 73 compétitions : 26 championnats depuis 2010, Ligue des champions, Coupes du monde, Euros, Coupe du monde des clubs, Libertadores et Sudamericana, matchs de sélections depuis 1872 et une douzaine d'autres championnats. Scores, mi-temps, prolongations, tirs au but, stades et buteurs (48 147 buts). Les six grands championnats de 2025/26 ont aussi les compositions avec remplacements, les cartons, l'affluence et l'arbitre. Source : les données ouvertes du projet OpenFootball (CC0), troisième source à côté de Wikipedia et Wikidata, pour les matchs seulement.
+- **Saison en cours complétée depuis Wikipedia** : la mise à jour automatique d'OpenFootball s'est arrêtée en septembre ; les scores qui manquent aux neuf premières divisions sont lus dans la matrice de résultats des pages Wikipedia de saison (444 matchs ; colonne `result_source` de `match`). Sur les centaines de matchs présents dans les deux sources, les scores sont identiques.
+- **Noms rattachés à nos données** : équipes à nos clubs (alias de clubs), buteurs, compositions et cartons aux joueurs de l'effectif du club cette saison-là quand le nom est sans ambiguïté (colonnes `player_qid`).
+- **Pages de compétitions** : page Wikipedia et logo des compétitions qui n'existent que dans la source de matchs (`match_competition` : `wikipedia_title`, `logo_url`, `logo_license`).
+- **Corrections** : les lignes d'effectif tenues par un joueur que son âge ou sa carrière exclut (le « Fran González » de 56 ans du Deportivo, listé au Real Madrid en 2025/26) sont détachées et ré-identifiées : 499 lignes trouvées, 35 restantes (surtout des rubriques de records lues comme des effectifs, à corriger dans le parseur). Nouveau contrôle d'audit `homonym_stay`.
+
 ## Data 1.19.0 — 2026-11-16
 - **Entraîneurs** (nouvelle table `coach`, nouvelle commande `coaches`) : les mandats d'entraîneur des clubs, avec dates de début et de fin, d'après Wikidata (8 091 mandats, 1 381 des 2 815 clubs à effectifs ; les grands clubs sont bien couverts, les petits moins). La fiche club les montre dans la colonne de droite, le plus récent d'abord ; un entraîneur qui a aussi été joueur dans nos données mène à sa fiche.
 - **Corrections** : 12 dates de naissance prises sur le mauvais élément Wikidata ne sont plus affichées (un joueur « né en 2026 », une carrière qui commence avant la naissance) ; 165 nombres de buts impossibles sont laissés vides (fautes de frappe de Wikipedia comme « 11 matchs, 100 buts ») ; les tableaux de statistiques dont la cellule de saison porte un `!colspan` parasite ne décalent plus leurs colonnes.
@@ -123,6 +130,10 @@ Les releases de données publiées, la plus récente d'abord. Les noms suivent l
 - **Première publication** : 5 championnats (Premier League, La Liga, Serie A, Bundesliga, Ligue 1), saisons 2010/11 à 2026/27 (en cours), issues de Wikipedia et Wikidata uniquement. Fichiers Parquet + `manifest.json` ; le site est déployé à partir de cette release.
 
 ## Site et outils
+
+### 2026-11-18
+- **Page Compétitions** : une vue Clubs (par confédération, puis une rubrique « Monde » pour les coupes intercontinentales, qui ne sont plus mélangées à l'UEFA) et une vue Équipes nationales (phases finales, qualifications, amicaux), avec des icônes et les logos Wikipedia des compétitions ; celles que seule la source de matchs connaît sont dans leur continent.
+- **Onglet Résultats** sur chaque page de compétition : classement calculé avec la forme, matchs par journée avec les buteurs ; onglet Palmarès aligné sur le palmarès des clubs. Script hebdomadaire : `matches` (résultats, puis complément de la saison en cours depuis Wikipedia) et `enrich --what leaguelogos` à sa suite.
 
 ### 2026-11-16
 - **Audit de cohérence** (`audit`) : contrôle toute la base avant chaque publication, lancé par le script hebdomadaire (un problème bloquant l'arrête). Statistiques : les nombres de buts impossibles (plus de 3 par match et au moins 10, fautes de frappe de Wikipedia comme « 11 matchs, 100 buts ») sont désormais laissés vides au lieu d'être affichés ; les tableaux dont la cellule de saison porte un `!colspan` parasite ne décalent plus les colonnes.

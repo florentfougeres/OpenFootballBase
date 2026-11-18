@@ -7,7 +7,7 @@
 1. **rebuilds the working database from the latest published release** on every run (`restore-db`), so each run starts from exactly what the site shows; the previous database is moved to `data/work/backups/` (3 kept);
 2. `careers --active --fresh`: re-reads the career infobox and profile, ignoring the cache;
 3. `reconcile --names --wikidata`, then `stats --active --fresh`: re-reads the "Career statistics" tables;
-4. `enrich --what players careerclubs labels`, `coaches` (a Wikidata failure is tolerated: the previous table is kept), `progress`, `audit` (a blocking problem stops the script before the export);
+4. `enrich --what players careerclubs labels`, `coaches` (a Wikidata failure is tolerated: the previous table is kept), `matches --fresh-seasons 2` (OpenFootball results and goalscorers, then current-season scores completed from Wikipedia for the 9 first divisions; a network failure is tolerated), `enrich --what leaguelogos` (logos and Wikipedia pages of the competitions, including those of `matches`), `progress`, `audit` (a blocking problem stops the script before the export);
 5. exports with `--previous` (refused if a frozen season changed) and **publishes** a GitHub release `data-X.Y.(Z+1)` (patch bump of the latest one), then reruns the site deployment.
 
 A lock (`data/work/weekly.lock`) prevents two runs at once (DuckDB has a single writer). Log: `data/work/logs/weekly_YYYYMMDD.log`.

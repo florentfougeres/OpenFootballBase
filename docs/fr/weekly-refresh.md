@@ -7,7 +7,7 @@
 1. **reconstruit la base de travail depuis la dernière release publiée** à chaque passage (`restore-db`) : on repart toujours de ce que montre le site ; l'ancienne base est déplacée dans `data/work/backups/` (3 conservées) ;
 2. `careers --active --fresh` : relit l'infobox de carrière et le profil, en ignorant le cache ;
 3. `reconcile --names --wikidata`, puis `stats --active --fresh` : relit les tableaux « Career statistics » ;
-4. `enrich --what players careerclubs labels`, `coaches` (un échec de Wikidata est toléré : la table précédente est conservée), `progress`, `audit` (un problème bloquant arrête le script avant l'export) ;
+4. `enrich --what players careerclubs labels`, `coaches` (un échec de Wikidata est toléré : la table précédente est conservée), `matches --fresh-seasons 2` (résultats et buteurs d'OpenFootball, puis scores de la saison en cours complétés depuis Wikipedia pour les 9 premières divisions ; un échec réseau est toléré), `enrich --what leaguelogos` (logos et pages Wikipedia des compétitions, y compris celles de `matches`), `progress`, `audit` (un problème bloquant arrête le script avant l'export) ;
 5. exporte avec `--previous` (refusé si une saison figée a changé) et **publie** une release GitHub `data-X.Y.(Z+1)` (version corrective suivant la dernière), puis relance le déploiement du site.
 
 Un verrou (`data/work/weekly.lock`) empêche deux passages simultanés (DuckDB n'a qu'un écrivain). Journal : `data/work/logs/weekly_AAAAMMJJ.log`.

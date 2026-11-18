@@ -4,6 +4,13 @@
 
 Published data releases, newest first. Names follow [semantic versioning](https://semver.org): **major** = incompatible schema change, **minor** = new data (league, country, cup, table, column), **patch** = data fixes. Each release is `Data X.Y.Z` with tag `data-X.Y.Z` ([how to publish](publishing-a-release.md)). Changes to the site and tooling that are not tied to a data release are listed under "Site and tooling".
 
+## Data 1.20.0 — 2026-11-18
+- **Matches** (new tables `match`, `match_goal`, `match_lineup`, `match_card`, `match_competition`; new command `matches`): 161,703 matches (155,515 played) of 73 competitions: 26 championships since 2010, the Champions League, World Cups, Euros, the Club World Cup, the Libertadores and Sudamericana, national-team matches since 1872 and a dozen other championships. Scores, half-times, extra time, penalty shoot-outs, grounds, and goalscorers (48,147 goals). The six big championships of 2025/26 also have line-ups with substitutions, cards, attendance and referee. Source: the open data of the OpenFootball project (CC0), a third source next to Wikipedia and Wikidata, used for matches only.
+- **Current season completed from Wikipedia**: OpenFootball's automatic updates stopped in September, so the missing scores of the nine first divisions are read from the results matrix of the Wikipedia season pages (444 matches; `result_source` column of `match`). On the hundreds of matches present in both sources, the scores are identical.
+- **Names matched to our data**: team names to our clubs (club aliases), and goalscorers, line-ups and cards to the squad players of the club that season when the name is unambiguous (`player_qid` columns).
+- **Competition pages**: Wikipedia page and logo of the competitions that exist only in the match source (`match_competition`: `wikipedia_title`, `logo_url`, `logo_license`).
+- **Fixes**: squad rows held by a player whose age or career rules them out (the 56-year-old "Fran González" of Deportivo listed at Real Madrid in 2025/26) are detached and re-identified: 499 rows found, 35 left (mostly records sections read as squads, to be fixed in the parser). New audit check `homonym_stay`.
+
 ## Data 1.19.0 — 2026-11-16
 - **Coaches** (new table `coach`, new command `coaches`): the head-coach tenures of the clubs, with start and end dates, from Wikidata (8,091 tenures, 1,381 of the 2,815 clubs with squads; the big clubs are well covered, small ones less). The club page shows them in the side column, most recent first; a coach who was also a player in our data links to his player page.
 - **Fixes**: 12 birth dates taken from the wrong Wikidata item are no longer shown (a player "born in 2026", a career that starts before the birth); 165 impossible goal counts are left empty (Wikipedia typos such as "11 matches, 100 goals"); statistics tables whose season cell carries a stray `!colspan` no longer shift their columns.
@@ -123,6 +130,10 @@ Published data releases, newest first. Names follow [semantic versioning](https:
 - **First public release**: 5 leagues (Premier League, La Liga, Serie A, Bundesliga, Ligue 1), seasons 2010/11 to 2026/27 (open), built from Wikipedia and Wikidata only. Parquet files + `manifest.json`; the site is deployed from this release.
 
 ## Site and tooling
+
+### 2026-11-18
+- **Competitions page**: a Clubs view (by confederation, then a "World" section for intercontinental cups, no longer mixed with UEFA) and a National teams view (finals, qualifiers, friendlies), with icons and the competitions' Wikipedia logos; competitions known only from the match source sit in their continent.
+- **Results tab** on every competition page: computed standings with form, matches by matchday with goalscorers; honours tab aligned with the club honours panel. Weekly script: `matches` (results, then current-season completion from Wikipedia) and `enrich --what leaguelogos` after it.
 
 ### 2026-11-16
 - **Consistency audit** (`audit`): checks the whole database before every publication, run by the weekly script (a blocking problem stops it). Statistics: goal counts that are impossible (more than 3 per match and at least 10, typos in Wikipedia such as "11 matches, 100 goals") are now left empty instead of displayed; tables whose season cell carries a stray `!colspan` no longer shift the columns.

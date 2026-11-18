@@ -6,6 +6,7 @@ sans logo, un joueur sans date de naissance ou sans page française restent simp
 from __future__ import annotations
 
 import re
+from urllib.parse import unquote
 from datetime import date
 from typing import Callable
 
@@ -291,7 +292,7 @@ def _logos_of_pages(wp, chunk: list[tuple[int, str]]) -> dict[int, tuple[str, st
     for cid, t in chunk:
         m = _IMAGE_FIELD.search(lead.get(step2.get(step1.get(t, t), step1.get(t, t)), ""))
         raw = re.split(r"\{\{!\}\}|\|", m.group(1))[0] if m else ""        # « x.svg{{!}}class=… » : options d'affichage
-        name = re.sub(r"^(?:\[\[)?(?:File|Image):", "", raw.strip(), flags=re.I).rstrip("]").strip()
+        name = unquote(re.sub(r"^(?:\[\[)?(?:File|Image):", "", raw.strip(), flags=re.I).rstrip("]").strip())      # « Logo de la Conmebol Copa Am%C3%A9rica.svg »
         if name:
             files[cid] = "File:" + name
     out: dict[int, tuple[str, str]] = {}
@@ -331,3 +332,34 @@ def enrich_league_logos(con: duckdb.DuckDBPyConnection, wp, *, log=print) -> int
 
 
 LEAGUE_PAGES: dict[str, str] = {}      # nom anglais du championnat -> titre de page, quand ils diffèrent
+
+# Page Wikipedia anglaise de chaque compétition `OF:*` de `match` (celles que nous n'avons pas comme championnat). Les qualifications reprennent la page (et donc le logo)
+# du tournoi qu'elles préparent ; les matchs amicaux n'ont pas de page.
+_WORLD_CUP, _EURO, _COPA, _AFCON, _ASIAN, _GOLD, _OFC, _CNL = ("FIFA World Cup", "UEFA European Championship", "Copa América", "Africa Cup of Nations", "AFC Asian Cup",
+                                                              "CONCACAF Gold Cup", "OFC Nations Cup", "CONCACAF Nations League")
+OF_PAGES: dict[str, str] = {
+    "OF:worldcup": _WORLD_CUP, "OF:fifa_world_cup_qualification": _WORLD_CUP, "OF:euro": _EURO, "OF:uefa_euro_qualification": _EURO,
+    "OF:copa_america": _COPA, "OF:copa_america_qualification": _COPA, "OF:african_cup_of_nations": _AFCON, "OF:african_cup_of_nations_qualification": _AFCON,
+    "OF:afc_asian_cup": _ASIAN, "OF:afc_asian_cup_qualification": _ASIAN, "OF:gold_cup": _GOLD, "OF:gold_cup_qualification": _GOLD,
+    "OF:oceania_nations_cup": _OFC, "OF:oceania_nations_cup_qualification": _OFC, "OF:uefa_nations_league": "UEFA Nations League",
+    "OF:concacaf_nations_league": _CNL, "OF:concacaf_nations_league_qualification": _CNL,
+    "OF:afl": "African Football League", "OF:at.2": "2. Liga (Austria)", "OF:concacafcl": "CONCACAF Champions Cup", "OF:copa-sudamericana": "Copa Sudamericana",
+    "OF:cr1": "Liga FPD", "OF:en.3": "EFL League One", "OF:en.4": "EFL League Two", "OF:il2": "Liga Leumit", "OF:ilcup": "Israel State Cup",
+    "OF:ke1": "Kenyan Premier League", "OF:mw1": "Super League of Malawi", "OF:mx2ascenso": "Ascenso MX", "OF:mx2expansion": "Liga de Expansión MX",
+    "OF:ng2": "Nigeria National League", "OF:rw1": "Rwanda Premier League",
+}
+
+
+def enrich_match_competition_logos(con: duckdb.DuckDBPyConnection, wp, *, log=print) -> int:
+    """Titre de page Wikipedia et logo (infobox) de chaque compétition `OF:*`, dans `competition_info` (même table que nos championnats).
+    Une compétition sans page connue (matchs amicaux) n'a ni lien ni logo."""
+    chunk = [(code, OF_PAGES[code]) for (code,) in con.execute("SELECT code FROM match_competition ORDER BY code").fetchall() if code in OF_PAGES]
+    found: dict[str, tuple[str, str]] = {}
+    for part in _chunks(chunk, BATCH):
+        found.update(_logos_of_pages(wp, part))
+    for code, title in chunk:
+        url, lic = found.get(code, (None, None))
+        con.execute("DELETE FROM competition_info WHERE code = ?", [code])
+        con.execute("INSERT INTO competition_info (code, wikipedia_title, logo_url, logo_license) VALUES (?, ?, ?, ?)", [code, title, url, lic])
+    log(f"  logos des compétitions de matchs : {len(found)}/{len(chunk)}")
+    return len(found)

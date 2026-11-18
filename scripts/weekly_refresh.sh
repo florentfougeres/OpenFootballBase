@@ -27,6 +27,8 @@ $OF reconcile --names --wikidata
 $OF stats --active --fresh --cache cache/wikipedia_stats_v2   # tableaux « Career statistics » des joueurs en activité, relus
 $OF enrich --what players careerclubs labels
 $OF coaches || echo "entraîneurs : échec ignoré (Wikidata indisponible), table de la release précédente conservée"   # mandats d'entraîneurs (Wikidata)
+$OF matches --fresh-seasons 2 || echo "matchs : échec ignoré (GitHub indisponible), table de la release précédente conservée"   # résultats et buteurs (données ouvertes OpenFootball, CC0)
+$OF enrich --what leaguelogos                          # logos et pages Wikipedia des compétitions (y compris celles de `matches`, après lui : il crée leurs noms)
 $OF progress
 $OF audit                                               # cohérence de toute la base : un problème bloquant arrête avant l'export
 

@@ -114,6 +114,23 @@ _COACH = """
 SELECT cl.wikipedia_title AS club, k.coach_qid, k.coach_name, k.start_date, k.end_date
 FROM club_coach k JOIN club cl ON cl.id = k.club_id ORDER BY cl.wikipedia_title, k.start_date, k.coach_name"""
 
+_MATCH = """
+SELECT m.id AS match_id, m.competition_code AS competition, m.season_label AS season, m.round, m.group_name, m.match_date, m.kickoff,
+       m.home_name, m.away_name, hc.wikipedia_title AS home_club, ac.wikipedia_title AS away_club,
+       m.ft_home, m.ft_away, m.ht_home, m.ht_away, m.et_home, m.et_away, m.pen_home, m.pen_away,
+       m.ground, m.attendance, m.referee, m.source_ref, rs.source AS result_source
+FROM match m LEFT JOIN match_result_source rs ON rs.match_id = m.id LEFT JOIN club hc ON hc.id = m.home_club_id LEFT JOIN club ac ON ac.id = m.away_club_id
+ORDER BY m.competition_code, m.season_label, m.match_date NULLS LAST, m.id"""
+
+_MATCH_GOAL = """SELECT g.match_id, g.seq, g.side, g.player_name, w.qid AS player_qid, g.minute, g.kind
+FROM match_goal g LEFT JOIN player_wikidata w ON w.player_id = g.player_id ORDER BY g.match_id, g.seq"""
+_MATCH_LINEUP = """SELECT l.match_id, l.side, l.seq, l.player_name, w.qid AS player_qid, l.role, l.minute, l.captain
+FROM match_lineup l LEFT JOIN player_wikidata w ON w.player_id = l.player_id ORDER BY l.match_id, l.side, l.seq"""
+_MATCH_CARD = """SELECT c.match_id, c.seq, c.side, c.player_name, w.qid AS player_qid, c.minute, c.kind
+FROM match_card c LEFT JOIN player_wikidata w ON w.player_id = c.player_id ORDER BY c.match_id, c.seq"""
+_MATCH_COMPETITION = """SELECT mc.code, mc.name, i.wikipedia_title, i.logo_url, i.logo_license
+FROM match_competition mc LEFT JOIN competition_info i ON i.code = mc.code ORDER BY mc.code"""
+
 _STAT_SOURCE = """
 SELECT w.qid AS player_qid, p.name AS player, s.source_title, s.source_revid, s.club_rows, s.national_rows
 FROM player_stat_source s JOIN player p ON p.id = s.player_id LEFT JOIN player_wikidata w ON w.player_id = p.id
@@ -236,6 +253,13 @@ def export_all(con: duckdb.DuckDBPyConnection, out_dir: str | Path) -> dict:
         manifest["tables"]["national_title"] = _write(con, _NATIONAL_TITLE, out, "national_title", "national_title")
     if con.execute("SELECT count(*) FROM club_coach").fetchone()[0]:                         # entraîneurs : publiés seulement si `coaches` a été lancé
         manifest["tables"]["coach"] = _write(con, _COACH, out, "coach", "coach")
+    if con.execute("SELECT count(*) FROM match").fetchone()[0]:                              # matchs : publiés seulement si `matches` a été lancé
+        manifest["tables"]["match"] = _write(con, _MATCH, out, "match", "match")
+        manifest["tables"]["match_competition"] = _write(con, _MATCH_COMPETITION, out, "match_competition", "match_competition")
+        manifest["tables"]["match_goal"] = _write(con, _MATCH_GOAL, out, "match_goal", "match_goal")
+        if con.execute("SELECT count(*) FROM match_lineup").fetchone()[0]:
+            manifest["tables"]["match_lineup"] = _write(con, _MATCH_LINEUP, out, "match_lineup", "match_lineup")
+            manifest["tables"]["match_card"] = _write(con, _MATCH_CARD, out, "match_card", "match_card")
     manifest["tables"]["player_profile"] = _write(con, _PROFILE, out, "player_profile", "player_profile")
     manifest["tables"]["squad_source"] = _write(con, _SQUAD_SOURCE, out, "squad_source", "squad_source")
     manifest["tables"]["known_gap"] = _write(con, """

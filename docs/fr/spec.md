@@ -17,7 +17,7 @@
 
 ## 1. Vision
 
-Une base ouverte qui répond d'abord à une question : **« Quel était l'effectif du club X à la saison Y ? »** (et, par symétrie, « dans quels clubs/saisons a joué le joueur Z ? »). Construite **uniquement** à partir de sources libres (Wikidata, Wikipedia), consultable via un **site statique public et gratuit** qui exécute les requêtes **dans le navigateur** (DuckDB-WASM), sans backend.
+Une base ouverte qui répond d'abord à une question : **« Quel était l'effectif du club X à la saison Y ? »** (et, par symétrie, « dans quels clubs/saisons a joué le joueur Z ? »). Construite **uniquement** à partir de sources libres (Wikidata, Wikipedia pour les effectifs ; les données ouvertes du projet [OpenFootball](https://github.com/openfootball), CC0, pour les matchs), consultable via un **site statique public et gratuit** qui exécute les requêtes **dans le navigateur** (DuckDB-WASM), sans backend.
 
 Deux livrables :
 1. **Pipeline** (Python) : ingestion → base DuckDB vérifiée → export Parquet.
@@ -25,7 +25,7 @@ Deux livrables :
 
 ### Non-objectifs
 - **Pas de stats (apps, buts) en v1** : reportées. Les colonnes existantes restent en base mais ne sont ni garanties ni affichées.
-- Pas de stats de match, de transferts chiffrés, de valeurs marchandes.
+- Pas de transferts chiffrés ni de valeurs marchandes. Les **résultats de matchs** (scores, buteurs, calendriers) sont dans le périmètre depuis la table `match` (migration 0022), mais **uniquement** d'après la troisième source ci-dessous ; les statistiques individuelles restent celles de Wikipedia.
 - Pas de backend, de comptes utilisateur, de contenu généré par les visiteurs.
 - Pas de données temps réel (mise à jour par lots, au rythme des saisons).
 
@@ -49,7 +49,7 @@ Ce que son audit a révélé devient une liste d'**exigences négatives** — le
 
 ## 3. Contrainte structurante : attester l'appartenance à un effectif
 
-Décisions : sources = **Wikidata + Wikipedia uniquement** ; fiabilité = **exhaustif et vérifié**, désormais appliquée à **l'appartenance joueur ↔ club ↔ saison** (pas aux stats).
+Décisions : sources = **Wikidata + Wikipedia** pour les effectifs, et **openfootball (github.com/openfootball, CC0)** pour les matchs seulement (l'historique ; la saison en cours est complétée par la matrice de résultats des pages Wikipedia de saison) (troisième source, décidée par le mainteneur : `matches`, tables `match` et `match_goal`, jamais mélangée aux effectifs) ; fiabilité = **exhaustif et vérifié**, désormais appliquée à **l'appartenance joueur ↔ club ↔ saison** (pas aux stats).
 
 Aujourd'hui l'effectif est *déduit* par recoupement des dates de carrière (P54 Wikidata), et 55 % des passages n'ont pas de date de début (L3). Un effectif déduit est donc à la fois incomplet (joueurs sans dates absents) et approximatif (prêts, transferts hivernaux, joueurs jamais alignés).
 

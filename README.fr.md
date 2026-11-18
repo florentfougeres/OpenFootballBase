@@ -3,7 +3,7 @@
 <h1 align="center">OpenFootballBase</h1>
 
 <p align="center">
-  <strong>Une base ouverte des effectifs de clubs de football, saison par saison, construite uniquement à partir de Wikipedia et de Wikidata.</strong><br>
+  <strong>Une base ouverte des effectifs de clubs de football, saison par saison, construite à partir de Wikipedia et de Wikidata (résultats de matchs : données ouvertes OpenFootball).</strong><br>
   Qui jouait dans quel club, avec quel numéro, à quel âge — et la carrière et les sélections de chaque joueur.
 </p>
 

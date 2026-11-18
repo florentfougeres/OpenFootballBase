@@ -283,6 +283,84 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
             "end_date": "Fin du mandat ; vide si le mandat est en cours ou si la fin n'est pas renseignée.",
         },
     ),
+    "match": (
+        "Matchs : résultats, calendriers et détails (stade, affluence, arbitre) des championnats, de la Ligue des champions, des Coupes du monde, des Euros, de la Coupe du monde des clubs, de la Libertadores, du dépôt `world` et des sélections nationales depuis 1872. "
+        "**Source : les données ouvertes du projet OpenFootball (github.com/openfootball, CC0)**, pas Wikipedia ; elles couvrent les saisons récentes et certaines ligues seulement. "
+        "Un match sans score n'est pas encore joué.", "(match_id)",
+        {
+            "match_id": "Identifiant du match (clé de jointure avec `match_goal`).",
+            "competition": "Code de notre compétition (`ENG-PL`…) ou `OF:<clé>` quand la compétition n'existe pas chez nous (`OF:worldcup`, `OF:euro`, `OF:en.3`…).",
+            "season": "Saison (`2025/26`) ou année du tournoi (`2022`).",
+            "round": "Journée ou tour tel qu'écrit par la source (`Matchday 1`, `Round of 16`).",
+            "group_name": "Groupe (tournois).",
+            "match_date": "Date du match.",
+            "kickoff": "Heure du coup d'envoi, locale, telle qu'écrite par la source.",
+            "home_name": "Équipe qui reçoit, telle qu'écrite par la source.",
+            "away_name": "Équipe qui se déplace, telle qu'écrite par la source.",
+            "home_club": "Titre de la page Wikipedia du club qui reçoit dans `club` ; vide si aucun club de la compétition ne porte ce nom (et pour les sélections).",
+            "away_club": "Titre de la page Wikipedia du club qui se déplace dans `club` ; vide si aucun club ne correspond (et pour les sélections).",
+            "ft_home": "Buts de l'équipe qui reçoit à la fin du temps réglementaire.",
+            "ft_away": "Buts de l'équipe qui se déplace à la fin du temps réglementaire.",
+            "ht_home": "Buts de l'équipe qui reçoit à la mi-temps.",
+            "ht_away": "Buts de l'équipe qui se déplace à la mi-temps.",
+            "et_home": "Buts de l'équipe qui reçoit après prolongation (cumul).",
+            "et_away": "Buts de l'équipe qui se déplace après prolongation (cumul).",
+            "pen_home": "Tirs au but marqués par l'équipe qui reçoit.",
+            "pen_away": "Tirs au but marqués par l'équipe qui se déplace.",
+            "ground": "Stade, tel qu'écrit par la source.",
+            "attendance": "Affluence.",
+            "referee": "Arbitre central.",
+            "source_ref": "Fichier du dépôt OpenFootball d'où vient la ligne (ou page Wikipedia pour un match créé depuis sa matrice).",
+            "result_source": "Provenance du score : vide = la source de matchs OpenFootball ; `wikipedia` = la matrice de résultats de la page Wikipedia de la saison (saison en cours, quand OpenFootball a du retard). En cas de désaccord, le score d'OpenFootball est gardé.",
+        },
+    ),
+    "match_goal": (
+        "Buteurs d'un match, quand la source les donne (Coupes du monde, Euros).", "(match_id, seq)",
+        {
+            "match_id": "Match (`match.match_id`).",
+            "seq": "Rang du but dans la liste de la source.",
+            "side": "`home` ou `away` : l'équipe à qui le but est compté (pour un but contre son camp, celle qui en profite).",
+            "player_name": "Nom du buteur, tel qu'écrit par la source.",
+            "player_qid": "QID Wikidata du joueur de notre base à qui ce nom a été rattaché (effectif du club cette saison-là, sans ambiguïté) ; vide sinon : le nom seul ne désigne personne.",
+            "minute": "Minute (`37`, `90+4`).",
+            "kind": "`goal`, `penalty` ou `own_goal`.",
+        },
+    ),
+    "match_competition": (
+        "Nom des compétitions `OF:*` de `match` (celles que nous n'avons pas comme championnat), lu dans l'en-tête du fichier source ; en anglais.", "(code)",
+        {
+            "code": "Code `OF:<clé>` tel que dans `match.competition`.",
+            "name": "Nom de la compétition, sans l'année (`FIFA World Cup`, `English League One`).",
+            "wikipedia_title": "Titre de la page Wikipedia anglaise de la compétition ; les qualifications reprennent la page du tournoi qu'elles préparent. Vide pour les matchs amicaux.",
+            "logo_url": "Miniature du logo (champ `image` de l'infobox, hébergée par Wikimedia) ; souvent non libre : voir `logo_license`.",
+            "logo_license": "Licence du fichier du logo, telle que Wikimedia la déclare.",
+        },
+    ),
+    "match_lineup": (
+        "Compositions d'un match, quand la source les donne (6 championnats : Premier League, Bundesliga, Liga, Serie A, Ligue 1, Bundesliga autrichienne, depuis 2025/26).", "(match_id, side, seq)",
+        {
+            "match_id": "Match (`match.match_id`).",
+            "side": "`home` ou `away`.",
+            "seq": "Ordre d'écriture de la source : le gardien d'abord, puis les lignes, puis les remplaçants.",
+            "player_name": "Nom tel qu'écrit par la source (la casse varie : `MOHAMED SALAH`, `Hugo EKITIKE`) ; pas de clé de joueur.",
+            "player_qid": "QID Wikidata du joueur de notre base à qui ce nom a été rattaché (effectif du club cette saison-là, sans ambiguïté) ; vide sinon : le nom seul ne désigne personne.",
+            "role": "`start` (titulaire) ou `sub` (entré en cours de match).",
+            "minute": "Minute d'entrée d'un remplaçant ; pour un titulaire remplacé, minute de sa sortie ; vide sinon.",
+            "captain": "Capitaine.",
+        },
+    ),
+    "match_card": (
+        "Cartons d'un match, quand la source donne le détail.", "(match_id, seq)",
+        {
+            "match_id": "Match (`match.match_id`).",
+            "seq": "Rang dans la liste de la source.",
+            "side": "`home` ou `away` : l'équipe du joueur sanctionné.",
+            "player_name": "Joueur, tel qu'écrit par la source.",
+            "player_qid": "QID Wikidata du joueur de notre base à qui ce nom a été rattaché (effectif du club cette saison-là, sans ambiguïté) ; vide sinon : le nom seul ne désigne personne.",
+            "minute": "Minute.",
+            "kind": "`yellow` ou `red`.",
+        },
+    ),
     "player_profile": (
         "Profil lu dans l'infobox Wikipedia anglaise : nom complet, lieu de naissance, taille, décès et **photo** (une ligne par joueur "
         "ayant au moins une de ces informations). Valeurs **publiées telles quelles par Wikipedia, non vérifiées**.",
@@ -320,7 +398,7 @@ TABLES: dict[str, tuple[str, str, dict[str, str]]] = {
     ),
 }
 
-ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach", "player_profile", "birth", "entity_wiki"]
+ORDER = ["squad", "club_season", "squad_source", "club", "competition", "country", "season", "competition_club", "known_gap", "career", "national", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach", "match", "match_competition", "match_goal", "match_lineup", "match_card", "player_profile", "birth", "entity_wiki"]
 
 INTRO = """# OpenFootballBase — dictionnaire de données
 

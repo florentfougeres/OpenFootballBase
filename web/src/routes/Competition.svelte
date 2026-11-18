@@ -12,7 +12,9 @@
   import LeagueTrends from "../components/LeagueTrends.svelte";
 
   let { code, slug }: { code: string; slug?: string } = $props();
-  let view = $state<"season" | "honours">("season");
+  import Results from "../components/Results.svelte";
+  let view = $state<"season" | "honours" | "results">("season");
+  const hasMatches = resource(async () => (app.has.match ? ((await q(`SELECT count(*) AS n FROM match WHERE competition = ?`, [code]))[0]?.n as number) > 0 : false));
   $effect(() => { code; view = "season"; });
   const comp = $derived(app.comps.get(code));
   const country = $derived(countryOf(comp?.country_code));
@@ -41,6 +43,10 @@
     const rows = await q(`SELECT season_start, winner_name, winner_qid, club FROM winner WHERE competition = ? ORDER BY season_start DESC, winner_name`, [code]);
     return rows.map((r): Row => ({ ...r, c: r.club ? clubOf(r.club) : null, key: (r.club as string | null) ?? (r.winner_name as string) }));
   });
+  // Vues disponibles d'après ce que la compétition a : effectifs par saison, résultats, palmarès. Une coupe sans effectifs arrive directement sur ses résultats.
+  const TAB_KEY: Record<string, string> = { season: "seasonTab", results: "resTab", honours: "honours" };
+  const views = $derived<("season" | "results" | "honours")[]>([...(hasSeasons ? ["season" as const] : []), ...(hasMatches.data ? ["results" as const] : []), ...(winners.data?.length ? ["honours" as const] : [])]);
+  $effect(() => { if (views.length && !views.includes(view)) view = views[0]; });
   const seasonName = (y: number) => (YEAR_ONLY.has(code) ? String(y) : seasons.data?.find((s) => startYear(s) === y) ?? `${y}/${String(y + 1).slice(2)}`);
   const winnersOfSeason = $derived(label ? (winners.data ?? []).filter((w) => w.season_start === startYear(label)) : []);
   /** Clubs les plus titrés : nombre de saisons gagnées (une seule fois par saison), puis la plus récente. */
@@ -71,9 +77,9 @@
     </div>
   </header>
 
-  {#if winners.data?.length && hasSeasons}
+  {#if views.length > 1}
     <div class="mt-6 inline-flex rounded-lg border border-line bg-surface p-0.5" role="tablist" aria-label={t("compView")}>
-      {#each [["season", "seasonTab"], ["honours", "honours"]] as [v, k]}
+      {#each views.map((x) => [x, TAB_KEY[x]]) as [v, k]}
         <button type="button" role="tab" aria-selected={view === v} class="flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-semibold transition {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
           onclick={() => (view = v as typeof view)}>{#if v === "honours"}<Trophy size={15} />{/if}{t(k)}</button>
       {/each}
@@ -123,36 +129,49 @@
     {/if}
     {/if}
 
-    {#if (view === "honours" || !hasSeasons) && winners.data?.length}
-      <section class="mt-5" aria-label={t("honours")}>
-        <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <div class="card p-4">
-            <h3 class="mb-2 text-sm font-semibold text-muted">{t("honoursBest")}</h3>
+    {#if view === "results"}<Results {code} />{/if}
+
+    {#if view === "honours" && winners.data?.length}
+      <section class="mt-7 grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]" aria-label={t("honours")}>
+        <div>
+          <h2 class="mb-2 flex items-center gap-2 text-xl font-bold"><Trophy size={20} />{t("honoursBest")}</h2>
+          <div class="card px-4 py-3">
+            <div class="flex items-baseline gap-2 border-b border-line pb-2"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{new Set(winners.data.map((w) => w.season_start)).size}</span><span class="font-semibold">{t("honoursSeasons")}</span></div>
             <ol class="divide-y divide-line/60">
-              {#each ranking.slice(0, 10) as g, i (g.key)}
-                <li class="flex items-center gap-3 py-2">
-                  <span class="w-5 text-right text-sm tabular-nums text-muted">{i + 1}</span>
-                  {#if g.c}<Logo club={g.c} size={26} />{:else}<span class="size-[26px]"></span>{/if}
-                  <span class="min-w-0 flex-1 truncate font-medium">{#if g.c}<a class="no-underline hover:text-accent" href={href("club", enc(g.key))}>{clubName(g.c)}</a>{:else}{g.name}{/if}</span>
-                  <span class="display text-lg font-bold tabular-nums">{g.years.length}</span>
+              {#each ranking.slice(0, 10) as g (g.key)}
+                <li class="py-2.5">
+                  <details class="group">
+                    <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                      <span class="display w-8 text-2xl font-bold tabular-nums">{g.years.length}</span>
+                      {#if g.c}<Logo club={g.c} size={32} />{:else}<span class="size-8 shrink-0"></span>{/if}
+                      <span class="min-w-0 flex-1">
+                        <span class="block font-semibold leading-snug">{#if g.c}<a class="no-underline hover:text-accent" href={href("club", enc(g.key))}>{clubName(g.c)}</a>{:else}{g.name}{/if}</span>
+                        <span class="block truncate text-xs tabular-nums text-muted">{[...g.years].sort((a, b) => b - a).slice(0, 4).map(seasonName).join(" · ")}{g.years.length > 4 ? " …" : ""}</span>
+                      </span>
+                      {#if g.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
+                    </summary>
+                    {#if g.years.length > 4}<p class="mt-1.5 pl-[3.75rem] text-sm leading-relaxed tabular-nums text-muted">{[...g.years].sort((a, b) => b - a).map(seasonName).join(" · ")}</p>{/if}
+                  </details>
                 </li>
               {/each}
             </ol>
           </div>
-          <div class="card p-4">
-            <h3 class="mb-2 text-sm font-semibold text-muted">{t("honoursBySeason")}</h3>
-            <ul class="max-h-[28rem] divide-y divide-line/60 overflow-y-auto pr-1">
+        </div>
+        <div>
+          <h2 class="mb-2 text-xl font-bold">{t("honoursBySeason")}</h2>
+          <div class="card px-4 py-1">
+            <ul class="max-h-[32rem] divide-y divide-line/60 overflow-y-auto pr-1">
               {#each winners.data as w (w.season_start + w.winner_qid)}
-                <li class="flex items-center gap-3 py-1.5 {winnersOfSeason.includes(w) ? 'font-semibold' : ''}">
+                <li class="flex items-center gap-3 py-2 {winnersOfSeason.includes(w) ? 'font-semibold' : ''}">
                   {#if hasSeasons}<a class="w-16 shrink-0 text-sm tabular-nums text-muted no-underline hover:text-accent" href={href("competition", code, seasonSlug(seasonName(w.season_start)))} onclick={() => (view = "season")}>{seasonName(w.season_start)}</a>{:else}<span class="w-16 shrink-0 text-sm tabular-nums text-muted">{seasonName(w.season_start)}</span>{/if}
-                  {#if w.c}<Logo club={w.c} size={22} />{:else}<span class="size-[22px]"></span>{/if}
+                  {#if w.c}<Logo club={w.c} size={26} />{:else}<span class="size-[26px] shrink-0"></span>{/if}
                   <span class="min-w-0 flex-1 truncate">{#if w.club}<a class="no-underline hover:text-accent" href={href("club", enc(w.club))}>{clubName(w.c)}</a>{:else}{w.winner_name}{/if}</span>
                 </li>
               {/each}
             </ul>
           </div>
+          <p class="mt-2 text-xs text-muted">{t("honoursSource")}</p>
         </div>
-        <p class="mt-2 text-xs text-muted">{t("honoursSource")}</p>
       </section>
     {/if}
   {/if}

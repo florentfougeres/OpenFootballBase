@@ -66,3 +66,17 @@ def test_date_de_naissance_peu_fiable_retiree_et_non_reimportee(monkeypatch):
     enrich.enrich_birth_dates(con, Wd(), log=lambda _: None)
     assert "Q6846866" not in asked[0]                                            # jamais réinterrogé
     assert con.execute("SELECT player_id FROM player_birth ORDER BY 1").fetchall() == [(2,)]   # la date fausse est partie, l'autre est écrite
+
+
+def test_champion_calcule_different_du_palmares_signale():
+    con = _db()
+    con.execute("INSERT INTO season (id, start_year, label) VALUES (1, 2020, '2020/21')")
+    for cid, name in ((1, "Alpha"), (2, "Beta")):
+        con.execute("INSERT INTO club (id, name_en, wikipedia_title, country_code) VALUES (?, ?, ?, 'FRA')", [cid, name, name])
+    # Alpha gagne à l'aller et au retour : champion calculé = Alpha (6 points) ; le palmarès dit Beta
+    for i, (h, a, hid, aid) in enumerate((("Alpha", "Beta", 1, 2), ("Beta", "Alpha", 2, 1)), 1):
+        con.execute("INSERT INTO match (id, competition_code, season_label, home_name, away_name, home_club_id, away_club_id, ft_home, ft_away, source_ref) "
+                    "VALUES (?, 'FRA-L1', '2020/21', ?, ?, ?, ?, ?, ?, 'x')", [i, h, a, hid, aid, 1 if h == "Alpha" else 0, 0 if h == "Alpha" else 1])
+    con.execute("INSERT INTO competition_winner (competition_id, season_start, winner_qid, winner_name, season_qid, club_id) VALUES (1, 2020, 'Q2', 'Beta', 'Q1', 2)")
+    got = _checks(con)["champion_mismatch"]
+    assert len(got) == 1 and "Alpha" in got[0].detail and "Beta" in got[0].detail

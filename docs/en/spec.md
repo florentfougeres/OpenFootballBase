@@ -17,7 +17,7 @@
 
 ## 1. Vision
 
-An open database that first answers one question: **"What was club X's squad in season Y?"** (and, by symmetry, "which clubs/seasons did player Z play in?"). Built **only** from free sources (Wikidata, Wikipedia), browsable through a **public, free static site** that runs the queries **in the browser** (DuckDB-WASM), with no backend.
+An open database that first answers one question: **"What was club X's squad in season Y?"** (and, by symmetry, "which clubs/seasons did player Z play in?"). Built **only** from free sources (Wikidata and Wikipedia for squads; the open data of the [OpenFootball](https://github.com/openfootball) project, CC0, for matches), browsable through a **public, free static site** that runs the queries **in the browser** (DuckDB-WASM), with no backend.
 
 Two deliverables:
 1. **Pipeline** (Python): ingestion → verified DuckDB database → Parquet export.
@@ -25,7 +25,7 @@ Two deliverables:
 
 ### Non-goals
 - **No stats (apps, goals) in v1**: postponed. The existing columns stay in the database but are neither guaranteed nor displayed.
-- No match stats, no transfer fees, no market values.
+- No transfer fees and no market values. **Match results** (scores, goalscorers, fixtures) are in scope since the `match` table (migration 0022), but **only** from the third source below; individual statistics remain Wikipedia's.
 - No backend, no user accounts, no visitor-generated content.
 - No real-time data (batch updates, at the pace of the seasons).
 
@@ -49,7 +49,7 @@ What its audit revealed becomes a list of **negative requirements** — the new 
 
 ## 3. Structuring constraint: attest squad membership
 
-Decisions: sources = **Wikidata + Wikipedia only**; reliability = **exhaustive and verified**, now applied to **player ↔ club ↔ season membership** (not to stats).
+Decisions: sources = **Wikidata + Wikipedia** for squads, and **openfootball (github.com/openfootball, CC0)** for matches only (the history; the current season is completed from the results matrix of the Wikipedia season pages) (third source, decided by the maintainer: `matches`, tables `match` and `match_goal`, never mixed with squads); reliability = **exhaustive and verified**, now applied to **player ↔ club ↔ season membership** (not to stats).
 
 Today the squad is *inferred* by cross-checking career dates (Wikidata P54), and 55% of spells have no start date (L3). An inferred squad is therefore both incomplete (players without dates are missing) and approximate (loans, winter transfers, players who never played).
 

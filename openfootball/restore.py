@@ -109,7 +109,7 @@ def restore_database(data_dir: str | Path, db_path: str | Path, *, log: Callable
         con.execute(f"CREATE TEMP VIEW {view} AS SELECT * FROM read_parquet({_paths(data, files)}, union_by_name = true)")
 
     for name in ("club", "competition", "country", "season", "career", "national", "birth", "entity_wiki", "player_profile",
-                 "squad_source", "known_gap", "competition_club", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach"):
+                 "squad_source", "known_gap", "competition_club", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach", "match", "match_goal", "match_lineup", "match_card", "match_competition"):
         if name in tables:
             stage(f"x_{name}", [tables[name]])
     stage("x_squad", [s["files"]["squad"]["path"] for s in seasons.values()])
@@ -191,6 +191,26 @@ def restore_database(data_dir: str | Path, db_path: str | Path, *, log: Callable
         con.execute("INSERT INTO player_link SELECT link_lang, link_title, id FROM _players WHERE link_title IS NOT NULL AND rk = 1")
         con.execute("""INSERT INTO player_birth (player_id, birth_date, precision)
                        SELECT p.id, CAST(b.birth_date AS DATE), b.precision FROM x_birth b JOIN _players p ON p.qid = b.player_qid""")
+
+        if "match" in tables:                  # après les joueurs : les liens `player_qid` redeviennent des `player_id`. Les identifiants de match sont conservés.
+            con.execute("""INSERT INTO match SELECT x.match_id, x.competition, x.season, x.round, x.group_name, x.match_date, x.kickoff, x.home_name,
+                           x.away_name, h.id, a.id, x.ft_home, x.ft_away, x.ht_home, x.ht_away, x.et_home, x.et_away, x.pen_home, x.pen_away,
+                           x.ground, x.attendance, x.referee, x.source_ref FROM x_match x
+                           LEFT JOIN club h ON h.wikipedia_title = x.home_club LEFT JOIN club a ON a.wikipedia_title = x.away_club""")
+            if "result_source" in [r[0] for r in con.execute("DESCRIBE x_match").fetchall()]:                  # absent des releases d'avant la migration 0025
+                con.execute("INSERT INTO match_result_source SELECT match_id, result_source FROM x_match WHERE result_source IS NOT NULL")
+            if "match_goal" in tables:
+                con.execute("""INSERT INTO match_goal (match_id, seq, side, player_name, minute, kind, player_id)
+                               SELECT x.match_id, x.seq, x.side, x.player_name, x.minute, x.kind, p.id FROM x_match_goal x LEFT JOIN _players p ON p.qid = x.player_qid""")
+            if "match_lineup" in tables:
+                con.execute("""INSERT INTO match_lineup (match_id, side, seq, player_name, role, minute, captain, player_id)
+                               SELECT x.match_id, x.side, x.seq, x.player_name, x.role, x.minute, x.captain, p.id FROM x_match_lineup x LEFT JOIN _players p ON p.qid = x.player_qid""")
+                con.execute("""INSERT INTO match_card (match_id, seq, side, player_name, minute, kind, player_id)
+                               SELECT x.match_id, x.seq, x.side, x.player_name, x.minute, x.kind, p.id FROM x_match_card x LEFT JOIN _players p ON p.qid = x.player_qid""")
+            if "match_competition" in tables:
+                con.execute("INSERT INTO match_competition SELECT code, name FROM x_match_competition")
+                con.execute("""INSERT INTO competition_info (code, wikipedia_title, logo_url, logo_license)
+                               SELECT code, wikipedia_title, logo_url, logo_license FROM x_match_competition WHERE wikipedia_title IS NOT NULL ON CONFLICT DO NOTHING""")
 
         log("effectifs…")
         con.execute("""INSERT INTO player_club_season (id, player_id, club_season_id, shirt_number, position_code, nationality_raw, stint,

@@ -22,8 +22,8 @@ npm run build        # production build in web/dist
 | Path | Role |
 |---|---|
 | `src/main.ts`, `src/App.svelte` | Entry point; hash router (`#/<lang>/<page>/…`) and layout. |
-| `src/routes/` | One file per page: `Home`, `Competitions`, `Competition`, `Country`, `Club` (club + squad), `Clubs`, `Player`, `Players`, `Coverage`, `About`. |
-| `src/components/` | Reusable pieces (flags, logos, cards, crumbs, league trends…). |
+| `src/routes/` | One file per page: `Home`, `Competitions`, `Competition`, `Country`, `Club` (club + squad), `Clubs`, `Player`, `Players`, `OfCompetition` (a competition known only from the match source: national teams, English lower divisions…; listed in `Competitions`, which has a Clubs view by confederation then the World, and a National teams view), `Coverage`, `About`. |
+| `src/components/` | Reusable pieces (flags, logos, cards, crumbs, league trends, `Results`: standings and matches of a competition…). |
 | `src/lib/db.ts` | Starts DuckDB-WASM, registers the Parquet files of the manifest, creates the views (`squad`, `club_season`, `club`, `career`…), `q()` for parameterised queries. |
 | `src/lib/app.svelte.ts` | Global state: language, manifest, reference tables, route. |
 | `src/lib/i18n.ts` | The French and English dictionaries (every user-facing string is in both). |

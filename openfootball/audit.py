@@ -10,6 +10,7 @@ import duckdb
 
 from openfootball.checks import Problem
 from openfootball.honours import VACANT
+from openfootball.matches import STANDINGS_SQL
 from openfootball.reconcile import implausible_stays
 
 MIN_FIELD = 10            # une compétition-saison n'est « connue en entier » qu'avec au moins ce nombre de clubs inscrits
@@ -58,6 +59,22 @@ def run_audit(con: duckdb.DuckDBPyConnection) -> list[Problem]:
         FROM player_career c JOIN player_birth b ON b.player_id = c.player_id JOIN player p ON p.id = c.player_id
         WHERE b.precision >= 9 AND c.start_year < year(b.birth_date) + {MIN_AGE_CAREER}
         GROUP BY p.name, b.birth_date ORDER BY p.name""", "joueurs avec une carrière avant leurs 7 ans")
+
+    # Champion calculé d'après les scores (3 points la victoire) contre le vainqueur du palmarès : seulement pour les championnats complets
+    # (chaque équipe a joué 2 × (n − 1) matchs) dont la tête est sans ex æquo — sinon le départage (confrontations directes…) nous échappe.
+    out += _scan(con, "champion_mismatch", "warning", f"""
+        WITH st AS ({STANDINGS_SQL}),
+        sized AS (SELECT *, count(*) OVER (PARTITION BY competition_code, season_label) n,
+                  rank() OVER (PARTITION BY competition_code, season_label ORDER BY points DESC) r FROM st),
+        full_season AS (SELECT competition_code, season_label FROM sized GROUP BY ALL HAVING min(played) = 2 * (max(n) - 1) AND max(played) = min(played)),
+        top AS (SELECT s.* FROM sized s JOIN full_season f USING (competition_code, season_label) WHERE s.r = 1 AND s.club_id IS NOT NULL
+                AND (SELECT count(*) FROM sized x WHERE x.competition_code = s.competition_code AND x.season_label = s.season_label AND x.r = 1) = 1)
+        SELECT t.competition_code || ' ' || t.season_label,
+               'scores : ' || t.team || ' (' || t.points || ' pts) ; palmarès : ' || w.winner_name
+        FROM top t JOIN competition co ON co.code = t.competition_code
+        JOIN competition_winner w ON w.competition_id = co.id AND w.season_start = try_cast(left(t.season_label, 4) AS INTEGER)
+        WHERE w.club_id IS NOT NULL AND w.club_id <> t.club_id
+        ORDER BY t.competition_code, t.season_label""", "championnats dont le champion calculé d'après les scores n'est pas le vainqueur du palmarès")
 
     stays = implausible_stays(con)
     out += [Problem("homonym_stay", "warning", f"{name} — {club} {label}",

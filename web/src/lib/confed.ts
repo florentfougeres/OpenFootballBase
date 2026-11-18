@@ -6,12 +6,14 @@ for (const [conf, codes] of Object.entries({
   AFC: "SAU JPN KOR CHN AUS QAT ARE IRN IRQ UZB THA IND IDN ASI",
   CAF: "EGY MAR DZA TUN ZAF NGA GHA CIV SEN CMR AFR",
   OFC: "NZL",
+  WORLD: "WLD",                                                       // compétitions intercontinentales (Coupe du monde des clubs, Coupe intercontinentale) : ni UEFA ni autre
 })) for (const c of codes.split(" ")) OUTSIDE[c] = conf;
 
-export const CONFS = ["UEFA", "CONMEBOL", "CONCACAF", "AFC", "CAF", "OFC"] as const;
+export const CONFS = ["UEFA", "CONMEBOL", "CONCACAF", "AFC", "CAF", "OFC", "WORLD"] as const;
 export const AREA: Record<string, { fr: string; en: string }> = {
   UEFA: { fr: "Europe", en: "Europe" }, CONMEBOL: { fr: "Amérique du Sud", en: "South America" },
   CONCACAF: { fr: "Amérique du Nord, centrale et Caraïbes", en: "North and Central America, Caribbean" },
   AFC: { fr: "Asie", en: "Asia" }, CAF: { fr: "Afrique", en: "Africa" }, OFC: { fr: "Océanie", en: "Oceania" },
+  WORLD: { fr: "Monde (intercontinental)", en: "World (intercontinental)" },
 };
 export const confOf = (countryCode: string): string => OUTSIDE[countryCode] ?? "UEFA";

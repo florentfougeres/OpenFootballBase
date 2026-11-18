@@ -16,6 +16,7 @@
   import Country from "./routes/Country.svelte";
   import Coverage from "./routes/Coverage.svelte";
   import Home from "./routes/Home.svelte";
+  import OfCompetition from "./routes/OfCompetition.svelte";
   import Player from "./routes/Player.svelte";
   import Players from "./routes/Players.svelte";
 
@@ -52,6 +53,8 @@
         <Country code={route.parts[1]} />
       {:else if head === "competitions"}
         <Competitions />
+      {:else if head === "competition" && route.parts[1]?.startsWith("OF:")}
+        <OfCompetition code={route.parts[1]} />
       {:else if head === "competition"}
         <Competition code={route.parts[1]} slug={route.parts[2]} />
       {:else if head === "players"}
