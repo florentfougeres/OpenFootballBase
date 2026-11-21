@@ -8,6 +8,9 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 
 ## Site et outils
 
+### 2026-11-21
+- **Barre d'onglets mobile en pilule** : sur téléphone, la navigation du bas est maintenant une pilule flottante en verre dépoli (la page défile dessous et se devine à travers), à la manière des barres d'onglets d'iOS. Une capsule glisse sous l'onglet actif, y compris vers « Plus » quand son panneau est ouvert. Mêmes cinq entrées et mêmes libellés toujours visibles ; sans `backdrop-filter` ou avec « réduire la transparence » la pilule devient pleine, et « réduire les animations » supprime le glissement.
+
 ### 2026-11-18
 - **Deux dépôts** : le site reste ici ; les données, le pipeline et les releases ont déménagé dans [OpenFootballBase-Data](https://github.com/florentfougeres/OpenFootballBase-Data). Une release publiée là-bas lance le déploiement du site (`notify-site.yml`, jeton `SITE_DEPLOY_TOKEN`) ; `deploy.yml` prend le tag de la release en entrée ; `npm run data` télécharge les données pour le développement. Plan : [migration-two-repos.md](migration-two-repos.md).
 - **Page Compétitions** : une vue Clubs (par confédération, puis une rubrique « Monde » pour les coupes intercontinentales, qui ne sont plus mélangées à l'UEFA) et une vue Équipes nationales (phases finales, qualifications, amicaux), avec des icônes et les logos Wikipedia des compétitions ; celles que seule la source de matchs connaît sont dans leur continent.

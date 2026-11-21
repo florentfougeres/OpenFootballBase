@@ -74,5 +74,5 @@
   {/if}
 </main>
 <Footer />
-<div class="h-[calc(4.5rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true"></div>
+<div class="h-[calc(5.75rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true"></div>
 <BottomNav />
