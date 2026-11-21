@@ -214,25 +214,29 @@
 {:else if !d}
   <p class="text-warn">{t("clubNotFound")}</p>
 {:else}
-  <header class="card overflow-hidden" style:background={kit[0] ? `color-mix(in oklab, ${kit[0]} 16%, var(--surface))` : undefined}>
+  <!-- Mobile : une carte compacte (logo et nom côte à côte, palmarès sur une ligne qui défile) sur fond neutre avec la bande de couleur du club ; la teinte pleine revient dès « sm ». -->
+  <header class="card overflow-hidden sm:[background:var(--tint)]" style:--tint={kit[0] ? `color-mix(in oklab, ${kit[0]} 11%, var(--surface))` : "var(--surface)"}>
     {#if kit[0]}<div class="flex h-1.5" aria-hidden="true"><span class="flex-1" style:background={kit[0]}></span>{#if kit[1]}<span class="w-1/3" style:background={kit[1]}></span>{/if}</div>{/if}
-    <div class="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
-      <div class="grid size-20 shrink-0 place-items-center rounded-xl bg-surface/80 p-2 sm:size-24"><Logo club={logo} size={72} /></div>
-      <div class="min-w-0">
-        <h1 class="text-4xl font-extrabold leading-none tracking-tight text-balance sm:text-6xl">{name}</h1>
-        {#if sub}<p class="mt-1 text-muted">{sub}</p>{/if}
-        <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+    <div class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-3 p-4 sm:flex sm:flex-row sm:items-center sm:gap-4 sm:p-6">
+      <div class="row-span-2 grid size-14 shrink-0 place-items-center rounded-lg bg-surface/80 p-1.5 max-sm:[&_img]:!size-11 max-sm:[&_svg]:!size-11 sm:row-span-1 sm:size-24 sm:rounded-xl sm:p-2"><Logo club={logo} size={72} /></div>
+      <div class="contents min-w-0 sm:block">
+        <h1 class="text-3xl font-extrabold leading-tight tracking-tight text-balance sm:text-6xl sm:leading-none">{name}</h1>
+        {#if sub}<p class="mt-1 hidden text-muted sm:block">{sub}</p>{/if}
+        <p class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-muted sm:mt-2 sm:gap-x-4 sm:gap-y-1">
           <span class="flex items-center gap-1.5 font-medium text-fg"><Flag code={flag} label={country} /> {country}</span>
           {#if current}<a class="link" href={href("competition", current.competition, seasonSlug(current.season))}>{compName(current.competition)}</a>{/if}
-          {#each (extra.data ?? []).filter((c) => c !== current?.competition) as c}<a class="link" href={href("competition", c, seasonSlug(label ?? ""))}>{compName(c)}</a>{/each}
+          {#each (extra.data ?? []).filter((c) => c !== current?.competition) as c}<a class="link max-sm:hidden" href={href("competition", c, seasonSlug(label ?? ""))}>{compName(c)}</a>{/each}
         </p>
         {#if honours.data?.length}
-          <p class="mt-3 flex flex-wrap items-center gap-2" aria-label={t("honours")}>
-            {#each honours.data.slice(0, 4) as h (h.code)}
-              <a class="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm font-semibold no-underline hover:border-accent hover:text-accent" href={href("competition", h.code)}>
+          <!-- Palmarès : une seule ligne qui défile sur téléphone (jusqu'à 6 titres + « Tous les titres »), 4 pastilles qui retournent à la ligne dès « sm ». -->
+          <div class="col-span-2 -mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:mt-3 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label={t("honours")}>
+            {#each honours.data.slice(0, 6) as h, i (h.code)}
+              <a class="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 py-1 text-sm font-semibold no-underline hover:border-accent hover:text-accent {i >= 4 ? 'sm:hidden' : ''}" href={href("competition", h.code)}>
                 <CompLogo code={h.code} size={18} /><span class="tabular-nums">{h.years.length}×</span> {compName(h.code)}</a>
             {/each}
-          </p>
+            <button type="button" class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-dashed border-line px-3 py-1 text-sm font-semibold text-muted hover:border-accent hover:text-accent sm:hidden"
+              onclick={() => document.getElementById("honours-section")?.scrollIntoView({ behavior: "smooth", block: "start" })}>{t("allTitles")} ({honours.data.reduce((n, h) => n + h.years.length, 0)})</button>
+          </div>
         {/if}
       </div>
     </div>
@@ -240,20 +244,20 @@
 
   {#if d.ours && seasonList.length}
     <!-- Frise des saisons : le championnat de chaque année (D1, D2…) raconte les promotions et les relégations. -->
-    <nav class="mt-4 flex items-stretch gap-2" aria-label={t("changeSeason")}>
-      {#if newer}<a class="btn-ghost !px-3" href={to(newer.season)} title="{t('nextSeason')} {newer.season}" aria-label="{t('nextSeason')} {newer.season}">‹</a>
-      {:else}<span class="btn-ghost !px-3 pointer-events-none opacity-40" aria-hidden="true">‹</span>{/if}
-      <div class="flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-0.5 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" bind:this={bar}>
+    <nav class="-mx-4 mt-3 flex items-stretch gap-2 sm:mx-0 sm:mt-4" aria-label={t("changeSeason")}>
+      {#if newer}<a class="btn-ghost !px-3 max-sm:hidden" href={to(newer.season)} title="{t('nextSeason')} {newer.season}" aria-label="{t('nextSeason')} {newer.season}">‹</a>
+      {:else}<span class="btn-ghost !px-3 pointer-events-none opacity-40 max-sm:hidden" aria-hidden="true">‹</span>{/if}
+      <div class="flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-4 py-1 sm:px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" bind:this={bar}>
         {#each seasonList as s (s.season)}
-          <a class="flex shrink-0 flex-col items-center rounded-lg border px-3 py-1 no-underline transition {s.season === label ? 'border-accent bg-accent text-accent-fg' : s.players ? 'border-line bg-surface hover:bg-surface-2' : 'border-dashed border-line bg-surface text-muted hover:bg-surface-2'}"
+          <a class="flex shrink-0 flex-col items-center rounded-lg border px-2.5 py-0.5 no-underline transition sm:px-3 sm:py-1 {s.season === label ? 'border-accent bg-accent text-accent-fg' : s.players ? 'border-line bg-surface hover:bg-surface-2' : 'border-dashed border-line bg-surface text-muted hover:bg-surface-2'}"
             href={to(s.season)} aria-current={s.season === label ? "true" : undefined} title={compName(s.competition)}>
-            <span class="display text-lg font-semibold leading-tight">{s.season}</span>
+            <span class="display text-base font-semibold leading-tight sm:text-lg">{s.season}</span>
             <span class="text-[0.7rem] font-semibold leading-tight {s.season === label ? 'opacity-90' : level(s) === 1 ? 'text-accent' : 'text-muted'}">{level(s) ? `D${level(s)}` : "·"}{#if !s.players} <span aria-label={t("unresolved")}>∅</span>{/if}</span>
           </a>
         {/each}
       </div>
-      {#if older}<a class="btn-ghost !px-3" href={to(older.season)} title="{t('prevSeason')} {older.season}" aria-label="{t('prevSeason')} {older.season}">›</a>
-      {:else}<span class="btn-ghost !px-3 pointer-events-none opacity-40" aria-hidden="true">›</span>{/if}
+      {#if older}<a class="btn-ghost !px-3 max-sm:hidden" href={to(older.season)} title="{t('prevSeason')} {older.season}" aria-label="{t('prevSeason')} {older.season}">›</a>
+      {:else}<span class="btn-ghost !px-3 pointer-events-none opacity-40 max-sm:hidden" aria-hidden="true">›</span>{/if}
     </nav>
   {/if}
 
@@ -441,7 +445,7 @@
     <aside class="min-w-0 lg:sticky lg:top-20 lg:self-start" aria-labelledby="about-club">
       {#if honours.data?.length}
         {@const total = honours.data.reduce((n, h) => n + h.years.length, 0)}
-        <h2 class="mb-2 flex items-center gap-2 text-xl font-bold"><Trophy size={20} />{t("honours")}</h2>
+        <h2 id="honours-section" class="mb-2 flex scroll-mt-20 items-center gap-2 text-xl font-bold"><Trophy size={20} />{t("honours")}</h2>
         <div class="card mb-6 px-4 py-3">
           <div class="flex items-baseline gap-2 border-b border-line pb-2"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{total}</span><span class="font-semibold">{total > 1 ? t("titlesN") : t("titleN")}</span></div>
           {#each KINDS as kind (kind)}
