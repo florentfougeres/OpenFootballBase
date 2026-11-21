@@ -27,7 +27,7 @@
 {#if more}
   <!-- Voile : un tap à côté ferme le panneau -->
   <button type="button" class="fixed inset-0 z-40 cursor-default bg-fg/20 lg:hidden" aria-label={t("close")} onclick={() => (more = false)} tabindex="-1"></button>
-  <div id="more-panel" class="glass fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-md rounded-3xl p-2 lg:hidden" role="menu">
+  <div id="more-panel" class="pill fixed inset-x-3 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-md rounded-3xl p-2 lg:hidden" role="menu">
     <a class="flex min-h-12 items-center rounded-2xl px-4 text-base font-semibold no-underline hover:bg-fg/10 {current === 'ballon-dor' ? 'bg-fg/10' : ''}" href={href("ballon-dor")} role="menuitem">{t("balloon")}</a>
     <a class="flex min-h-12 items-center rounded-2xl px-4 text-base font-semibold no-underline hover:bg-fg/10 {current === 'coverage' ? 'bg-fg/10' : ''}" href={href("coverage")} role="menuitem">{t("coverage")}</a>
     <a class="flex min-h-12 items-center rounded-2xl px-4 text-base font-semibold no-underline hover:bg-fg/10 {current === 'about' ? 'bg-fg/10' : ''}" href={href("about")} role="menuitem">{t("about")}</a>
@@ -37,8 +37,9 @@
   </div>
 {/if}
 
-<div class="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] lg:hidden">
-  <nav class="glass pointer-events-auto mx-auto max-w-md rounded-full" aria-label="Navigation">
+<!-- Dock : une bande pleine en bas de l'écran (rien de la page ne passe derrière) ; la pilule y est posée. -->
+<div class="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-bg px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 lg:hidden">
+  <nav class="pill mx-auto max-w-md rounded-full" aria-label="Navigation">
     <ul class="tabs relative grid grid-cols-5 p-1" style="--i: {Math.max(lens, 0)}">
       <li class="lens" class:lens-off={lens < 0} aria-hidden="true"></li>
       {#each items as it (it.key)}
@@ -65,23 +66,14 @@
 </div>
 
 <style>
-  /* Verre dépoli : la page défile dessous et se devine à travers, sans nuire à la lecture (surface à 72 % + flou + saturation). Un filet clair en haut imite le bord
-     du verre ; l'ombre a un décalage et un flou doux. Sans `backdrop-filter` ou avec « réduire la transparence », la surface devient pleine. */
-  .glass {
-    background: color-mix(in oklab, var(--surface) 72%, transparent);
-    -webkit-backdrop-filter: blur(22px) saturate(1.7);
-    backdrop-filter: blur(22px) saturate(1.7);
+  /* La pilule : une surface pleine (comme un dock, aucun contenu ne se devine derrière), un filet clair en haut pour le relief et une ombre douce. */
+  .pill {
+    background: var(--surface);
     border: 1px solid color-mix(in oklab, var(--fg) 14%, transparent);
     box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 22%, transparent),
-      0 14px 32px -10px rgb(0 0 0 / 0.5),
-      0 2px 8px rgb(0 0 0 / 0.18);
-  }
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .glass { background: var(--surface); }
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    .glass { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+      inset 0 1px 0 color-mix(in oklab, white 14%, transparent),
+      0 8px 20px -8px rgb(0 0 0 / 0.45),
+      0 1px 4px rgb(0 0 0 / 0.16);
   }
 
   /* Capsule de sélection : un seul élément qui glisse sous l'onglet actif (5 colonnes égales). */

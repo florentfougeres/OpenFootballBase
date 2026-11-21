@@ -9,7 +9,7 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 ## Site and tooling
 
 ### 2026-11-21
-- **Pill-shaped mobile tab bar**: on phones, the bottom navigation is now a floating frosted-glass pill (the page scrolls underneath and shows through), in the manner of iOS tab bars. A capsule slides under the active tab, including to "More" while its panel is open. Same five entries and labels still always visible; without `backdrop-filter` or with "reduce transparency" the pill becomes solid, and "reduce motion" removes the slide.
+- **Pill-shaped mobile tab bar**: on phones, the bottom navigation is now a pill set on a dock (a solid band at the bottom of the screen: the page stops above it, nothing shows through), in the manner of iOS tab bars. A capsule slides under the active tab, including to "More" while its panel is open. Same five entries and labels still always visible; "reduce motion" removes the slide.
 
 ### 2026-11-18
 - **Two repositories**: the website stays here; the data, the pipeline and the releases moved to [OpenFootballBase-Data](https://github.com/florentfougeres/OpenFootballBase-Data). A release published there starts the site deployment (`notify-site.yml`, token `SITE_DEPLOY_TOKEN`); `deploy.yml` takes the release tag as input; `npm run data` downloads the data for development. Plan: [migration-two-repos.md](migration-two-repos.md).
