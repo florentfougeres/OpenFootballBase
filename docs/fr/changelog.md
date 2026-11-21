@@ -9,6 +9,7 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 ## Site et outils
 
 ### 2026-11-21
+- **Plus d'image cassée** : une photo de joueur (ou un logo de compétition) supprimée de Wikimedia depuis la publication des données n'affiche plus une image cassée avec sa légende : la photo disparaît de la page du joueur, le logo cède la place à une coupe ou au drapeau du pays (comme le font déjà les logos de clubs avec l'écusson). Les données sont corrigées à la source par `enrich --what imagecheck` (dépôt des données).
 - **Barre d'onglets mobile en pilule** : sur téléphone, la navigation du bas est maintenant une pilule posée sur un dock (une bande pleine en bas de l'écran : la page s'arrête au-dessus, rien ne passe derrière), à la manière des barres d'onglets d'iOS. Une capsule glisse sous l'onglet actif, y compris vers « Plus » quand son panneau est ouvert. Mêmes cinq entrées et mêmes libellés toujours visibles ; « réduire les animations » supprime le glissement.
 
 ### 2026-11-18
