@@ -9,6 +9,7 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 ## Site and tooling
 
 ### 2026-11-21
+- **Compact filters on the Competitions page (mobile)**: on phones, the Clubs / National teams switch is full width and the confederations fit on a single scrolling line (they took three lines): the list of competitions starts about 200 px higher. Nothing changes on large screens.
 - **No more broken images**: a player photo (or a competition logo) deleted from Wikimedia since the data was published no longer shows a broken image with its caption: the photo disappears from the player page, the logo gives way to a trophy or the country flag (as club logos already do with the crest). The data is fixed at the source by `enrich --what imagecheck` (data repository).
 - **Pill-shaped mobile tab bar**: on phones, the bottom navigation is now a pill set on a dock (a solid band at the bottom of the screen: the page stops above it, nothing shows through), in the manner of iOS tab bars. A capsule slides under the active tab, including to "More" while its panel is open. Same five entries and labels still always visible; "reduce motion" removes the slide.
 

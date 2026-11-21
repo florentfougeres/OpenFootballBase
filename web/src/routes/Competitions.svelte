@@ -85,9 +85,10 @@
 <h1 class="text-4xl font-extrabold leading-none tracking-tight sm:text-5xl">{t("allComps")}</h1>
 <p class="mt-2 max-w-2xl text-muted">{t("allCompsLead")}</p>
 
-<div class="mt-6 inline-flex rounded-lg border border-line bg-surface p-0.5" role="tablist" aria-label={t("compKinds")}>
+<!-- Sur téléphone les filtres tiennent sur deux lignes : le sélecteur pleine largeur, puis les confédérations sur UNE ligne qui défile (elles retournent à la ligne dès « md »). -->
+<div class="mt-4 flex rounded-lg border border-line bg-surface p-0.5 sm:mt-6 sm:inline-flex" role="tablist" aria-label={t("compKinds")}>
   {#each [["clubs", "shield", "compClubs"], ["national", "flag", "compNational"]] as [v, icon, key]}
-    <button type="button" role="tab" aria-selected={view === v} class="flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-semibold transition {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
+    <button type="button" role="tab" aria-selected={view === v} class="flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold transition sm:flex-none sm:px-4 {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
       onclick={() => (view = v as typeof view)}><Icon name={icon as IconName} size={16} />{t(key)}</button>
   {/each}
 </div>
@@ -97,14 +98,14 @@
 {:else if latest.loading && !latest.data}
   <Spinner />
 {:else if view === "clubs"}
-  <nav class="mt-5 flex flex-wrap gap-2" aria-label={t("compClubs")}>
+  <nav class="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:mt-5 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden" aria-label={t("compClubs")}>
     {#each confs as c (c.conf)}
-      <button type="button" class="flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-1.5 text-sm font-semibold transition hover:bg-surface-2" onclick={() => jump(`conf-${c.conf}`)}>
+      <button type="button" class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3.5 py-1 text-sm font-semibold transition hover:bg-surface-2 md:px-4 md:py-1.5" onclick={() => jump(`conf-${c.conf}`)}>
         {#if c.conf === "WORLD"}<Icon name="globe" size={15} />{/if}{shown(c.conf, c.area)} <span class="font-normal text-muted">· {c.n}</span>
       </button>
     {/each}
     {#if others.length}
-      <button type="button" class="flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-1.5 text-sm font-semibold transition hover:bg-surface-2" onclick={() => jump("conf-OTHERS")}>
+      <button type="button" class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3.5 py-1 text-sm font-semibold transition hover:bg-surface-2 md:px-4 md:py-1.5" onclick={() => jump("conf-OTHERS")}>
         <Icon name="list" size={15} />{t("compOthers")} <span class="font-normal text-muted">· {others.length}</span>
       </button>
     {/if}
