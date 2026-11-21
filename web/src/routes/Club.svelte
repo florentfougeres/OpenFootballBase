@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { app, countryOf, href, enc, seasonSlug, t, type Row } from "../lib/app.svelte";
+  import { app, countryOf, href, enc, route, seasonSlug, t, type Row } from "../lib/app.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
   import { downloadCsv, RELEASES_URL } from "../lib/download";
@@ -104,8 +104,21 @@
   const partial = $derived(!!squad?.rows.length && squad.rows.filter((r: Row) => r.confidence === "inferred").length * 2 > squad.rows.length);
 
   // Mouvements : on compare l'effectif de la saison à celui de la précédente (aucun tableau de transferts requis).
-  let view: "squad" | "moves" = $state("squad");
-  $effect(() => { label; view = view === "moves" ? "moves" : "squad"; });
+  // Trois vues : Aperçu (la fiche du club), Effectif (une saison, avec ses mouvements) et Palmarès. L'onglet est dans l'adresse (`?tab=`) : partageable, et le retour du navigateur le restitue.
+  // Sans `?tab=` : l'effectif quand l'adresse porte une saison (on vient d'un classement ou d'une liste de la saison), sinon l'aperçu (on vient voir le club).
+  type Tab = "overview" | "squad" | "honours";
+  const tabs = $derived<Tab[]>(["overview", ...(d?.ours ? (["squad"] as Tab[]) : []), ...(honours.loading || honours.data?.length ? (["honours"] as Tab[]) : [])]);
+  const tab = $derived.by<Tab>(() => {
+    const want = route.query.get("tab") as Tab | null;
+    if (want && tabs.includes(want)) return want;
+    return d?.ours && slug ? "squad" : "overview";
+  });
+  const setTab = (v: Tab) => {
+    const qs = new URLSearchParams(route.query);
+    qs.set("tab", v);
+    location.hash = `#/${route.lang}/${route.parts.map(encodeURIComponent).join("/")}?${qs}`;
+  };
+  let view: "squad" | "moves" = $state("squad");               // sous-affichage de l'onglet Effectif : les joueurs ou les mouvements
   const moves = resource(async () => {
     const tt = title, lbl = label, prev = older;
     if (view !== "moves" || !tt || !lbl || !prev?.players || !squad) return null;
@@ -130,10 +143,9 @@
 
   // Filtres de l'effectif (remis à zéro quand on change de saison).
   const POS = ["GK", "DF", "MF", "FW", null] as const;
-  let fPos: string | null = $state(null);
   let fNat = $state("");
   let fLoan = $state(false);
-  $effect(() => { label; fPos = null; fNat = ""; fLoan = false; });
+  $effect(() => { label; fNat = ""; fLoan = false; });
 
   const rows = $derived((squad?.rows ?? []) as Row[]);
   const ageOf = (r: Row) => (label ? seasonAge(r.birth_date, r.precision, label) : null);
@@ -154,9 +166,9 @@
     for (const r of rows) if (r.nationality) m.set(r.nationality, { label: r.nationality, n: (m.get(r.nationality)?.n ?? 0) + 1 });
     return [...m.values()].sort((a, b) => b.n - a.n || a.label.localeCompare(b.label, app.lang));
   });
-  const shown = $derived(rows.filter((r) => (!fPos || (r.position || null) === fPos) && (!fNat || r.nationality === fNat) && (!fLoan || r.stint === "loan_in")));
+  const shown = $derived(rows.filter((r) => (!fNat || r.nationality === fNat) && (!fLoan || r.stint === "loan_in")));
   const hasLoans = $derived(rows.some((r) => r.stint === "loan_in"));
-  const filtered = $derived(Boolean(fPos || fNat || fLoan));
+  const filtered = $derived(Boolean(fNat || fLoan));
 
   // Mode d'affichage : liste (par défaut) ou cartes, mémorisé dans le navigateur du visiteur.
   const MODE_KEY = "openfootballbase.squadView";
@@ -227,22 +239,20 @@
           {#if current}<a class="link" href={href("competition", current.competition, seasonSlug(current.season))}>{compName(current.competition)}</a>{/if}
           {#each (extra.data ?? []).filter((c) => c !== current?.competition) as c}<a class="link max-sm:hidden" href={href("competition", c, seasonSlug(label ?? ""))}>{compName(c)}</a>{/each}
         </p>
-        {#if honours.data?.length}
-          <!-- Palmarès : une seule ligne qui défile sur téléphone (jusqu'à 6 titres + « Tous les titres »), 4 pastilles qui retournent à la ligne dès « sm ». -->
-          <div class="col-span-2 -mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:mt-3 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label={t("honours")}>
-            {#each honours.data.slice(0, 6) as h, i (h.code)}
-              <a class="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 py-1 text-sm font-semibold no-underline hover:border-accent hover:text-accent {i >= 4 ? 'sm:hidden' : ''}" href={href("competition", h.code)}>
-                <CompLogo code={h.code} size={18} /><span class="tabular-nums">{h.years.length}×</span> {compName(h.code)}</a>
-            {/each}
-            <button type="button" class="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-dashed border-line px-3 py-1 text-sm font-semibold text-muted hover:border-accent hover:text-accent sm:hidden"
-              onclick={() => document.getElementById("honours-section")?.scrollIntoView({ behavior: "smooth", block: "start" })}>{t("allTitles")} ({honours.data.reduce((n, h) => n + h.years.length, 0)})</button>
-          </div>
-        {/if}
       </div>
     </div>
   </header>
 
-  {#if d.ours && seasonList.length}
+  {#if tabs.length > 1}
+    <div class="mt-4 flex rounded-lg border border-line bg-surface p-0.5 sm:inline-flex" role="tablist" aria-label={t("clubViews")}>
+      {#each tabs as v (v)}
+        <button type="button" role="tab" aria-selected={tab === v} class="flex-1 rounded-md px-4 py-2 text-sm font-semibold transition sm:flex-none sm:py-1.5 {tab === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
+          onclick={() => setTab(v)}>{t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : "honours")}</button>
+      {/each}
+    </div>
+  {/if}
+
+  {#if tab === "squad" && d.ours && seasonList.length}
     <!-- Frise des saisons : le championnat de chaque année (D1, D2…) raconte les promotions et les relégations. -->
     <nav class="-mx-4 mt-3 flex items-stretch gap-2 sm:mx-0 sm:mt-4" aria-label={t("changeSeason")}>
       {#if newer}<a class="btn-ghost !px-3 max-sm:hidden" href={to(newer.season)} title="{t('nextSeason')} {newer.season}" aria-label="{t('nextSeason')} {newer.season}">‹</a>
@@ -261,7 +271,8 @@
     </nav>
   {/if}
 
-  <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
+  <div class="mt-6">
+    {#if tab === "squad"}
     <div class="min-w-0">
       {#if !d.ours}
         <p class="card border-info/30 bg-info-soft p-4 text-info">{t("noSquadsHere")}</p>
@@ -279,11 +290,28 @@
           {#if r.stint === "loan_in"}<Badge kind="info">{t("loan_in")}</Badge>{/if}
         {/snippet}
 
-        <div class="mb-4 inline-flex rounded-lg border border-line bg-surface p-0.5" role="tablist" aria-label={t("sqTabs")}>
-          {#each [["squad", "sqTab"], ["moves", "mvTab"]] as [v, k]}
-            <button type="button" role="tab" aria-selected={view === v} class="rounded-md px-4 py-1.5 text-sm font-semibold transition {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
-              onclick={() => (view = v as typeof view)}>{t(k)}</button>
-          {/each}
+
+
+        <!-- Vue : les joueurs ou les mouvements ; pour les joueurs, liste ou cartes (deux icônes à droite). Les filtres sont plus bas et ne concernent que les joueurs. -->
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <div class="inline-flex rounded-lg border border-line bg-surface p-0.5" role="group" aria-label={t("sqTabs")}>
+            {#each [["squad", "players"], ["moves", "mvTab"]] as [v, k]}
+              <button type="button" aria-pressed={view === v} class="rounded-md px-4 py-1.5 text-sm font-semibold transition {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
+                onclick={() => (view = v as typeof view)}>{t(k)}</button>
+            {/each}
+          </div>
+          {#if view === "squad"}
+            <div class="inline-flex rounded-lg border border-line bg-surface p-0.5" role="group" aria-label={t("viewMode")}>
+              {#each [["list", "viewList"], ["cards", "viewCards"]] as [m, k]}
+                <button type="button" class="grid size-9 place-items-center rounded-md transition sm:size-8 {mode === m ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}" aria-pressed={mode === m} aria-label={t(k)} title={t(k)}
+                  onclick={() => setMode(m as "list" | "cards")}>
+                  <svg viewBox="0 0 24 24" class="size-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    {#if m === "list"}<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />{:else}<rect x="4" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2" />{/if}
+                  </svg>
+                </button>
+              {/each}
+            </div>
+          {/if}
         </div>
 
         {#if view === "moves"}
@@ -324,44 +352,34 @@
         {#if partial}
           <p class="mb-4 rounded-lg border border-line bg-surface-2 px-4 py-3 text-sm" role="note"><strong>{t("partialTitle")}</strong> {t("partialBody")}</p>
         {/if}
-        <!-- Chiffres de l'effectif : quatre colonnes égales sur mobile, alignées à gauche sur la même ligne de base -->
-        <dl class="grid grid-flow-col auto-cols-fr gap-x-3 sm:flex sm:flex-wrap sm:gap-x-8 sm:gap-y-3">
-          <div><dd class="display text-2xl font-bold leading-none tabular-nums sm:text-3xl">{stats.n}</dd><dt class="mt-1.5 text-xs leading-tight text-muted">{t("srcPlayers")}</dt></div>
-          {#if stats.age != null}<div><dd class="display text-2xl font-bold leading-none tabular-nums sm:text-3xl">{stats.age.toLocaleString(app.lang, { maximumFractionDigits: 1 })}</dd><dt class="mt-1.5 text-xs leading-tight text-muted">{t("sqAge")}</dt></div>{/if}
-          {#if stats.foreignPct != null}<div><dd class="display text-2xl font-bold leading-none tabular-nums sm:text-3xl">{stats.foreignPct} %</dd><dt class="mt-1.5 text-xs leading-tight text-muted" title={t("sqForeignTip")}>{t("sqForeign")}</dt></div>{/if}
-          {#if stats.nats}<div><dd class="display text-2xl font-bold leading-none tabular-nums sm:text-3xl">{stats.nats}</dd><dt class="mt-1.5 text-xs leading-tight text-muted">{t("sqNats")}</dt></div>{/if}
-        </dl>
+        <!-- Chiffres de l'effectif : une ligne de résumé -->
+        <p class="flex flex-wrap items-baseline gap-x-4 gap-y-0.5 text-sm text-muted">
+          <span><strong class="font-semibold tabular-nums text-fg">{stats.n}</strong> {t("srcPlayers")}</span>
+          {#if stats.age != null}<span><strong class="font-semibold tabular-nums text-fg">{stats.age.toLocaleString(app.lang, { maximumFractionDigits: 1 })}</strong> {t("sqAge")}</span>{/if}
+          {#if stats.foreignPct != null}<span title={t("sqForeignTip")}><strong class="font-semibold tabular-nums text-fg">{stats.foreignPct} %</strong> {t("sqForeign")}</span>{/if}
+          {#if stats.nats}<span class="max-sm:hidden"><strong class="font-semibold tabular-nums text-fg">{stats.nats}</strong> {t("sqNats")}</span>{/if}
+        </p>
 
-        <!-- Filtres et mode d'affichage : sur mobile, postes sur une ligne (sélecteur segmenté), puis nationalité + affichage, puis prêtés ; sur écran large, une seule rangée -->
-        <div class="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2.5 sm:flex sm:flex-wrap sm:gap-2">
-          <div class="col-span-2 grid grid-cols-5 gap-1 rounded-xl border border-line bg-surface p-1 sm:flex sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:gap-1.5" role="group" aria-label={t("sqFilterPos")}>
-            {#each [[null, "sqAllPos", "sqAllPos"], ["GK", "GK", "GKs"], ["DF", "DF", "DFs"], ["MF", "MF", "MFs"], ["FW", "FW", "FWs"]] as [p, full, short]}
-              <button type="button" aria-label={t(full ?? "")} aria-pressed={fPos === p} onclick={() => (fPos = p)}
-                class="min-h-9 rounded-lg px-1 text-center text-[13px] font-medium transition sm:min-h-0 sm:rounded-full sm:border sm:px-3 sm:py-1 sm:text-sm
-                  {fPos === p ? 'bg-accent text-accent-fg sm:border-accent' : 'text-fg hover:bg-surface-2 sm:border-line sm:bg-surface'}">
-                <span class="sm:hidden">{t(short ?? "")}</span><span class="hidden sm:inline">{t(full ?? "")}</span></button>
-            {/each}
-          </div>
+        <!-- Filtres (les joueurs seulement) : la nationalité et les prêtés, s'il y a de quoi filtrer ; l'effectif est déjà groupé par poste. Le compteur et « Réinitialiser » n'apparaissent que si un filtre est actif -->
+        {#if natOptions.length > 1 || hasLoans}
+        <div class="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 sm:flex sm:flex-wrap sm:gap-2">
           {#if natOptions.length > 1}
-            <select class="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm sm:h-auto sm:py-1.5" bind:value={fNat} aria-label={t("sqFilterNat")}>
+            <select class="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm sm:h-auto sm:py-1.5 {hasLoans ? '' : 'col-span-2'}" bind:value={fNat} aria-label={t("sqFilterNat")}>
               <option value="">{t("sqAllNats")}</option>
               {#each natOptions as n (n.label)}<option value={n.label}>{n.label} ({n.n})</option>{/each}
             </select>
-          {:else}<span class="sm:hidden"></span>{/if}
-          <div class="inline-flex h-10 rounded-lg border border-line bg-surface p-0.5 sm:order-last sm:ml-auto sm:h-auto" role="group" aria-label={t("viewMode")}>
-            {#each [["list", "viewList"], ["cards", "viewCards"]] as [m, k]}
-              <button type="button" class="flex items-center rounded-md px-3 text-sm font-medium transition sm:py-1 {mode === m ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
-                aria-pressed={mode === m} onclick={() => setMode(m as "list" | "cards")}>{t(k)}</button>
-            {/each}
-          </div>
-          {#if hasLoans || filtered}
-            <div class="col-span-2 flex min-h-8 items-center justify-between gap-4 sm:contents">
-              {#if hasLoans}<label class="flex items-center gap-2 text-sm"><input type="checkbox" bind:checked={fLoan} class="size-5 sm:size-4" /> {t("sqLoanOnly")}</label>{:else}<span class="text-sm text-muted sm:hidden">{shown.length} / {rows.length} {t("srcPlayers")}</span>{/if}
-              {#if filtered}<button type="button" class="text-sm text-muted underline hover:text-fg" onclick={() => { fPos = null; fNat = ""; fLoan = false; }}>{t("sqReset")}</button>{/if}
+          {/if}
+          {#if hasLoans}
+            <button type="button" class="h-10 whitespace-nowrap rounded-lg border px-3 text-sm font-medium transition sm:h-auto sm:rounded-full sm:py-1 {fLoan ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface text-fg hover:bg-surface-2'}" aria-pressed={fLoan} onclick={() => (fLoan = !fLoan)}>{t("sqLoanOnly")}</button>
+          {/if}
+          {#if filtered}
+            <div class="col-span-2 flex min-h-8 items-center justify-between gap-4 text-sm text-muted sm:contents">
+              <span class="tabular-nums">{shown.length} / {rows.length} {t("srcPlayers")}</span>
+              <button type="button" class="underline hover:text-fg" onclick={() => { fNat = ""; fLoan = false; }}>{t("sqReset")}</button>
             </div>
           {/if}
         </div>
-        {#if filtered}<p class="mt-2 text-sm text-muted {hasLoans ? '' : 'hidden sm:block'}">{shown.length} / {rows.length} {t("srcPlayers")}</p>{/if}
+        {/if}
 
         {#if !shown.length}
           <p class="card mt-4 p-4 text-muted">{t("sqNoMatch")}</p>
@@ -440,9 +458,12 @@
         {/if}
       {/if}
     </div>
+    {/if}
 
-    <!-- À propos du club -->
-    <aside class="min-w-0 lg:sticky lg:top-20 lg:self-start" aria-labelledby="about-club">
+    <!-- Palmarès et fiche du club : deux onglets, plus une colonne latérale -->
+    {#if tab === "honours"}
+      <div class="min-w-0 max-w-3xl">
+      {#if honours.loading && !honours.data}<Spinner />{/if}
       {#if honours.data?.length}
         {@const total = honours.data.reduce((n, h) => n + h.years.length, 0)}
         <h2 id="honours-section" class="mb-2 flex scroll-mt-20 items-center gap-2 text-xl font-bold"><Trophy size={20} />{t("honours")}</h2>
@@ -472,10 +493,38 @@
               </ul>
             {/if}
           {/each}
-          <p class="border-t border-line pt-2 text-xs text-muted">{t("honoursClubNote")}</p>
+          <p class="max-w-[70ch] border-t border-line pt-2 text-xs text-muted">{t("honoursClubNote")}</p>
         </div>
       {/if}
-      {#if coaches.data?.length}
+      
+      </div>
+    {:else if tab === "overview"}
+      <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <div class="min-w-0">
+          {#if d.ours && label}
+            <a class="tile mb-6 max-w-xl" href={to(label)}>
+              <span class="min-w-0 flex-1"><span class="block font-semibold">{t("seeSquad")} {label}</span>{#if current}<span class="block text-sm text-muted">{compName(current.competition)}</span>{/if}</span>
+              <span class="text-muted" aria-hidden="true">›</span>
+            </a>
+          {/if}
+          <h2 id="about-club" class="mb-3 text-xl font-bold">{t("about_club")}</h2>
+      {#if info.length || external.length}
+        <dl class="space-y-3 text-sm">
+          {#each info as it}
+            <div><dt class="eyebrow">{it.label}</dt>
+              <dd class="mt-0.5 font-medium">{#if it.to}<a class="link" href={it.to}>{it.value}</a>{:else if it.href}<a class="link break-all" href={it.href} target="_blank" rel="noopener">{it.value}</a>{:else}{it.value}{/if}</dd></div>
+          {/each}
+          {#if external.length}
+            <div><dt class="eyebrow">{t("externalIds")}</dt>
+              <dd class="mt-0.5 flex flex-wrap gap-x-4 gap-y-1 font-medium">{#each external as [label, url]}<a class="link" href={url} target="_blank" rel="noopener">{label}</a>{/each}</dd></div>
+          {/if}
+        </dl>
+      {/if}
+      <div class="mt-4"><WikiButton urls={d.urls} kind="wikiClub" fallbackKey="wikiLocalOnly" /></div>
+    
+        </div>
+        <div class="min-w-0">
+          {#if coaches.data?.length}
         <h2 class="mb-2 text-xl font-bold">{t("coaches")}</h2>
         <div class="card mb-6 px-4 py-3">
           <ul class="divide-y divide-line/60">
@@ -502,20 +551,10 @@
           <p class="border-t border-line pt-2 text-xs text-muted">{t("coachesNote")}</p>
         </div>
       {/if}
-      <h2 id="about-club" class="mb-3 text-xl font-bold">{t("about_club")}</h2>
-      {#if info.length || external.length}
-        <dl class="space-y-3 text-sm">
-          {#each info as it}
-            <div><dt class="eyebrow">{it.label}</dt>
-              <dd class="mt-0.5 font-medium">{#if it.to}<a class="link" href={it.to}>{it.value}</a>{:else if it.href}<a class="link break-all" href={it.href} target="_blank" rel="noopener">{it.value}</a>{:else}{it.value}{/if}</dd></div>
-          {/each}
-          {#if external.length}
-            <div><dt class="eyebrow">{t("externalIds")}</dt>
-              <dd class="mt-0.5 flex flex-wrap gap-x-4 gap-y-1 font-medium">{#each external as [label, url]}<a class="link" href={url} target="_blank" rel="noopener">{label}</a>{/each}</dd></div>
-          {/if}
-        </dl>
-      {/if}
-      <div class="mt-4"><WikiButton urls={d.urls} kind="wikiClub" fallbackKey="wikiLocalOnly" /></div>
-    </aside>
+      
+        </div>
+      </div>
+    {/if}
+  
   </div>
 {/if}
