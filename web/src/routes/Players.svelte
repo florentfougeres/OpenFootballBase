@@ -115,7 +115,8 @@
   const POS_CLASS: Record<string, string> = {
     GK: "bg-warn-soft text-warn", DF: "bg-info-soft text-info", MF: "bg-accent-soft text-accent", FW: "bg-fg/10 text-fg",
   };
-  const field = "rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40";
+  const field = "min-h-11 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40 sm:min-h-0";
+  let moreFilters = $state(false);                   // téléphone : âge et « hors de leur pays » repliés
   const COLS = "sm:grid-cols-[2.25rem_minmax(0,1.5fr)_3rem_minmax(0,1.2fr)_3.5rem] lg:grid-cols-[2.25rem_minmax(0,1.5fr)_3rem_minmax(0,1.2fr)_minmax(0,0.9fr)_3.5rem]";
 </script>
 
@@ -124,9 +125,10 @@
 <p class="mt-2 max-w-2xl text-muted">{t("plLead")}</p>
 
 <!-- Barre d'outils : recherche, saison, nationalité ; poste en boutons ; âge ; filtres actifs en pastilles -->
-<div class="card mt-6 grid gap-4 p-4">
-  <div class="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_9rem_minmax(0,1fr)]">
-    <label class="relative block">
+<!-- Sur téléphone : recherche pleine largeur, saison et nationalité côte à côte, poste sur une ligne (sans compteurs), âge et « hors de leur pays » derrière « Plus de filtres ». -->
+<div class="card mt-5 grid gap-2.5 p-3 sm:mt-6 sm:gap-4 sm:p-4">
+  <div class="grid grid-cols-[7.25rem_minmax(0,1fr)] gap-2.5 md:grid-cols-[minmax(0,1.4fr)_9rem_minmax(0,1fr)] md:gap-3">
+    <label class="relative col-span-2 block md:col-span-1">
       <span class="sr-only">{t("plSearch")}</span>
       <svg class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="m14 14 4 4"/></svg>
       <input class="{field} w-full pl-9" type="search" bind:value={term} placeholder={t("plSearch")} autocomplete="off" />
@@ -142,20 +144,26 @@
     </label>
   </div>
 
-  <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
-    <div class="inline-flex rounded-lg border border-line bg-surface p-0.5" role="group" aria-label={t("sqFilterPos")}>
-      <button type="button" class="rounded-md px-3 py-1 text-sm font-medium transition {pos === '' ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}" aria-pressed={pos === ""} onclick={() => (pos = "")}>{t("sqAllPos")} <span class="tabular-nums opacity-70">{posCounts.n.toLocaleString(app.lang)}</span></button>
+  <div class="flex flex-wrap items-center gap-x-5 gap-y-2.5">
+    <div class="flex w-full rounded-lg border border-line bg-surface p-0.5 sm:inline-flex sm:w-auto" role="group" aria-label={t("sqFilterPos")}>
+      <button type="button" class="min-h-9 flex-1 rounded-md px-2 py-1 text-sm font-medium transition sm:flex-none sm:px-3 {pos === '' ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}" aria-pressed={pos === ""} onclick={() => (pos = "")}>{t("sqAllPos")}<span class="ml-1 hidden tabular-nums opacity-70 sm:inline">{posCounts.n.toLocaleString(app.lang)}</span></button>
       {#each ["GK", "DF", "MF", "FW"] as p}
-        <button type="button" class="rounded-md px-3 py-1 text-sm font-medium transition {pos === p ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}" aria-pressed={pos === p} onclick={() => (pos = pos === p ? "" : p)}>{p} <span class="tabular-nums opacity-70">{posCounts.m[p].toLocaleString(app.lang)}</span></button>
+        <button type="button" class="min-h-9 flex-1 rounded-md px-2 py-1 text-sm font-medium transition sm:flex-none sm:px-3 {pos === p ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}" aria-pressed={pos === p} onclick={() => (pos = pos === p ? "" : p)}>{p}<span class="ml-1 hidden tabular-nums opacity-70 sm:inline">{posCounts.m[p].toLocaleString(app.lang)}</span></button>
       {/each}
     </div>
-    <div class="flex items-center gap-2 text-sm">
-      <span class="text-muted">{t("plAge")}</span>
-      <input class="{field} w-16 text-center" type="number" min="14" max="50" placeholder="min" bind:value={ageMin} aria-label="{t('plAge')} min" />
-      <span class="text-muted" aria-hidden="true">–</span>
-      <input class="{field} w-16 text-center" type="number" min="14" max="50" placeholder="max" bind:value={ageMax} aria-label="{t('plAge')} max" />
+    <button type="button" class="link flex min-h-9 items-center gap-1.5 text-sm sm:hidden" aria-expanded={moreFilters} aria-controls="more-filters" onclick={() => (moreFilters = !moreFilters)}>
+      {t("plMoreFilters")}{#if ageMin !== "" || ageMax !== "" || abroad}<span class="rounded-full bg-accent px-1.5 text-xs font-semibold text-accent-fg" aria-hidden="true">{(ageMin !== "" || ageMax !== "" ? 1 : 0) + (abroad ? 1 : 0)}</span>{/if}
+      <svg viewBox="0 0 24 24" class="size-4 transition {moreFilters ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+    </button>
+    <div id="more-filters" class="{moreFilters ? 'flex' : 'hidden'} flex-wrap items-center gap-x-5 gap-y-2.5 sm:contents">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="text-muted">{t("plAge")}</span>
+        <input class="{field} w-16 text-center" type="number" min="14" max="50" placeholder="min" bind:value={ageMin} aria-label="{t('plAge')} min" />
+        <span class="text-muted" aria-hidden="true">–</span>
+        <input class="{field} w-16 text-center" type="number" min="14" max="50" placeholder="max" bind:value={ageMax} aria-label="{t('plAge')} max" />
+      </div>
+      <label class="flex min-h-9 cursor-pointer items-center gap-2 text-sm"><input type="checkbox" class="size-4 accent-[var(--accent)]" bind:checked={abroad} />{t("plAbroad")}</label>
     </div>
-    <label class="flex cursor-pointer items-center gap-2 text-sm"><input type="checkbox" class="size-4 accent-[var(--accent)]" bind:checked={abroad} />{t("plAbroad")}</label>
   </div>
 
   {#if chips.length}
@@ -234,7 +242,7 @@
                 <span class="col-span-2 flex min-w-0 items-center gap-2 text-sm sm:col-span-1">
                   <Logo club={clubOf(r.club)} size={20} />
                   <a class="truncate hover:text-accent hover:underline" href={href("club", enc(r.club), seasonSlug(season))}>{clubName(clubOf(r.club))}</a>
-                  {#if r.position}<span class="shrink-0 rounded px-1 text-[0.65rem] font-bold sm:hidden {POS_CLASS[r.position] ?? 'bg-surface-2 text-muted'}">{r.position}</span>{/if}
+                  {#if r.position}<span class="shrink-0 rounded px-1 text-[0.6875rem] font-bold sm:hidden {POS_CLASS[r.position] ?? 'bg-surface-2 text-muted'}">{r.position}</span>{/if}
                 </span>
                 <span class="hidden truncate text-xs text-muted lg:block">{compName(r.competition)}</span>
                 <span class="hidden text-right text-sm tabular-nums text-muted sm:block">{a != null ? `${a} ${t("ageYears")}` : ""}</span>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { app, href, enc, t } from "../lib/app.svelte";
+  import { app, href, enc, page, t } from "../lib/app.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
   import { ageAt, isOngoing, natLabel as libNatLabel, nationalTeam, wikiUrl } from "../lib/format";
@@ -48,6 +48,7 @@
     return { p, birth, profile, career, national, statClub, statNat, statSource, urls };
   });
   const d = $derived(res.data);
+  $effect(() => { page.name = d?.p?.name ?? null; return () => { page.name = null; }; });         // titre de l'onglet : le nom du joueur
   $effect(() => { d?.profile?.photo_url; tallPhoto = false; });       // chaque photo est mesurée à son chargement : pas d'héritage de la fiche précédente
   let tallPhoto = $state(false);        // photo d'infobox en pied : plus haute que 1,45 fois sa largeur (le cadre est à 1,25)
 
@@ -174,11 +175,11 @@
       {:else}
       <div class="overflow-x-auto">
         <table class="tbl mt-2">
-          <thead><tr><th>{t("colYears")}</th><th>{t("club")}</th><th class="num">{t("colApps")}</th><th class="num">{t("colGoals")}</th></tr></thead>
+          <thead><tr><th class="hidden sm:table-cell">{t("colYears")}</th><th>{t("club")}</th><th class="num">{t("colApps")}</th><th class="num">{t("colGoals")}</th></tr></thead>
           <tbody>
             {#each d.career as r (r.seq)}
               <tr>
-                <td class="whitespace-nowrap">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} <span class="text-muted">{t("ongoing")}</span>{/if}</td>
+                <td class="hidden whitespace-nowrap sm:table-cell">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} <span class="text-muted">{t("ongoing")}</span>{/if}</td>
                 <td>
                   <span class="flex items-center gap-2.5">
                     <Logo club={{ logo_url: r.club_logo, colors_hex: r.club_colors, club_name: r.club_name }} size={24} />
@@ -186,7 +187,8 @@
                       {#if r.club_qid}<a class="link" href={href("club", r.club_qid)}>{r.club_name}</a>
                       {:else if r.club_link}<a class="link" href={wikiUrl("en", r.club_link)} hreflang="en" target="_blank" rel="noopener">{r.club_name}</a>
                       {:else}{r.club_name}{/if}
-                      {#if r.loan} <Badge kind="info">{t("loanTag")}</Badge>{/if}</span>
+                      {#if r.loan} <Badge kind="info">{t("loanTag")}</Badge>{/if}
+                      <span class="block text-xs text-muted sm:hidden">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} {t("ongoing")}{/if}</span></span>
                   </span>
                 </td>
                 <td class="num">{r.apps ?? ""}</td><td class="num">{r.goals ?? ""}</td>
@@ -208,14 +210,15 @@
       <h2 class="px-5 pt-4 text-lg font-bold">{t("nationalTitle")}</h2>
       <div class="overflow-x-auto">
         <table class="tbl mt-2">
-          <thead><tr><th>{t("colYears")}</th><th>{t("colTeam")}</th><th class="num">{t("colCaps")}</th><th class="num">{t("colGoals")}</th></tr></thead>
+          <thead><tr><th class="hidden sm:table-cell">{t("colYears")}</th><th>{t("colTeam")}</th><th class="num">{t("colCaps")}</th><th class="num">{t("colGoals")}</th></tr></thead>
           <tbody>
             {#each d.national as r}
               {@const nt = nationalTeam(r.team_name)}
               <tr>
-                <td class="whitespace-nowrap">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} <span class="text-muted">{t("ongoing")}</span>{/if}</td>
+                <td class="hidden whitespace-nowrap sm:table-cell">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} <span class="text-muted">{t("ongoing")}</span>{/if}</td>
                 <td><span class="flex items-center gap-2.5">{#if nt.flag}<Flag code={nt.flag} label={nt.name} />{/if}
-                  {#if r.team_link}<a class="link" href={wikiUrl("en", r.team_link)} hreflang="en" target="_blank" rel="noopener">{nt.name}</a>{:else}{nt.name}{/if}</span></td>
+                  <span>{#if r.team_link}<a class="link" href={wikiUrl("en", r.team_link)} hreflang="en" target="_blank" rel="noopener">{nt.name}</a>{:else}{nt.name}{/if}
+                    <span class="block text-xs text-muted sm:hidden">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} {t("ongoing")}{/if}</span></span></span></td>
                 <td class="num">{r.caps ?? ""}</td><td class="num">{r.goals ?? ""}</td>
               </tr>
             {/each}

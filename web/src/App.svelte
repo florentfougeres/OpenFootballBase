@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { app, route, readRoute, t } from "./lib/app.svelte";
+  import { app, countryOf, page, route, readRoute, t } from "./lib/app.svelte";
+  import { clubName, clubOf, compName } from "./lib/format";
   import { boot } from "./lib/db";
   import { applyTheme } from "./lib/theme.svelte";
   import Footer from "./components/Footer.svelte";
@@ -25,7 +26,23 @@
   boot();
 
   const head = $derived(route.parts[0]);
-  $effect(() => { document.title = t("title"); });
+  // Un titre par page (WCAG 2.4.2) : « Arsenal FC · 2026/27 · OpenFootballBase ». Un joueur pose son nom (`page.name`) quand ses données sont lues.
+  const pageName = $derived.by(() => {
+    const [h, a, b] = route.parts;
+    switch (h) {
+      case "clubs": return t("clubs");
+      case "players": return t("players");
+      case "competitions": return t("allComps");
+      case "coverage": return t("coverage");
+      case "about": return t("about");
+      case "ballon-dor": return t("balloon");
+      case "competition": return a ? compName(a) : "";
+      case "country": return a ? countryOf(a).name : "";
+      case "club": return a ? [clubName(clubOf(a)), b?.replace("-", "/")].filter(Boolean).join(" · ") : "";
+      default: return "";
+    }
+  });
+  $effect(() => { document.title = [page.name ?? pageName, t("title")].filter(Boolean).join(" · "); });
   // Remonte en haut de page à chaque changement de route (hors changement de saison sur l'accueil).
   $effect(() => { route.parts.join("/"); scrollTo({ top: 0 }); });
 </script>

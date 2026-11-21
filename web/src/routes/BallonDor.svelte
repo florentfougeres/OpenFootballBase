@@ -62,7 +62,7 @@
           <Flag code={flagOf(g.qid)} size={20} />
           <span class="min-w-0 flex-1">
             {#if g.qid && data.data.known.has(g.qid)}<a class="block truncate font-semibold no-underline hover:text-accent" href={href("player", enc(g.qid))}>{g.name}</a>{:else}<span class="block truncate font-semibold">{g.name}</span>{/if}
-            <span class="block truncate text-xs tabular-nums text-muted">{g.w.length ? g.w.sort().join(" · ") : "—"}{#if g.s || g.t} · {t("podium")} : {[g.s ? `${g.s}×${ord(2)}` : "", g.t ? `${g.t}×${ord(3)}` : ""].filter(Boolean).join(", ")}{/if}</span>
+            <span class="block text-xs tabular-nums text-muted">{g.w.length ? g.w.sort().join(" · ") : "—"}{#if g.s || g.t} · {t("podium")} : {[g.s ? `${g.s}×${ord(2)}` : "", g.t ? `${g.t}×${ord(3)}` : ""].filter(Boolean).join(", ")}{/if}</span>
           </span>
           <span class="display text-2xl font-bold tabular-nums text-accent">{g.w.length}</span>
         </li>

@@ -11,6 +11,6 @@
   <p class="mt-3 rounded-lg border border-line bg-surface px-4 py-3">{t("betaNote")}</p>
   {#each blocks as [h, p]}
     <h2 class="mt-8 text-xl font-bold">{t(h)}</h2>
-    <p class="mt-2 leading-relaxed">{t(p)}</p>
+    <p class="mt-2 max-w-[58ch] leading-relaxed">{t(p)}</p>
   {/each}
 </article>

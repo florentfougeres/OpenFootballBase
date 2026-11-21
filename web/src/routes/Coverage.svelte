@@ -56,7 +56,8 @@
   const total = (s: string) => { let n = 0, ok = 0; for (const [k, v] of grid.data ?? []) if (k.endsWith(`|${s}`)) { n += v.n; ok += v.ok; } return { n, ok }; };
   /** Remplissage d'une case : plus l'effectif est complet, plus la case est verte ; le texte change de couleur pour rester lisible. */
   const fill = (n: number, ok: number) => (n ? `color-mix(in oklab, var(--accent) ${Math.round((100 * ok) / n)}%, var(--surface-2))` : "transparent");
-  const ink = (n: number, ok: number) => (n && (100 * ok) / n >= 68 ? "var(--accent-fg)" : "var(--fg)");
+  /** Part de la case remplie, en points : la feuille de style (`.heat`) en tire la couleur du texte, avec un seuil propre à chaque thème (`--heat-t`) pour que le contraste reste de 4,5:1 au moins. */
+  const heatShare = (n: number, ok: number) => (n ? Math.round((100 * ok) / n) : 0);
 
   // Filtres de la grille : confédération, texte, « avec effectifs seulement » (les championnats dont on ne connaît que les clubs sont masqués), période.
   let confSel = $state("");
@@ -144,13 +145,14 @@
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
         <input class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-4 py-2 text-base outline-none placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40 sm:max-w-sm"
           type="search" bind:value={term} placeholder={t("covFilter")} aria-label={t("covFilter")} autocomplete="off" />
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <!-- Période et « effectifs seulement » : une seule ligne qui défile sur téléphone (la case à cocher est une pastille bascule). -->
+        <div class="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-x-3 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
           <div class="flex gap-1.5" role="group" aria-label={t("covPeriod")}>
             {#each [["all", t("covPAll")], ["2010", t("covP2010")], ["recent", t("covPRecent")]] as [v, l]}
               <button type="button" class={chip(since === v)} aria-pressed={since === v} onclick={() => (since = v as typeof since)}>{l}</button>
             {/each}
           </div>
-          <label class="flex cursor-pointer items-center gap-2 text-sm"><input type="checkbox" class="accent-[var(--accent)]" bind:checked={onlySquads} />{t("covOnlySquads")}</label>
+          <button type="button" class="{chip(onlySquads)} whitespace-nowrap" aria-pressed={onlySquads} onclick={() => (onlySquads = !onlySquads)}>{t("covOnlySquads")}</button>
         </div>
       </div>
       <div class="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label={t("covConf")}>
@@ -186,7 +188,7 @@
           <div class="mt-2 grid gap-[2px]" style={strip}>
             {#each shownCols as s}
               {@const tt = total(s)}
-              <a class="grid h-6 place-items-center rounded-[3px] text-[10px] font-semibold no-underline" style:background={fill(tt.n, tt.ok)} style:color={ink(tt.n, tt.ok)} href={href("coverage", seasonSlug(s))}
+              <a class="heat grid h-6 place-items-center rounded-[3px] text-[11px] font-semibold no-underline" style:background={fill(tt.n, tt.ok)} style:--p={heatShare(tt.n, tt.ok)} href={href("coverage", seasonSlug(s))}
                 aria-label="{s} : {tt.n ? pct(tt.ok, tt.n) : 0} %">{#if nums && tt.n}{pct(tt.ok, tt.n)}{/if}</a>
             {/each}
           </div>
@@ -204,7 +206,7 @@
               <span class="mt-2 grid gap-[2px]" style={strip} aria-hidden="true">
                 {#each shownCols as s}
                   {@const c = cell(comp.code, s)}
-                  <span class="grid h-5 place-items-center rounded-[3px] text-[10px] font-semibold {c ? '' : 'bg-surface-2/60'}" style:background={c ? fill(c.n, c.ok) : undefined} style:color={c ? ink(c.n, c.ok) : undefined}>{#if nums && c}{pct(c.ok, c.n)}{/if}</span>
+                  <span class="heat grid h-5 place-items-center rounded-[3px] text-[11px] font-semibold {c ? '' : 'bg-surface-2/60'}" style:background={c ? fill(c.n, c.ok) : undefined} style:--p={c ? heatShare(c.n, c.ok) : 0}>{#if nums && c}{pct(c.ok, c.n)}{/if}</span>
                 {/each}
               </span>
             </a>
@@ -219,14 +221,14 @@
           <tr>
             <th class="sticky left-0 z-30 min-w-44 bg-surface px-3 py-2 text-left font-semibold">{t("covRow")}</th>
             {#each shownCols as s}
-              <th class="px-0.5 py-2 text-center font-semibold"><a class="link block rounded px-1 py-0.5" href={href("coverage", seasonSlug(s))} title="{t('covDetail')} {s}">{s.slice(2, 4)}<span class="block text-[0.6rem] font-normal text-muted">{s.slice(5)}</span></a></th>
+              <th class="px-0.5 py-2 text-center font-semibold"><a class="link block rounded px-1 py-0.5" href={href("coverage", seasonSlug(s))} title="{t('covDetail')} {s}">{s.slice(2, 4)}<span class="block text-[0.6875rem] font-normal text-muted">{s.slice(5)}</span></a></th>
             {/each}
           </tr>
           <tr>
             <th class="sticky left-0 z-30 border-b border-line bg-surface px-3 pb-2 text-left font-medium text-muted">{t("covAll")}</th>
             {#each shownCols as s}
               {@const tt = total(s)}
-              <td class="border-b border-line px-0.5 pb-2"><a class="block rounded px-1 py-1.5 text-center font-semibold no-underline" style:background={fill(tt.n, tt.ok)} style:color={ink(tt.n, tt.ok)}
+              <td class="border-b border-line px-0.5 pb-2"><a class="heat block rounded px-1 py-1.5 text-center font-semibold no-underline" style:background={fill(tt.n, tt.ok)} style:--p={heatShare(tt.n, tt.ok)}
                 href={href("coverage", seasonSlug(s))} title="{s} : {tt.ok} / {tt.n} {t('covSquads').toLowerCase()}">{tt.n ? pct(tt.ok, tt.n) : "–"}</a></td>
             {/each}
           </tr>
@@ -245,7 +247,7 @@
                   {@const c = cell(comp.code, s)}
                   <td class="px-0.5 py-0.5">
                     {#if c}
-                      <a class="block rounded px-1 py-1.5 text-center no-underline transition hover:ring-2 hover:ring-accent" style:background={fill(c.n, c.ok)} style:color={ink(c.n, c.ok)}
+                      <a class="heat block rounded px-1 py-1.5 text-center no-underline transition hover:ring-2 hover:ring-accent" style:background={fill(c.n, c.ok)} style:--p={heatShare(c.n, c.ok)}
                         href={href("competition", comp.code, seasonSlug(s))} title="{compName(comp.code)} · {s} : {c.ok} / {c.n} {t('covSquads').toLowerCase()}">{pct(c.ok, c.n)}</a>
                     {:else}
                       <span class="block px-1 py-1.5 text-center text-muted/50" aria-hidden="true">·</span>

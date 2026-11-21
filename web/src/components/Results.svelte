@@ -217,12 +217,12 @@
 
 {#snippet team(club: string | null, name: string, size = 22)}
   {#if club}
-    <a class="flex min-w-0 items-center gap-2.5 no-underline hover:text-accent" href={href("club", enc(club))}><Logo club={clubOf(club)} size={size} /><span class="truncate">{clubName(clubOf(club))}</span></a>
+    <a class="flex min-w-0 items-center gap-2.5 no-underline hover:text-accent" href={href("club", enc(club))}><Logo club={clubOf(club)} size={size} /><span class="line-clamp-2 break-words leading-tight sm:line-clamp-1 sm:truncate">{clubName(clubOf(club))}</span></a>
   {:else if national}
     {@const nt = nationalTeam(name)}
     <span class="flex min-w-0 items-center gap-2.5"><Flag code={nt.flag} label={nt.name} size={size - 2} /><span class="truncate">{nt.name}</span></span>
   {:else}
-    <span class="flex min-w-0 items-center gap-2.5"><span class="grid shrink-0 place-items-center rounded-md bg-surface-2 text-[0.6rem] font-bold text-muted" style="width:{size}px;height:{size}px" aria-hidden="true">{name.slice(0, 2).toUpperCase()}</span><span class="truncate">{name}</span></span>
+    <span class="flex min-w-0 items-center gap-2.5"><span class="grid shrink-0 place-items-center rounded-md bg-surface-2 text-[0.6875rem] font-bold text-muted" style="width:{size}px;height:{size}px" aria-hidden="true">{name.slice(0, 2).toUpperCase()}</span><span class="truncate">{name}</span></span>
   {/if}
 {/snippet}
 
@@ -252,7 +252,7 @@
             <td class="max-2xl:hidden">
               <span class="flex gap-1" role="img" aria-label={l.form.slice(-5).map((f) => t(FORM_LABEL[f])).join(" ")}>
                 {#each l.form.slice(-5) as f}
-                  <span class="grid size-5 place-items-center rounded text-[0.65rem] font-bold {f === 'w' ? 'bg-accent text-accent-fg' : f === 'd' ? 'bg-surface-2 text-muted' : 'bg-warn-soft text-warn'}" aria-hidden="true">{t(FORM_LABEL[f])}</span>
+                  <span class="grid size-5 place-items-center rounded text-[0.6875rem] font-bold {f === 'w' ? 'bg-accent text-accent-fg' : f === 'd' ? 'bg-surface-2 text-muted' : 'bg-warn-soft text-warn'}" aria-hidden="true">{t(FORM_LABEL[f])}</span>
                 {/each}
               </span>
             </td>

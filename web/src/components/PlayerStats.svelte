@@ -356,14 +356,14 @@
           <div class="flex h-28 items-end gap-[3px]" role="img" aria-label={curYears.map((r) => `${r.y} : ${r.c.apps ?? 0} ${t("capsLc")}, ${r.c.goals ?? 0} ${t("goalsLc")}`).join(" ; ")}>
             {#each curYears as r (r.y)}
               <div class="group/col relative flex h-full min-w-0 flex-1 flex-col justify-end" title="{r.y} : {r.c.apps ?? 0} {t('capsLc')} · {r.c.goals ?? 0} {t('goalsLc')}">
-                {#if r.c.goals}<span class="mb-0.5 text-center text-[0.65rem] font-semibold leading-none tabular-nums text-accent opacity-0 transition group-hover/col:opacity-100 sm:opacity-100">{r.c.goals}</span>{/if}
+                {#if r.c.goals}<span class="mb-0.5 text-center text-[0.6875rem] font-semibold leading-none tabular-nums text-accent opacity-0 transition group-hover/col:opacity-100 sm:opacity-100">{r.c.goals}</span>{/if}
                 <div class="relative w-full overflow-hidden rounded-t-[3px] {r.gap ? 'border-t border-dashed border-line' : 'bg-fg/15 group-hover/col:bg-fg/25'}" style:height="{(100 * (r.c.apps ?? 0)) / maxYear}%">
                   <span class="absolute inset-x-0 bottom-0 bg-accent" style:height="{r.c.apps ? Math.min(100, (100 * (r.c.goals ?? 0)) / r.c.apps) : 0}%"></span>
                 </div>
               </div>
             {/each}
           </div>
-          <div class="mt-1 flex gap-[3px] text-[0.65rem] tabular-nums text-muted" aria-hidden="true">
+          <div class="mt-1 flex gap-[3px] text-[0.6875rem] tabular-nums text-muted" aria-hidden="true">
             {#each curYears as r, i (r.y)}<span class="min-w-0 flex-1 overflow-visible whitespace-nowrap text-center">{i % labelEvery === 0 ? (r.y.length === 4 ? "’" + r.y.slice(2) : r.y.slice(2, 4) + "–" + r.y.slice(-2)) : ""}</span>{/each}
           </div>
           <figcaption class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">

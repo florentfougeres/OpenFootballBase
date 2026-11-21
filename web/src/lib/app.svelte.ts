@@ -49,6 +49,9 @@ export function readRoute() {
   document.documentElement.lang = lang;
 }
 
+/** Nom propre à la page affichée (un joueur), posé par la route une fois ses données lues : il devient le début du titre de l'onglet. */
+export const page = $state({ name: null as string | null });
+
 export const enc = encodeURIComponent;
 export const href = (...parts: string[]) => `#/${app.lang}/${parts.join("/")}`;
 export const seasonSlug = (label: string) => label.replace("/", "-");

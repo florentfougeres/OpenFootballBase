@@ -102,7 +102,7 @@
     gap: 0.125rem;
     border-radius: 9999px;
     padding-inline: 0.25rem;
-    font-size: 0.68rem;
+    font-size: 0.6875rem;
     font-weight: 600;
     text-decoration: none;
     color: var(--muted);                                  /* posé ici : la règle globale `a { color: inherit }` passerait devant une classe d'utilitaire */

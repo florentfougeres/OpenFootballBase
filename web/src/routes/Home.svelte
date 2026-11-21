@@ -96,7 +96,7 @@
         <section class="card overflow-hidden" aria-labelledby="feat-comps">
           <div class="flex items-center justify-between border-b border-line px-4 py-2.5">
             <h2 id="feat-comps" class="text-sm font-bold">{t("featuredComps")}</h2>
-            <a class="link text-xs" href={href("competitions")}>{t("allComps")} →</a>
+            <a class="link inline-flex min-h-11 items-center text-xs sm:min-h-0" href={href("competitions")}>{t("allComps")} →</a>
           </div>
           <ul class="divide-y divide-line/60">
             {#each featuredComps as c (c.code)}
@@ -119,7 +119,7 @@
       <section class="card overflow-hidden" aria-labelledby="feat-clubs">
         <div class="flex items-center justify-between border-b border-line px-4 py-2.5">
           <h2 id="feat-clubs" class="text-sm font-bold">{t("featuredClubs")}</h2>
-          <a class="link text-xs" href={href("clubs")}>{t("allClubs")} →</a>
+          <a class="link inline-flex min-h-11 items-center text-xs sm:min-h-0" href={href("clubs")}>{t("allClubs")} →</a>
         </div>
         <ul class="divide-y divide-line/60">
           {#each data.data.clubs.slice(0, 8) as x (x.wikipedia_title)}

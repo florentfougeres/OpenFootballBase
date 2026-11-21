@@ -31,7 +31,7 @@
 <svelte:window onkeydown={onKey} />
 
 <header class="sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur">
-  <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
+  <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
     <a class="display flex shrink-0 items-center gap-2 text-xl font-extrabold tracking-tight no-underline sm:text-2xl" href={href("")}>
       <img class="size-9" src={import.meta.env.BASE_URL + "logo.svg"} alt="" width="36" height="36" />
       OpenFootballBase
@@ -63,16 +63,16 @@
     <div class="ml-auto flex items-center gap-2">
       <!-- Recherche : un champ dans l'en-tête sur grand écran ; sur mobile, une icône qui déplie une barre sous l'en-tête. « / » et ⌘K y amènent aussi. -->
       <SearchBox variant="header" />
-      <button class="btn-ghost !px-3 lg:hidden" type="button" onclick={() => (searchUi.bar = !searchUi.bar)} aria-expanded={searchUi.bar} aria-label={t("searchTrigger")}>
+      <button class="btn-ghost min-h-11 min-w-11 justify-center !px-3 lg:hidden" type="button" onclick={() => (searchUi.bar = !searchUi.bar)} aria-expanded={searchUi.bar} aria-label={t("searchTrigger")}>
         <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg></button>
-      <button class="btn-ghost hidden !px-3 sm:inline-flex" type="button" onclick={cycleTheme} title={t("theme")} aria-label={t("theme")}>
+      <button class="btn-ghost hidden min-h-11 min-w-11 justify-center !px-3 sm:inline-flex" type="button" onclick={cycleTheme} title={t("theme")} aria-label={t("theme")}>
         <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           {#if theme.value === "dark"}<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z" />
           {:else if theme.value === "light"}<circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
           {:else}<rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" />{/if}
         </svg>
       </button>
-      <a class="btn-ghost !px-3 uppercase" href={switchHref} hreflang={other} lang={other}>{other}</a>
+      <a class="btn-ghost min-h-11 min-w-11 justify-center !px-3 uppercase" href={switchHref} hreflang={other} lang={other}>{other}</a>
     </div>
   </div>
   {#if searchUi.bar}
