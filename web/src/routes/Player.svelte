@@ -67,6 +67,15 @@
     }
     return `${t("bornIn")} ${day.getFullYear()}`;
   });
+  // Téléphone : l'âge seul (« 39 ans »), ou l'année quand le jour n'est pas connu ; la date complète reste sur grand écran.
+  const bornShort = $derived.by(() => {
+    const b = d?.birth;
+    if (!b) return "";
+    if (b.precision < 11) return `${t("bornIn")} ${new Date(b.birth_date + "T00:00:00").getFullYear()}`;
+    const n = new Date();
+    return `${ageAt(b.birth_date, n.getFullYear(), n.getMonth() + 1, n.getDate())} ${t("yearsOld")}`;
+  });
+  const heightText = $derived(d?.profile?.height_cm ? `${(d.profile.height_cm / 100).toLocaleString(app.lang, { minimumFractionDigits: 2 })} m` : "");
   // Sélection A uniquement (les équipes de jeunes ont leurs propres lignes dans le tableau).
   const senior = $derived(d?.national.find((r) => !/\bU\d{2}\b|under/i.test(r.team_name)) ?? null);
   // Frise : une barre par passage, positionnée sur l'axe des années ; les passages simultanés (prêt, équipe réserve) passent sur une autre ligne.
@@ -127,49 +136,60 @@
 {:else if !d}
   <p class="text-warn">{t("noResult")}</p>
 {:else}
-  <header class="card flex items-start gap-4 p-4 sm:gap-5 sm:p-6">
+  <header class="card flex items-start gap-3 p-3 sm:gap-5 sm:p-6">
     {#if d.profile?.photo_url && !photoFailed}
-      <figure class="w-24 shrink-0 sm:w-40">
-        <!-- Cadre 4/5 recadré au centre ; une photo en pied (bien plus haute que le cadre) est calée sur le haut pour garder le visage. -->
-        <img class="aspect-[4/5] w-24 rounded-xl border border-line bg-surface-2 object-cover sm:w-40" style:object-position={tallPhoto ? "50% 6%" : "50% 50%"} src={d.profile.photo_url} alt={d.profile.photo_caption || d.p.name} loading="lazy" width="160" height="200"
+      <figure class="w-16 shrink-0 sm:w-40">
+        <!-- Cadre 4/5 recadré au centre ; une photo en pied (bien plus haute que le cadre) est calée sur le haut pour garder le visage. Sur téléphone la photo est une vignette : son crédit passe en bas de page. -->
+        <img class="aspect-[4/5] w-16 rounded-lg border border-line bg-surface-2 object-cover sm:w-40 sm:rounded-xl" style:object-position={tallPhoto ? "50% 6%" : "50% 50%"} src={d.profile.photo_url} alt={d.profile.photo_caption || d.p.name} loading="lazy" width="160" height="200"
           onerror={() => (photoFailed = true)}
           onload={(e) => { const i = e.currentTarget as HTMLImageElement; tallPhoto = i.naturalHeight / Math.max(1, i.naturalWidth) > 1.45; }} />
-        <figcaption class="mt-1.5 text-[0.7rem] leading-snug text-muted">
+        <figcaption class="mt-1.5 text-[0.7rem] leading-snug text-muted max-sm:hidden">
           <a class="link" href={d.profile.photo_page} target="_blank" rel="noopener">{t("photoBy")} : {d.profile.photo_author || "Wikipedia / Commons"}{d.profile.photo_license ? ` · ${d.profile.photo_license}` : ""}</a>
         </figcaption>
       </figure>
     {/if}
     <div class="min-w-0 flex-1">
-    <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">{d.p.name}</h1>
-    {#if d.profile?.full_name && fold(d.profile.full_name) !== fold(d.p.name)}<p class="mt-1 text-sm text-muted">{d.profile.full_name}</p>{/if}
-    <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+    <h1 class="text-xl font-extrabold tracking-tight sm:text-3xl">{d.p.name}</h1>
+    {#if d.profile?.full_name && fold(d.profile.full_name) !== fold(d.p.name)}<p class="mt-0.5 text-sm text-muted max-sm:truncate sm:mt-1">{d.profile.full_name}</p>{/if}
+    <p class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted sm:mt-2">
       {#if d.p.flag || d.p.nat}<span class="flex items-center gap-2"><Flag code={d.p.flag} label={d.p.nat} /><span>{natLabel}</span></span>{/if}
-      {#if born}<span>{born}</span>{/if}
-      {#if d.profile?.birth_place}<span>{t("birthPlace")} : {d.profile.birth_place}</span>{/if}
-      {#if d.profile?.height_cm}<span>{t("heightLabel")} : {(d.profile.height_cm / 100).toLocaleString(app.lang, { minimumFractionDigits: 2 })} m</span>{/if}
+      {#if born}<span class="sm:hidden">{bornShort}</span><span class="max-sm:hidden">{born}</span>{/if}
+      {#if d.profile?.birth_place}<span class="max-sm:hidden">{t("birthPlace")} : {d.profile.birth_place}</span>{/if}
+      {#if d.profile?.height_cm}<span class="max-sm:hidden">{t("heightLabel")} : {heightText}</span>{/if}
     </p>
+    {#if d.profile?.birth_place || d.profile?.height_cm}
+      <p class="mt-0.5 text-xs text-muted sm:hidden">{[d.profile?.birth_place, d.profile?.height_cm ? heightText : ""].filter(Boolean).join(" · ")}</p>
+    {/if}
     {#if totals}
-      <ul class="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:flex sm:flex-wrap sm:gap-3">
+      <p class="mt-2 text-sm font-semibold sm:hidden">
+        <span class="text-accent">{totals.apps}</span> {t("matchesLc")} · <span class="text-accent">{totals.goals}</span> {t("goalsLc")}
+      </p>
+      <ul class="mt-3 grid grid-cols-2 gap-2 max-sm:hidden sm:mt-4 sm:flex sm:flex-wrap sm:gap-3">
         <li class="rounded-xl bg-accent-soft px-3 py-2 sm:px-4"><strong class="block text-xl font-extrabold text-accent">{totals.apps}</strong><span class="text-xs text-muted">{t("sumApps")}</span></li>
         <li class="rounded-xl bg-accent-soft px-3 py-2 sm:px-4"><strong class="block text-xl font-extrabold text-accent">{totals.goals}</strong><span class="text-xs text-muted">{t("sumGoals")}</span></li>
       </ul>
-      <p class="mt-2 text-xs text-muted">
+      <p class="mt-2 text-xs text-muted max-sm:hidden">
         {t("sumClubs")} : {totals.clubApps} {t("matchesLc")}, {totals.clubGoals} {t("goalsLc")}{#if totals.hasNat}{" · "}{t("sumNat")} : {totals.natApps} {t("capsLc")}, {totals.natGoals} {t("goalsLc")}{/if}
       </p>
     {/if}
-    <div class="mt-4 flex flex-wrap items-center gap-2"><FollowButton item={{ kind: "player", id: key, label: d.p.name, sub: natLabel, path: `player/${enc(key)}` }} /><WikiButton urls={d.urls} kind="wikiPlayer" /></div>
+    <!-- Téléphone : deux icônes de 44 px (Suivre, Wikipédia) ; grand écran : boutons avec libellé. -->
+    <div class="mt-2.5 flex items-center gap-2 sm:hidden"><FollowButton compact item={{ kind: "player", id: key, label: d.p.name, sub: natLabel, path: `player/${enc(key)}` }} /><WikiButton compact urls={d.urls} kind="wikiPlayer" /></div>
+    <div class="mt-4 flex flex-wrap items-center gap-2 max-sm:hidden"><FollowButton item={{ kind: "player", id: key, label: d.p.name, sub: natLabel, path: `player/${enc(key)}` }} /><WikiButton urls={d.urls} kind="wikiPlayer" /></div>
     </div>
   </header>
 
   {#if tabs.length > 1}
-    <Segmented class="mt-4" label={t("plViews")} idPrefix="ptab" value={tab} onselect={setTab}
-      items={tabs.map((v) => ({ key: v, label: t(v === "path" ? "tlTitle" : v === "stats" ? "tabStats" : "honours") }))} />
+    <!-- Collante sous la barre du haut (mobile) : on change de vue sans remonter. Fond plein, pas de flou. -->
+    <div class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 -mx-4 mt-3 bg-bg px-4 py-2 sm:mx-0 sm:px-0 lg:top-0">
+      <Segmented label={t("plViews")} idPrefix="ptab" value={tab} onselect={setTab}
+        items={tabs.map((v) => ({ key: v, label: t(v === "path" ? "tlTitle" : v === "stats" ? "tabStats" : "honours") }))} />
+    </div>
   {/if}
 
   {#if tab === "path"}
   <div role="tabpanel" id="ppanel-path" aria-labelledby={tabs.length > 1 ? "ptab-path" : undefined}>
   {#if d.career.length}
-    <section class="card mt-6 overflow-hidden">
+    <section class="card mt-4 overflow-hidden sm:mt-6">
       <div class="flex flex-wrap items-center justify-between gap-3 px-5 pt-4">
         <h2 class="text-lg font-bold">{t("careerFull")}</h2>
         {#if timeline}
@@ -231,7 +251,7 @@
   {/if}
 
   {#if d.national.length}
-    <section class="card mt-6 overflow-hidden">
+    <section class="card mt-4 overflow-hidden sm:mt-6">
       <h2 class="px-5 pt-4 text-lg font-bold">{t("nationalTitle")}</h2>
       <div class="overflow-x-auto">
         <table class="tbl mt-2">
@@ -266,5 +286,12 @@
     <div role="tabpanel" id="ppanel-honours" aria-labelledby="ptab-honours" class={tab === "honours" ? "" : "hidden"}>
       <PlayerHonours pkey={key} qid={d.p.qid ?? null} bind:has={honoursHas} />
     </div>
+  {/if}
+
+  {#if d.profile?.photo_url && !photoFailed}
+    <!-- Crédit de la photo : sous la photo sur grand écran, ici sur téléphone (la vignette de l'en-tête est trop petite pour le porter). -->
+    <p class="mt-4 text-[0.7rem] leading-snug text-muted sm:hidden">
+      <a class="link" href={d.profile.photo_page} target="_blank" rel="noopener">{t("photoBy")} : {d.profile.photo_author || "Wikipedia / Commons"}{d.profile.photo_license ? ` · ${d.profile.photo_license}` : ""}</a>
+    </p>
   {/if}
 {/if}
