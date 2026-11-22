@@ -1,13 +1,13 @@
 <script lang="ts">
   import { app, href, t } from "../lib/app.svelte";
   import { search, emptyGroups, type Groups, type Hit } from "../lib/search";
-  import { searchUi, pushRecent, readRecent, clearRecent, type Recent } from "../lib/searchui.svelte";
+  import { pushRecent, readRecent, clearRecent, type Recent } from "../lib/searchui.svelte";
   import Flag from "./Flag.svelte";
   import Logo from "./Logo.svelte";
 
   // Une vraie zone de saisie (pas de fenêtre) : les suggestions s'affichent juste dessous, la page reste visible.
   //   header : champ compact de l'en-tête, la liste s'élargit vers la gauche ;  bar : barre pleine largeur sur mobile ;  hero : grand champ de l'accueil.
-  let { variant = "header", autofocus = false, onclose }: { variant?: "header" | "bar" | "hero"; autofocus?: boolean; onclose?: () => void } = $props();
+  let { variant = "header", autofocus = false, onclose }: { variant?: "header" | "bar" | "hero" | "overlay"; autofocus?: boolean; onclose?: () => void } = $props();
 
   let input = $state("");
   let open = $state(false);
@@ -32,8 +32,6 @@
   const idOf = (i: number) => `sb-${uid}-${i}`;
 
   $effect(() => { if (autofocus) queueMicrotask(() => field?.focus()); });
-  // Raccourci « / » ou ⌘K : l'en-tête demande le focus du champ visible.
-  $effect(() => { const k = searchUi.focusTick; if (k && variant === "header" && root && root.offsetParent !== null) { field?.focus(); field?.select(); } });
 
   $effect(() => {
     const s = term;
@@ -50,14 +48,15 @@
   /** Remplit le champ (exemples cliqués sur l'accueil) et ouvre les suggestions. */
   export function fill(v: string) { input = v; show(); field?.focus(); }
   const show = () => { recent = readRecent(); open = true; };
-  const close = () => { open = false; };
+  const close = () => { if (variant !== "overlay") open = false; };                // la surcouche garde sa liste ouverte
+  $effect(() => { if (variant === "overlay") show(); });
   const go = (to: string) => { close(); field?.blur(); onclose?.(); location.hash = to; };
   const pick = (h: Hit) => { pushRecent({ kind: h.kind, label: h.label, sub: h.sub, to: h.to }); input = ""; go(h.to); };
   const allResults = () => { const s = term; input = ""; go(`${href("")}?q=${encodeURIComponent(s)}`); };
 
   function onKey(e: KeyboardEvent) {
     const n = term.length >= 2 ? flat.length : recent.length;
-    if (e.key === "Escape") { e.preventDefault(); if (open && (term || recent.length)) { input = ""; close(); } else { field?.blur(); onclose?.(); } }
+    if (e.key === "Escape") { e.preventDefault(); if (variant === "overlay") { if (input) input = ""; else onclose?.(); } else if (open && (term || recent.length)) { input = ""; close(); } else { field?.blur(); onclose?.(); } }
     else if (e.key === "ArrowDown") { e.preventDefault(); if (!open) show(); if (n) active = (active + 1) % n; }
     else if (e.key === "ArrowUp") { e.preventDefault(); if (n) active = (active - 1 + n) % n; }
     else if (e.key === "Enter") {
@@ -68,32 +67,32 @@
   }
   $effect(() => { active; open && document.getElementById(idOf(active))?.scrollIntoView({ block: "nearest" }); });
 
-  const panel = $derived(variant === "header" ? "right-0 w-[min(34rem,92vw)]" : "left-0 right-0");
-  const maxH = $derived(variant === "bar" ? "max-h-[46vh]" : "max-h-[min(34rem,70vh)]");
+  const panel = $derived(variant === "overlay" ? "relative mt-3 !border-0 !shadow-none" : "absolute top-full z-40 mt-1.5 " + (variant === "header" ? "right-0 w-[min(34rem,92vw)]" : "left-0 right-0"));
+  const maxH = $derived(variant === "overlay" ? "max-h-[calc(100dvh-8.5rem)] lg:max-h-[min(30rem,60vh)]" : variant === "bar" ? "max-h-[46vh]" : "max-h-[min(34rem,70vh)]");
 </script>
 
-<div bind:this={root} class="relative {variant === 'hero' ? 'w-full max-w-3xl' : variant === 'bar' ? 'w-full' : 'hidden lg:block'}"
+<div bind:this={root} class="relative {variant === 'hero' ? 'w-full max-w-3xl' : variant === 'bar' || variant === 'overlay' ? 'w-full' : 'hidden lg:block'}"
   onfocusout={(e) => { if (!root?.contains(e.relatedTarget as Node)) close(); }}>
   <label class="relative block">
     <span class="sr-only">{t("searchTrigger")}</span>
-    <svg viewBox="0 0 24 24" class="pointer-events-none absolute left-3 top-1/2 {variant === 'hero' ? 'size-5' : 'size-4'} -translate-y-1/2 text-muted" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+    <svg viewBox="0 0 24 24" class="pointer-events-none absolute left-3 top-1/2 {variant === 'hero' || variant === 'overlay' ? 'size-5' : 'size-4'} -translate-y-1/2 text-muted" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
     <input bind:this={field} bind:value={input} onfocus={show} oninput={show} onkeydown={onKey} type="text" role="combobox" aria-expanded={open} aria-controls={`sb-list-${uid}`} aria-autocomplete="list"
       aria-activedescendant={open && (flat.length || (term.length < 2 && recent.length)) ? idOf(active) : undefined}
       placeholder={variant === "header" ? `${t("searchTrigger")}…` : t("spPlaceholder")} autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
       class="w-full rounded-lg border border-line bg-surface pl-9 pr-16 text-fg outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40
-        {variant === 'hero' ? 'h-12 bg-bg pl-11 text-base' : 'h-9 text-sm'} {variant === 'header' ? 'w-40 xl:w-52 2xl:w-64 2xl:focus:w-80' : ''}" />
+        {variant === 'hero' || variant === 'overlay' ? 'h-12 bg-bg pl-11 text-base' : 'h-9 text-sm'} {variant === 'header' ? 'w-40 xl:w-52 2xl:w-64 2xl:focus:w-80' : ''}" />
     <span class="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
       {#if busy}<span class="size-4 animate-spin rounded-full border-2 border-line border-t-accent" aria-hidden="true"></span>{/if}
       {#if input}
         <button type="button" class="grid size-6 place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-fg" aria-label={t("spClear")} onmousedown={(e) => e.preventDefault()} onclick={() => { input = ""; field?.focus(); }}>
           <svg viewBox="0 0 16 16" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg></button>
-      {:else if variant !== "bar"}<kbd class="hidden rounded border border-line px-1.5 text-xs font-semibold text-muted md:inline" aria-hidden="true">/</kbd>{/if}
+      {:else if variant === "header" || variant === "hero"}<kbd class="hidden rounded border border-line px-1.5 text-xs font-semibold text-muted md:inline" aria-hidden="true">/</kbd>{/if}
     </span>
   </label>
 
   {#if open}
     <div id={`sb-list-${uid}`} role="listbox" aria-label={t("searchTrigger")} tabindex="-1" onmousedown={(e) => e.preventDefault()}
-      class="absolute top-full z-40 mt-1.5 {panel} {maxH} overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface py-1.5 shadow-2xl">
+      class="{panel} {maxH} overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface py-1.5 shadow-2xl">
       {#if term.length < 2}
         {#if recent.length}
           <div class="flex items-center justify-between px-4 pb-1 pt-1.5 text-xs font-semibold text-muted"><span>{t("spRecent")}</span>

@@ -36,6 +36,11 @@ export const t = (key: string): string => T[app.lang][key] ?? key;
 // ---------------------------------------------------------------- routage par hash : #/fr/club/Everton/2025-26?x=1
 export const route = $state({ lang: "fr" as Lang, parts: [] as string[], query: new URLSearchParams() });
 
+/** Pile de navigation : sens du dernier changement de page (avant / arrière) et profondeur par rapport à un écran racine (accueil, explorer, compétitions, suivis). */
+export const nav = $state({ dir: "fwd" as "fwd" | "back", depth: 0 });
+const ROOTS = ["", "explore", "competitions", "follows"];
+const stack: string[] = [];
+
 export function readRoute() {
   const [path, qs = ""] = location.hash.replace(/^#\/?/, "").split("?");
   const parts = path.split("/").filter(Boolean).map(decodeURIComponent);
@@ -47,6 +52,13 @@ export function readRoute() {
   route.query = new URLSearchParams(qs);
   app.lang = lang;
   document.documentElement.lang = lang;
+  // Sens du déplacement : revenir à la page précédente de la pile = arrière ; un écran racine repart d'une pile vide.
+  const key = parts.join("/");
+  if (stack[stack.length - 1] === key) { /* même page (changement de paramètre) */ }
+  else if (ROOTS.includes(parts[0] ?? "")) { stack.length = 0; stack.push(key); nav.dir = "fwd"; }
+  else if (stack.length > 1 && stack[stack.length - 2] === key) { stack.pop(); nav.dir = "back"; }
+  else { stack.push(key); nav.dir = "fwd"; }
+  nav.depth = stack.length - 1;
 }
 
 /** Nom propre à la page affichée (un joueur), posé par la route une fois ses données lues : il devient le début du titre de l'onglet. */

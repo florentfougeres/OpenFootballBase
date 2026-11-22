@@ -1,6 +1,7 @@
 <script lang="ts">
   import { app, areaFlag, enc, href, route, seasonSlug, t } from "../lib/app.svelte";
   import { clubName } from "../lib/format";
+  import { follows } from "../lib/follow.svelte";
   import SearchBox from "../components/SearchBox.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
@@ -78,6 +79,27 @@
 </section>
 
 <div class="mx-auto max-w-6xl px-4 pb-6 pt-4">
+  {#if follows.items.length}
+    <!-- Mes suivis : ce que le visiteur a épinglé sur cet appareil, en tête de l'accueil -->
+    <section class="mt-2" aria-labelledby="my-follows">
+      <div class="flex items-baseline justify-between px-0.5">
+        <h2 id="my-follows" class="text-lg font-bold">{t("followsMine")}</h2>
+        <a class="link inline-flex min-h-11 items-center text-sm" href={href("follows")}>{t("seeAll")} →</a>
+      </div>
+      <ul class="-mx-4 mt-1 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:px-0">
+        {#each follows.items.slice(0, 12) as f (f.kind + f.id)}
+          <li class="snap-start">
+            <a class="flex w-40 flex-col gap-2.5 rounded-2xl border border-line bg-surface p-3 no-underline transition hover:border-accent active:scale-[0.98] sm:w-48" href={`#/${app.lang}/${f.path}`}>
+              <span class="grid size-10 place-items-center rounded-full bg-accent-soft text-accent"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d={f.kind === "club" ? "M12 3 5 5.5V11c0 4.2 2.8 7.4 7 9 4.2-1.6 7-4.8 7-9V5.5z" : f.kind === "player" ? "M12 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 20c.7-3.6 3.3-5.5 7-5.5s6.3 1.9 7 5.5" : "M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8.5 20h7"} /></svg></span>
+              <span class="min-w-0"><span class="block truncate font-semibold leading-tight">{f.label}</span>{#if f.sub}<span class="block truncate text-xs text-muted">{f.sub}</span>{/if}</span>
+            </a>
+          </li>
+        {/each}
+      </ul>
+    </section>
+  {/if}
+
   {#if urlTerm}
     <div class="mt-2 flex items-baseline justify-between gap-3">
       <h2 class="text-lg font-bold">{t("spAll").replace(/\s+pour$|\s+for$/, "")} « {urlTerm} »</h2>

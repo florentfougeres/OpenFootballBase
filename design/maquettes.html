@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenFootballBase — maquettes de refonte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0f0d; --s1:#111a15; --s2:#19251e; --s3:#223228; --fg:#eef3f0; --muted:#9db0a5; --line:#23322a;
+  --accent:#2fd488; --accent-fg:#04140c; --accent-soft:#0f3322; --warn:#f5b454; --info:#8db1ff;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+  --r1:12px; --r2:16px; --r3:24px;
+  --d1:150ms; --d2:250ms; --ease:cubic-bezier(.2,.8,.2,1);
+  --display:"Barlow Condensed","Barlow",system-ui,sans-serif; --sans:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+[data-theme=light]{
+  --bg:#f1f5f3; --s1:#ffffff; --s2:#e8eeea; --s3:#dbe4de; --fg:#0b1510; --muted:#53635a; --line:#d5ded8;
+  --accent:#087245; --accent-fg:#fff; --accent-soft:#d9f1e4; --warn:#a14a05; --info:#1d4ed8;
+  --shadow:0 10px 30px rgba(20,40,30,.14);
+}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--fg);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+.num{font-variant-numeric:tabular-nums}
+.disp{font-family:var(--display);font-weight:700;letter-spacing:-.01em}
+svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---- cadre de la page de maquettes ---- */
+.top{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:12px 20px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top h1{font-family:var(--display);font-size:22px;font-weight:800}
+.seg{display:inline-flex;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{padding:8px 16px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted);transition:background var(--d1),color var(--d1);min-height:36px}
+.seg button[aria-selected=true]{background:var(--accent);color:var(--accent-fg)}
+.legend{max-width:1240px;margin:18px auto 0;padding:0 20px;color:var(--muted);font-size:14px;line-height:1.5}
+.stage{display:flex;justify-content:center;padding:24px 12px 60px}
+.note{max-width:1240px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:13px}
+
+/* ---- téléphone ---- */
+.phone{width:390px;height:812px;border-radius:46px;background:var(--bg);border:10px solid #0b0b0c;box-shadow:var(--shadow),0 0 0 1px var(--line);position:relative;overflow:hidden;display:flex;flex-direction:column}
+[data-theme=light] .phone{border-color:#1b1f1d}
+.sbar{height:44px;flex:none;display:flex;justify-content:space-between;align-items:flex-end;padding:0 28px 6px;font-size:14px;font-weight:600}
+.view{position:relative;flex:1;overflow:hidden}
+.page{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:112px;scrollbar-width:none;background:var(--bg)}
+.page::-webkit-scrollbar{display:none}
+.page.in-right{animation:inR var(--d2) var(--ease)}
+.page.in-left{animation:inL var(--d2) var(--ease)}
+.page.fade{animation:fade var(--d2) var(--ease)}
+@keyframes inR{from{transform:translateX(34px);opacity:0}to{transform:none;opacity:1}}
+@keyframes inL{from{transform:translateX(-34px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:6px 16px;min-height:52px;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(12px)}
+.bar .t{font-family:var(--display);font-weight:700;font-size:20px;flex:1;opacity:0;transition:opacity var(--d1)}
+.bar.scrolled .t{opacity:1}
+.ib{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:var(--fg);transition:background var(--d1)}
+.ib:active{background:var(--s2);transform:scale(.96)}
+.large{padding:0 16px 12px;font-family:var(--display);font-weight:800;font-size:40px;line-height:1}
+.sec{display:flex;justify-content:space-between;align-items:baseline;padding:22px 16px 8px}
+.sec h2{font-family:var(--display);font-size:22px;font-weight:700}
+.sec a{color:var(--accent);font-size:14px;font-weight:600;cursor:pointer}
+.searchpill{margin:0 16px;display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:14px;background:var(--s1);border:1px solid var(--line);color:var(--muted);width:calc(100% - 32px);text-align:left}
+.hrow{display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
+.hrow::-webkit-scrollbar{display:none}
+.chip{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;background:var(--s1);border:1px solid var(--line);font-weight:600;font-size:14px;scroll-snap-align:start;transition:background var(--d1)}
+.chip[aria-pressed=true],.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.follow{flex:none;width:156px;padding:12px;border-radius:var(--r2);background:var(--s1);border:1px solid var(--line);text-align:left;display:flex;flex-direction:column;gap:10px;scroll-snap-align:start;transition:transform var(--d1)}
+.follow:active{transform:scale(.97)}
+.follow b{font-weight:600;font-size:15px;line-height:1.2}
+.follow span{font-size:12px;color:var(--muted)}
+.crest{flex:none;display:grid;place-items:center;border-radius:50%;color:#fff;font-family:var(--display);font-weight:800;letter-spacing:.02em;box-shadow:inset 0 0 0 2px rgba(255,255,255,.18)}
+.list{margin:0 16px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 14px;width:100%;text-align:left;border-top:1px solid var(--line);transition:background var(--d1)}
+.row:first-child{border-top:0}
+.row:active,.row:hover{background:var(--s2)}
+.row .m{flex:1;min-width:0}
+.row .m b{display:block;font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .m span{display:block;font-size:13px;color:var(--muted)}
+.row .r{color:var(--muted);font-size:13px;text-align:right}
+.chev{color:var(--muted)}
+.stat{display:flex;gap:22px;padding:6px 16px 0;color:var(--muted);font-size:13px}
+.stat b{color:var(--fg);font-family:var(--display);font-size:20px;display:block}
+.tabs{display:flex;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:3px;margin:0 16px}
+.tabs button{flex:1;min-height:40px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted);transition:background var(--d1),color var(--d1)}
+.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-fg)}
+
+/* tab bar */
+.tabbar{position:absolute;left:12px;right:12px;bottom:12px;height:68px;border-radius:26px;background:color-mix(in srgb,var(--s1) 92%,transparent);backdrop-filter:blur(16px);border:1px solid var(--line);box-shadow:var(--shadow);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;z-index:20}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--muted);min-height:56px;justify-content:center;transition:color var(--d1)}
+.tab[aria-current=page]{color:var(--accent)}
+.tab[aria-current=page] svg{transform:translateY(-1px)}
+.tab.mid .puck{width:48px;height:48px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;margin-top:-18px;box-shadow:0 4px 10px rgba(0,0,0,.28)}
+
+/* bandeau club */
+.hero{position:relative;padding:8px 16px 18px;margin-bottom:14px}
+.hero::before{content:"";position:absolute;inset:-52px 0 0;background:linear-gradient(180deg,color-mix(in srgb,var(--tint) 34%,var(--bg)) 0%,var(--bg) 100%);z-index:0}
+.hero>*{position:relative;z-index:1}
+.hero h1{font-family:var(--display);font-weight:800;font-size:34px;line-height:1.02;margin-top:12px}
+.hero p{color:var(--muted);font-size:14px;margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:12px;font-weight:600;font-size:15px;transition:transform var(--d1),background var(--d1)}
+.btn:active{transform:scale(.97)}
+.btn.p{background:var(--accent);color:var(--accent-fg)}
+.btn.g{background:var(--s1);border:1px solid var(--line)}
+.btn.on{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+.grp{padding:16px 16px 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;justify-content:space-between}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px}
+.tile{background:var(--s1);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px}
+.tile b{font-family:var(--display);font-size:30px;line-height:1;color:var(--accent);display:block}
+.tile span{font-size:12px;color:var(--muted)}
+.bars{padding:6px 16px 0}
+.bar2{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:14px}
+.bar2 .lab{width:116px;flex:none;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar2 .tr{flex:1;height:26px;background:var(--s1);border-radius:8px;position:relative;border:1px solid var(--line)}
+.bar2 .fl{position:absolute;top:2px;bottom:2px;border-radius:6px;background:color-mix(in srgb,var(--accent) 26%,var(--s1));border:1px solid var(--accent)}
+.bar2 .fl.loan{border-style:dashed;background:color-mix(in srgb,var(--info) 18%,var(--s1));border-color:var(--info)}
+.axis{display:flex;justify-content:space-between;padding:0 16px 0 142px;font-size:11px;color:var(--muted)}
+.pill{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;font-size:11px;font-weight:700;color:#04140c}
+.pill.V{background:var(--accent)}.pill.N{background:#9db0a5}.pill.D{background:#f08a8a}
+[data-theme=light] .pill.N{background:#53635a;color:#fff}
+.slider{display:flex;align-items:center;gap:6px;margin:0 16px 12px;background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:4px}
+.slider .v{flex:1;text-align:center;font-weight:600}
+.slider .v small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:6px 8px}
+.tbl th:nth-child(2){text-align:left}
+.tbl td{padding:9px 8px;border-top:1px solid var(--line);text-align:right}
+.tbl td:nth-child(1){text-align:left;color:var(--muted);width:26px;padding-left:14px}
+.tbl td:nth-child(2){text-align:left}
+.tbl td.pts{font-weight:700}
+.tbl tr.me{background:var(--accent-soft)}
+.tbl .zone{display:inline-block;width:3px;height:18px;border-radius:2px;vertical-align:middle;margin-right:6px}
+
+/* feuille */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:40;opacity:0;pointer-events:none;transition:opacity var(--d2)}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:41;background:var(--s1);border-radius:26px 26px 0 0;padding:10px 16px 26px;transform:translateY(105%);transition:transform var(--d2) var(--ease);border-top:1px solid var(--line)}
+.sheet.on{transform:none}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--s3);margin:0 auto 12px}
+.sheet h3{font-family:var(--display);font-size:22px;margin-bottom:10px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts .chip{background:var(--s2)}
+.search{position:absolute;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column;transform:translateY(8%);opacity:0;pointer-events:none;transition:transform var(--d2) var(--ease),opacity var(--d2)}
+.search.on{transform:none;opacity:1;pointer-events:auto}
+.search .field{display:flex;gap:8px;padding:6px 12px;align-items:center}
+.search input{flex:1;height:48px;border-radius:14px;border:1px solid var(--accent);background:var(--s1);color:var(--fg);padding:0 14px;font:inherit;font-size:16px}
+.search .body{overflow:auto;flex:1;padding-bottom:20px}
+.toast{position:absolute;left:50%;bottom:96px;transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:all var(--d2) var(--ease);z-index:60;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---- bureau ---- */
+.deskwrap{width:100%;display:flex;justify-content:center}
+.desk{width:1240px;height:780px;transform-origin:top left;border-radius:18px;border:1px solid var(--line);background:var(--bg);display:grid;grid-template-columns:236px 1fr;overflow:hidden;box-shadow:var(--shadow)}
+.side{background:var(--s1);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:0 6px 10px;font-family:var(--display);font-weight:800;font-size:22px}
+.brand i{width:34px;height:34px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:var(--accent-fg)}
+.sidesearch{display:flex;align-items:center;gap:8px;height:42px;border-radius:12px;background:var(--s2);padding:0 12px;color:var(--muted);font-size:14px;margin-bottom:8px}
+.sidesearch kbd{margin-left:auto;font:inherit;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.nav{display:flex;align-items:center;gap:12px;height:44px;border-radius:12px;padding:0 12px;font-weight:600;color:var(--muted);text-align:left;width:100%;transition:background var(--d1),color var(--d1)}
+.nav:hover{background:var(--s2);color:var(--fg)}
+.nav[aria-current=page]{background:var(--accent-soft);color:var(--accent)}
+.sidegrp{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:16px 12px 4px;font-weight:600}
+.main{overflow:auto;position:relative}
+.main .in{animation:fade var(--d2) var(--ease)}
+.dhero{position:relative;padding:28px 36px 20px}
+.dhero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,color-mix(in srgb,var(--tint) 30%,var(--bg)),var(--bg))}
+.dhero>*{position:relative}
+.dhero .id{display:flex;align-items:center;gap:20px}
+.dhero h1{font-family:var(--display);font-size:46px;font-weight:800;line-height:1}
+.dhero .meta{color:var(--muted);margin-top:6px}
+.dhero .acts{margin-left:auto;display:flex;gap:10px}
+.dtabs{display:flex;gap:6px;padding:0 36px;border-bottom:1px solid var(--line)}
+.dtabs button{height:46px;padding:0 16px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;transition:color var(--d1)}
+.dtabs button[aria-selected=true]{color:var(--accent);border-color:var(--accent)}
+.dgrid{display:grid;grid-template-columns:1fr 340px;gap:24px;padding:22px 36px 40px;align-items:start}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden}
+.card h3{font-family:var(--display);font-size:20px;padding:14px 16px 6px}
+.dt{width:100%;border-collapse:collapse;font-size:15px}
+.dt th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 14px;font-weight:600}
+.dt td{padding:0 14px;height:48px;border-top:1px solid var(--line)}
+.dt tr.pr{cursor:pointer;transition:background var(--d1)}
+.dt tr.pr:hover{background:var(--s2)}
+.dt tr.sel{background:var(--accent-soft)}
+.dt td.n{color:var(--muted);width:44px}
+.dt td.pos{color:var(--muted);width:60px}
+.aside{position:sticky;top:20px;display:flex;flex-direction:column;gap:14px}
+.facts{padding:6px 16px 14px;display:grid;gap:10px;font-size:14px}
+.facts div{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:10px}
+.facts div:first-child{border:0;padding-top:0}
+.facts span{color:var(--muted)}
+.dcrumb{padding:14px 36px 0;color:var(--muted);font-size:13px}
+.hgrid{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;padding:12px 36px 40px}
+.hgrid h2{font-family:var(--display);font-size:26px;margin:18px 0 10px}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.fcard{display:flex;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:var(--r2);background:var(--s1);text-align:left;transition:transform var(--d1),border-color var(--d1)}
+.fcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+.fcard b{display:block;font-weight:600}.fcard span{font-size:13px;color:var(--muted)}
+.bigsearch{display:flex;align-items:center;gap:12px;height:56px;border-radius:16px;background:var(--s1);border:1px solid var(--line);padding:0 18px;color:var(--muted);font-size:17px;max-width:640px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>OpenFootballBase · maquettes de refonte</h1>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div class="seg" role="tablist" aria-label="Format"><button role="tab" id="m-mob" aria-selected="true">Smartphone</button><button role="tab" id="m-desk" aria-selected="false">Bureau</button></div>
+    <div class="seg" role="tablist" aria-label="Thème"><button role="tab" id="t-dark" aria-selected="true">Sombre</button><button role="tab" id="t-light" aria-selected="false">Clair</button></div>
+  </div>
+</header>
+<p class="legend" id="legend"></p>
+<main class="stage" id="stage"></main>
+<p class="note">Maquettes de travail : tous les noms, chiffres et écussons sont des données d'illustration, pas des données de la base. Les écussons sont des monogrammes (pas de logos).</p>
+
+<script>
+const I={
+ home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+ compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+ trophy:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
+ bookmark:'<path d="M6 3h12v18l-6-4-6 4z"/>',
+ back:'<path d="M15 5l-7 7 7 7"/>', right:'<path d="M9 5l7 7-7 7"/>',
+ sliders:'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>', plus:'<path d="M12 5v14M5 12h14"/>', check:'<path d="M5 12l5 5 9-10"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+ shield:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>',
+ ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>'
+};
+const ic=(n,c='')=>`<svg class="i ${c}" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+const CL={
+ ars:{n:'Arsenal FC',s:'ARS',c:'#d4202a',co:'Angleterre',lg:'Premier League',st:'Emirates Stadium',city:'Londres',fd:'1886'},
+ om:{n:'Olympique de Marseille',s:'OM',c:'#1f9fd6',co:'France',lg:'Ligue 1',st:'Stade Vélodrome',city:'Marseille',fd:'1899'},
+ rma:{n:'Real Madrid CF',s:'RMA',c:'#5b4fc4',co:'Espagne',lg:'LaLiga',st:'Santiago Bernabéu',city:'Madrid',fd:'1902'},
+ liv:{n:'Liverpool FC',s:'LIV',c:'#c8102e',co:'Angleterre',lg:'Premier League',st:'Anfield',city:'Liverpool',fd:'1892'},
+ bar:{n:'FC Barcelona',s:'FCB',c:'#a50044',co:'Espagne',lg:'LaLiga',st:'Camp Nou',city:'Barcelone',fd:'1899'},
+ mci:{n:'Manchester City',s:'MCI',c:'#5aa6d8',co:'Angleterre',lg:'Premier League',st:'Etihad Stadium',city:'Manchester',fd:'1880'},
+ juv:{n:'Juventus FC',s:'JUV',c:'#4a4a4a',co:'Italie',lg:'Serie A',st:'Allianz Stadium',city:'Turin',fd:'1897'},
+ bay:{n:'Bayern München',s:'BAY',c:'#d0132f',co:'Allemagne',lg:'Bundesliga',st:'Allianz Arena',city:'Munich',fd:'1900'}
+};
+const crest=(k,z=40)=>`<span class="crest" style="width:${z}px;height:${z}px;background:${CL[k].c};font-size:${Math.round(z*.36)}px">${CL[k].s}</span>`;
+const SQ=[
+ ['Gardiens',[['22','David Raya','ESP','27'],['1','Kepa Arrizabalaga','ESP','31']]],
+ ['Défenseurs',[['2','William Saliba','FRA','25'],['6','Gabriel Magalhães','BRA','28'],['4','Ben White','ENG','28'],['12','Jurriën Timber','NED','24']]],
+ ['Milieux',[['41','Declan Rice','ENG','26'],['8','Martin Ødegaard','NOR','27'],['36','Martín Zubimendi','ESP','27']]],
+ ['Attaquants',[['7','Bukayo Saka','ENG','24'],['11','Gabriel Martinelli','BRA','24'],['14','Viktor Gyökeres','SWE','27'],['29','Kai Havertz','GER','26']]]
+];
+const TABLE=[['ars','Arsenal FC',85,'VVNVV'],['mci','Manchester City',78,'VNVVD'],['liv','Liverpool FC',73,'VDVNV'],['om','Aston Villa',66,'NVDVV'],['bar','Newcastle United',62,'DVVNN'],['juv','Chelsea FC',60,'VNDVD'],['bay','Tottenham',55,'DDVNV'],['rma','Brighton',52,'NVDDV']];
+const SAISONS=['2026/27','2025/26','2024/25','2023/24','2022/23','2021/22','2020/21','2019/20'];
+const state={mode:'mob',theme:'dark',tab:'home',stack:[],season:'2025/26',clubTab:'squad',playerTab:'path',seg:'clubs',follow:{ars:true,pl:true,saka:true},md:30,deskPage:'home',deskTab:'squad',sel:null};
+const $=s=>document.querySelector(s);
+const ini=n=>n.split(' ').map(w=>w[0]).slice(0,2).join('');
+
+/* ---------- MOBILE ---------- */
+function rowClub(k,sub){return `<button class="row" data-go="club:${k}">${crest(k,36)}<span class="m"><b>${CL[k].n}</b><span>${sub||CL[k].co+' · '+CL[k].lg}</span></span>${ic('right','chev')}</button>`}
+function pageHome(){
+ const fol=Object.keys(state.follow).filter(x=>state.follow[x]);
+ return `<div class="bar" data-bar><span class="t">Accueil</span><span style="flex:1"></span><button class="ib" aria-label="Thème" data-act="theme">${ic('sun')}</button></div>
+ <h1 class="large">Accueil</h1>
+ <button class="searchpill" data-act="search">${ic('search')}<span>Joueur, club, compétition…</span></button>
+ <div class="sec"><h2>Mes suivis</h2><a data-tab="follow">Tout voir</a></div>
+ <div class="hrow">
+  ${state.follow.ars?`<button class="follow" data-go="club:ars">${crest('ars',44)}<b>Arsenal FC</b><span>Champion 2025/26 · 85 pts</span></button>`:''}
+  ${state.follow.saka?`<button class="follow" data-go="player:saka"><span class="crest" style="width:44px;height:44px;background:var(--s3);font-size:16px;color:var(--fg)">BS</span><b>Bukayo Saka</b><span>Arsenal · attaquant</span></button>`:''}
+  ${state.follow.pl?`<button class="follow" data-tab="comp"><span class="crest" style="width:44px;height:44px;background:var(--accent-soft);color:var(--accent)">${ic('trophy')}</span><b>Premier League</b><span>Journée 30 · classement</span></button>`:''}
+  ${!fol.length?`<div class="tile" style="width:100%"><span>Épinglez un club, un joueur ou une compétition : ils apparaîtront ici, sur cet appareil.</span></div>`:''}
+ </div>
+ <div class="sec"><h2>Compétitions</h2><a data-tab="comp">Toutes</a></div>
+ <div class="hrow"><button class="chip" data-tab="comp">Premier League</button><button class="chip" data-tab="comp">Ligue des champions</button><button class="chip" data-tab="comp">LaLiga</button><button class="chip" data-tab="comp">Bundesliga</button><button class="chip" data-tab="comp">Serie A</button><button class="chip" data-tab="comp">Ligue 1</button></div>
+ <div class="sec"><h2>Clubs à la une</h2><a data-tab="explore">Tous les clubs</a></div>
+ <div class="list">${['ars','mci','liv','rma','bar'].map(k=>rowClub(k,'2025/26')).join('')}</div>
+ <div class="stat" style="padding-top:18px"><div><b class="num">79 110</b>joueurs</div><div><b class="num">44 970</b>clubs</div><div><b class="num">27</b>saisons</div><div><b>116</b>pays</div></div>`}
+function pageExplore(){
+ const cl=['ars','mci','liv','rma','bar','juv','bay','om'];
+ return `<div class="bar" data-bar><span class="t">Explorer</span><span style="flex:1"></span><button class="ib" aria-label="Filtres" data-act="filters">${ic('sliders')}</button></div>
+ <h1 class="large">Explorer</h1>
+ <div class="tabs" role="tablist" style="margin-bottom:12px">${[['clubs','Clubs'],['players','Joueurs'],['countries','Pays']].map(([k,l])=>`<button role="tab" aria-selected="${state.seg===k}" data-seg="${k}">${l}</button>`).join('')}</div>
+ <div class="hrow" style="margin-bottom:12px"><button class="chip on">Tous</button><button class="chip">Angleterre</button><button class="chip">Espagne</button><button class="chip">France</button><button class="chip">Italie</button></div>
+ ${state.seg==='clubs'?`<div class="list">${cl.map(k=>rowClub(k)).join('')}</div>`:
+ state.seg==='players'?`<div class="list">${SQ.flatMap(g=>g[1]).slice(0,9).map(p=>`<button class="row" data-go="player:saka"><span class="crest" style="width:36px;height:36px;background:var(--s3);color:var(--fg);font-size:13px">${ini(p[1])}</span><span class="m"><b>${p[1]}</b><span>Arsenal FC · ${p[2]} · ${p[3]} ans</span></span>${ic('right','chev')}</button>`).join('')}</div>`:
+ `<div class="list">${[['Angleterre','ENG',92],['Espagne','ESP',80],['Italie','ITA',78],['Allemagne','GER',66],['France','FRA',61]].map(c=>`<button class="row"><span class="crest" style="width:36px;height:36px;background:var(--s3);color:var(--fg);font-size:12px">${c[1]}</span><span class="m"><b>${c[0]}</b><span>${c[2]} clubs avec effectifs</span></span>${ic('right','chev')}</button>`).join('')}</div>`}`}
+function pageClub(k){
+ const c=CL[k];
+ let body='';
+ if(state.clubTab==='squad'){
+  body=`<div style="display:flex;gap:8px;padding:0 16px 4px;align-items:center"><button class="chip" data-act="season" aria-haspopup="dialog">${state.season} ${ic('right','')}</button><span style="color:var(--muted);font-size:13px">26 joueurs · âge moyen 26,3</span></div>`+
+  SQ.map(g=>`<div class="grp"><span>${g[0]}</span><span>${g[1].length}</span></div><div class="list">${g[1].map(p=>`<button class="row" data-go="player:saka"><span class="num" style="width:26px;color:var(--muted);font-weight:600">${p[0]}</span><span class="m"><b>${p[1]}</b><span>${p[2]} · ${p[3]} ans</span></span>${ic('right','chev')}</button>`).join('')}</div>`).join('');
+ } else if(state.clubTab==='over'){
+  body=`<div class="tiles"><div class="tile"><b class="num">13</b><span>titres de champion</span></div><div class="tile"><b class="num">${c.fd}</b><span>fondation</span></div></div>
+  <div class="grp"><span>Fiche</span></div><div class="list">${[['Stade',c.st],['Ville',c.city],['Championnat',c.lg],['Pays',c.co]].map(r=>`<div class="row"><span class="m"><span>${r[0]}</span><b>${r[1]}</b></span></div>`).join('')}</div>
+  <div class="grp"><span>Entraîneurs</span></div><div class="list"><div class="row"><span class="m"><b>Mikel Arteta</b><span>2019 – en cours</span></span></div></div>`;
+ } else {
+  body=`<div class="tiles"><div class="tile"><b class="num">13</b><span>championnats</span></div><div class="tile"><b class="num">14</b><span>coupes nationales</span></div></div><div class="grp"><span>Championnats</span><span>13</span></div><div class="list"><div class="row"><span class="m"><b>Premier League</b><span>2025/26 · 2003/04 · 2001/02 · 1997/98 …</span></span></div><div class="row"><span class="m"><b>Division 1 (ancienne)</b><span>1990/91 · 1988/89 · 1970/71 …</span></span></div></div>`;
+ }
+ return `<div class="bar" data-bar><button class="ib" aria-label="Retour" data-act="back">${ic('back')}</button><span class="t">${c.n}</span><button class="ib" aria-label="Suivre" data-act="follow:${k}">${ic('bookmark')}</button></div>
+ <div class="hero" style="--tint:${c.c}">${crest(k,72)}<h1>${c.n}</h1><p>${c.co} · ${c.lg}</p>
+ <div style="display:flex;gap:8px;margin-top:14px"><button class="btn ${state.follow[k]?'on':'p'}" data-act="follow:${k}">${state.follow[k]?ic('check')+' Suivi':ic('plus')+' Suivre'}</button><button class="btn g">${ic('ext')} Wikipédia</button></div></div>
+ <div class="tabs" role="tablist" style="margin-bottom:12px">${[['over','Aperçu'],['squad','Effectif'],['hon','Palmarès']].map(([t,l])=>`<button role="tab" aria-selected="${state.clubTab===t}" data-ctab="${t}">${l}</button>`).join('')}</div>${body}`}
+function pagePlayer(){
+ let body='';
+ if(state.playerTab==='path'){
+  const sp=[['Hale End (jeunes)',2007,2018,0],['Arsenal FC',2018,2027,0],['Arsenal U23',2018,2020,1]];
+  const min=2007,span=20;
+  body=`<div class="grp"><span>Carrière senior</span><span>tableau · <b style="color:var(--accent)">frise</b></span></div><div class="bars">${sp.map(s=>`<div class="bar2"><span class="lab">${s[0]}</span><span class="tr"><span class="fl ${s[3]?'loan':''}" style="left:${(s[1]-min)/span*100}%;width:${(s[2]-s[1])/span*100}%"></span></span></div>`).join('')}</div><div class="axis"><span>2007</span><span>2015</span><span>2023</span><span>2027</span></div>
+  <div class="grp"><span>Équipe nationale</span></div><div class="list"><div class="row"><span class="crest" style="width:30px;height:30px;background:#c8102e;font-size:11px">ENG</span><span class="m"><b>Angleterre</b><span>2021 – en cours</span></span><span class="r num"><b style="color:var(--fg)">48</b> sél. · 14 buts</span></div></div>`;
+ } else if(state.playerTab==='stats'){
+  body=`<div class="tiles"><div class="tile"><b class="num">0,31</b><span>buts / match</span></div><div class="tile"><b class="num">112</b><span>passes décisives</span></div></div><div class="grp"><span>Par saison</span><span>matchs · buts</span></div><div class="list">${[['2025/26','Arsenal','38','14'],['2024/25','Arsenal','31','9'],['2023/24','Arsenal','49','20']].map(r=>`<div class="row"><span class="m"><b>${r[0]}</b><span>${r[1]}</span></span><span class="r num"><b style="color:var(--fg)">${r[2]}</b> · <b style="color:var(--accent)">${r[3]}</b></span></div>`).join('')}</div>`;
+ } else {
+  body=`<div class="grp"><span>Titres en équipe nationale</span></div><div class="list"><div class="row"><span class="m"><b>Euro</b><span>Finaliste 2021 · 2024 (illustratif)</span></span></div></div><div class="grp"><span>Titres avec les clubs</span></div><div class="list"><div class="row"><span class="m"><b>Community Shield</b><span>2020 · 2023 (illustratif)</span></span></div></div><p style="padding:10px 16px;font-size:12px;color:var(--muted)">Approximation d'après l'effectif listé la saison du titre.</p>`;
+ }
+ return `<div class="bar" data-bar><button class="ib" aria-label="Retour" data-act="back">${ic('back')}</button><span class="t">Bukayo Saka</span><button class="ib" aria-label="Suivre" data-act="follow:saka">${ic('bookmark')}</button></div>
+ <div style="display:flex;gap:14px;padding:4px 16px 14px"><span class="crest" style="width:92px;height:112px;border-radius:16px;background:var(--s3);color:var(--fg);font-size:26px">BS</span><div style="flex:1;min-width:0"><h1 class="disp" style="font-size:30px;line-height:1">Bukayo Saka</h1><p style="color:var(--muted);font-size:14px;margin-top:6px">Angleterre · né le 5 septembre 2001 · Londres · 1,78 m</p><div style="display:flex;gap:8px;margin-top:10px"><button class="btn ${state.follow.saka?'on':'p'}" data-act="follow:saka" style="height:40px">${state.follow.saka?ic('check')+' Suivi':ic('plus')+' Suivre'}</button></div></div></div>
+ <div class="tiles" style="margin-bottom:12px"><div class="tile"><b class="num">1 217</b><span>matchs en carrière</span></div><div class="tile"><b class="num">948</b><span>buts en carrière</span></div></div>
+ <div class="tabs" role="tablist" style="margin-bottom:6px">${[['path','Parcours'],['stats','Stats'],['hon','Palmarès']].map(([t,l])=>`<button role="tab" aria-selected="${state.playerTab===t}" data-ptab="${t}">${l}</button>`).join('')}</div>${body}`}
+function compRows(){return TABLE.map((t,i)=>`<tr class="${i===0?'me':''}"><td class="num">${i+1}</td><td><span class="zone" style="background:${i<4?'var(--accent)':i<5?'var(--info)':'transparent'}"></span><b style="font-weight:600">${t[1]}</b></td><td class="num">${state.md}</td><td>${t[3].split('').map(x=>`<span class="pill ${x}">${x}</span>`).join(' ')}</td><td class="pts num">${t[2]-(38-state.md)}</td></tr>`).join('')}
+function pageComp(){
+ const md=state.md;
+ return `<div class="bar" data-bar><span class="t">Premier League</span><span style="flex:1"></span><button class="ib" aria-label="Choisir la saison" data-act="season">${ic('sliders')}</button></div>
+ <h1 class="large">Premier League</h1>
+ <div class="hrow" style="margin-bottom:12px"><button class="chip on">Classement</button><button class="chip">Résultats</button><button class="chip">Palmarès</button><button class="chip">Buteurs</button></div>
+ <div class="slider"><button class="ib" aria-label="Journée précédente" data-md="-1">${ic('back')}</button><div class="v">Journée ${md}<small>après la journée ${md}</small></div><button class="ib" aria-label="Journée suivante" data-md="1">${ic('right')}</button></div>
+ <div class="list"><table class="tbl"><thead><tr><th></th><th>Équipe</th><th>J</th><th>Forme</th><th>Pts</th></tr></thead><tbody>${compRows()}</tbody></table></div>
+ <p style="padding:10px 16px;font-size:12px;color:var(--muted)">Calculé d'après les scores (3 points la victoire) ; le départage officiel peut différer. Source : OpenFootball (CC0).</p>`}
+function pageFollow(){
+ const items=[['ars','club','Arsenal FC'],['saka','player','Bukayo Saka'],['pl','comp','Premier League']];
+ return `<div class="bar" data-bar><span class="t">Suivis</span></div><h1 class="large">Suivis</h1>
+ <div class="list">${items.map(([k,t,n])=>`<div class="row">${t==='club'?crest(k,36):`<span class="crest" style="width:36px;height:36px;background:var(--s3);color:var(--fg);font-size:12px">${t==='comp'?'PL':'BS'}</span>`}<span class="m"><b>${n}</b><span>${state.follow[k]?'Suivi sur cet appareil':'Non suivi'}</span></span><button class="btn ${state.follow[k]?'on':'g'}" data-act="follow:${k}" style="height:38px">${state.follow[k]?'Suivi':'Suivre'}</button></div>`).join('')}</div>
+ <div class="grp"><span>Réglages</span></div>
+ <div class="list"><div class="row"><span class="m"><b>Thème</b><span>${state.theme==='dark'?'Sombre':'Clair'}</span></span><button class="btn g" data-act="theme" style="height:38px">Changer</button></div><div class="row"><span class="m"><b>Langue</b><span>Français</span></span><button class="btn g" style="height:38px">FR / EN</button></div><div class="row"><span class="m"><b>Couverture des données</b><span>Quels clubs ont un effectif</span></span>${ic('right','chev')}</div><div class="row"><span class="m"><b>À propos et licences</b><span>Wikipedia, Wikidata, OpenFootball</span></span>${ic('right','chev')}</div></div>
+ <p style="padding:10px 16px;font-size:12px;color:var(--muted)">Les suivis restent sur cet appareil : pas de compte, aucune donnée envoyée.</p>`}
+function renderPhone(dir){
+ const top=state.stack[state.stack.length-1];
+ let html;
+ if(top){const [t,k]=top.split(':'); html=t==='club'?pageClub(k):pagePlayer();}
+ else html={home:pageHome,explore:pageExplore,comp:pageComp,follow:pageFollow}[state.tab]();
+ $('#view').innerHTML=`<div class="page ${dir||''}" id="pg">${html}</div>`;
+ const pg=$('#pg'); pg.addEventListener('scroll',()=>{const b=pg.querySelector('[data-bar]'); if(b) b.classList.toggle('scrolled',pg.scrollTop>40)});
+ document.querySelectorAll('.tab').forEach(b=>{const on=!top&&b.dataset.tab===state.tab; if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current')});
+}
+function keep(fn){const y=$('#pg')?$('#pg').scrollTop:0;fn();if($('#pg'))$('#pg').scrollTop=y}
+function mountPhone(){
+ $('#stage').innerHTML=`<div class="phone" id="phone"><div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div><div class="view" id="view"></div>
+ <nav class="tabbar" aria-label="Navigation principale">
+  <button class="tab" data-tab="home">${ic('home')}Accueil</button><button class="tab" data-tab="explore">${ic('compass')}Explorer</button>
+  <button class="tab mid" data-act="search" aria-label="Recherche"><span class="puck">${ic('search')}</span></button>
+  <button class="tab" data-tab="comp">${ic('trophy')}Compét.</button><button class="tab" data-tab="follow">${ic('bookmark')}Suivis</button></nav>
+ <div class="scrim" id="scrim"></div>
+ <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Saison"><div class="grab"></div><h3>Saison</h3><div class="opts">${SAISONS.map(s=>`<button class="chip" data-season="${s}" aria-pressed="${s===state.season}">${s}</button>`).join('')}</div></div>
+ <div class="sheet" id="sheet2" role="dialog" aria-modal="true" aria-label="Filtres"><div class="grab"></div><h3>Filtres</h3><div class="grp" style="padding:4px 0">Pays</div><div class="opts"><button class="chip on">Tous</button><button class="chip">Angleterre</button><button class="chip">Espagne</button><button class="chip">France</button></div><div class="grp" style="padding:16px 0 4px">Niveau</div><div class="opts"><button class="chip on">1re division</button><button class="chip">2e division</button></div><div style="display:flex;gap:8px;margin-top:20px"><button class="btn g" style="flex:1;justify-content:center" data-act="close">Réinitialiser</button><button class="btn p" style="flex:1;justify-content:center" data-act="close">Voir 42 clubs</button></div></div>
+ <div class="search" id="search"><div class="field"><input id="q" placeholder="Joueur, club, compétition…" aria-label="Rechercher"><button class="btn g" data-act="close">Annuler</button></div><div class="body">
+  <div class="grp"><span>Récents</span><a style="color:var(--accent)">Effacer</a></div><div class="list"><button class="row" data-go="player:saka">${ic('search','chev')}<span class="m"><b>Bukayo Saka</b></span></button><button class="row" data-go="club:om">${ic('search','chev')}<span class="m"><b>Olympique de Marseille</b></span></button></div>
+  <div class="grp"><span>Suggestions</span></div><div class="list">${['ars','liv','rma'].map(k=>rowClub(k)).join('')}</div></div></div>
+ <div class="toast" id="toast"></div></div>`;
+ renderPhone('fade');
+ $('#phone').addEventListener('click',e=>{
+  const t=e.target.closest('[data-tab],[data-go],[data-act],[data-ctab],[data-ptab],[data-seg],[data-season],[data-md]'); if(!t) return;
+  const d=t.dataset;
+  if(d.tab){state.stack=[];state.tab=d.tab;closeAll();renderPhone('fade');}
+  else if(d.go){closeAll();state.stack.push(d.go);state.clubTab='squad';state.playerTab='path';renderPhone('in-right');}
+  else if(d.ctab){state.clubTab=d.ctab;renderPhone('fade');}
+  else if(d.ptab){state.playerTab=d.ptab;renderPhone('fade');}
+  else if(d.seg){state.seg=d.seg;renderPhone('fade');}
+  else if(d.md){state.md=Math.max(1,Math.min(38,state.md+ +d.md));keep(()=>renderPhone());}
+  else if(d.season){state.season=d.season;closeAll();renderPhone('fade');toast('Saison '+d.season);}
+  else if(d.act==='back'){state.stack.pop();renderPhone('in-left');}
+  else if(d.act==='theme'){setTheme(state.theme==='dark'?'light':'dark');}
+  else if(d.act==='search'){$('#search').classList.add('on');setTimeout(()=>$('#q').focus(),50);}
+  else if(d.act==='season'){$('#scrim').classList.add('on');$('#sheet').classList.add('on');}
+  else if(d.act==='filters'){$('#scrim').classList.add('on');$('#sheet2').classList.add('on');}
+  else if(d.act==='close'){closeAll();}
+  else if(d.act&&d.act.startsWith('follow:')){const k=d.act.split(':')[1];state.follow[k]=!state.follow[k];keep(()=>renderPhone());toast(state.follow[k]?'Ajouté aux suivis':'Retiré des suivis');}
+ });
+ $('#scrim').addEventListener('click',closeAll);
+}
+function closeAll(){['#scrim','#sheet','#sheet2','#search'].forEach(s=>$(s)&&$(s).classList.remove('on'))}
+function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),1800)}
+
+/* ---------- BUREAU ---------- */
+function deskSide(){
+ const n=(k,i,l)=>`<button class="nav" data-dp="${k}" ${state.deskPage===k?'aria-current="page"':''}>${ic(i)}${l}</button>`;
+ return `<aside class="side"><div class="brand"><i>${ic('shield')}</i>OpenFootballBase</div>
+ <button class="sidesearch" aria-label="Rechercher">${ic('search')}Rechercher<kbd>/</kbd></button>
+ ${n('home','home','Accueil')}${n('explore','compass','Explorer')}${n('comp','trophy','Compétitions')}
+ <div class="sidegrp">Mes suivis</div>
+ <button class="nav" data-dp="club">${crest('ars',24)}Arsenal FC</button>
+ <button class="nav" data-dp="club"><span class="crest" style="width:24px;height:24px;background:var(--s3);color:var(--fg);font-size:10px">BS</span>Bukayo Saka</button>
+ <button class="nav" data-dp="comp"><span class="crest" style="width:24px;height:24px;background:var(--accent-soft);color:var(--accent);font-size:10px">PL</span>Premier League</button>
+ <div style="flex:1"></div>
+ <button class="nav" data-act="theme">${ic('sun')}Thème</button><button class="nav">${ic('globe')}Français</button></aside>`}
+function deskHome(){
+ return `<div class="in"><div style="padding:44px 36px 8px"><h1 class="disp" style="font-size:54px;line-height:1">La base ouverte du football</h1><p style="color:var(--muted);margin:10px 0 22px;font-size:17px">L'historique du football en données libres : effectifs et carrières sourcés sur Wikipedia et Wikidata.</p><div class="bigsearch">${ic('search')}Joueur, club, compétition, pays…<kbd style="margin-left:auto;border:1px solid var(--line);border-radius:6px;padding:1px 8px;font-size:13px">/</kbd></div></div>
+ <div class="hgrid"><div><h2>Mes suivis</h2><div class="fgrid">
+ <button class="fcard" data-dp="club">${crest('ars',44)}<span><b>Arsenal FC</b><span>Champion 2025/26</span></span></button>
+ <button class="fcard" data-dp="club"><span class="crest" style="width:44px;height:44px;background:var(--s3);color:var(--fg)">BS</span><span><b>Bukayo Saka</b><span>Attaquant</span></span></button>
+ <button class="fcard" data-dp="comp"><span class="crest" style="width:44px;height:44px;background:var(--accent-soft);color:var(--accent)">PL</span><span><b>Premier League</b><span>Journée 30</span></span></button></div>
+ <h2>Clubs à la une</h2><div class="fgrid">${['mci','liv','rma','bar','juv','bay'].map(k=>`<button class="fcard" data-dp="club">${crest(k,44)}<span><b>${CL[k].n}</b><span>${CL[k].lg}</span></span></button>`).join('')}</div></div>
+ <div><h2>Compétitions</h2><div class="card">${['Premier League','Ligue des champions','LaLiga','Bundesliga','Serie A','Ligue 1'].map(c=>`<button class="row" data-dp="comp"><span class="crest" style="width:34px;height:34px;background:var(--s3);color:var(--fg);font-size:11px">${c.slice(0,2).toUpperCase()}</span><span class="m"><b>${c}</b></span>${ic('right','chev')}</button>`).join('')}</div>
+ <div class="stat" style="padding:20px 0 0"><div><b class="num">79 110</b>joueurs</div><div><b class="num">44 970</b>clubs</div><div><b class="num">27</b>saisons</div></div></div></div></div>`}
+function deskClub(){
+ const c=CL.ars, sel=state.sel;
+ const rows=SQ.flatMap(g=>g[1].map(p=>({g:g[0],p})));
+ let center;
+ if(state.deskTab==='squad'){
+  center=`<div class="card"><div style="display:flex;align-items:center;gap:12px;padding:14px 16px 6px"><h3 style="padding:0;flex:1">Effectif ${state.season}</h3><button class="chip">${state.season}</button><button class="chip on">Tous les postes</button></div><table class="dt"><thead><tr><th>N°</th><th>Joueur</th><th>Poste</th><th>Nat.</th><th style="text-align:right">Âge</th></tr></thead><tbody>${rows.map(r=>`<tr class="pr ${sel===r.p[1]?'sel':''}" data-sel="${r.p[1]}" tabindex="0"><td class="n num">${r.p[0]}</td><td><b style="font-weight:600">${r.p[1]}</b></td><td class="pos">${r.g.slice(0,3)}.</td><td style="color:var(--muted)">${r.p[2]}</td><td class="num" style="text-align:right">${r.p[3]}</td></tr>`).join('')}</tbody></table></div>`;
+ } else center=`<div class="card" style="padding:18px 16px;color:var(--muted)">Aperçu et palmarès : voir la version smartphone (mêmes contenus, en pleine largeur sur bureau).</div>`;
+ const p=sel&&rows.find(r=>r.p[1]===sel);
+ const aside=p?`<div class="card"><div style="display:flex;gap:12px;padding:16px;align-items:center"><span class="crest" style="width:64px;height:76px;border-radius:14px;background:var(--s3);color:var(--fg);font-size:22px">${ini(sel)}</span><div style="flex:1"><h3 style="padding:0;font-size:24px">${sel}</h3><span style="color:var(--muted);font-size:14px">${p.g} · ${p.p[2]} · ${p.p[3]} ans</span></div><button class="ib" aria-label="Fermer" data-sel="">${ic('x')}</button></div>
+  <div class="tiles" style="padding:0 16px 14px"><div class="tile"><b class="num">1 217</b><span>matchs</span></div><div class="tile"><b class="num">948</b><span>buts</span></div></div>
+  <div class="facts" style="border-top:1px solid var(--line);padding-top:12px"><div><span>2018 – en cours</span><b>Arsenal FC</b></div><div><span>2007 – 2018</span><b>Hale End</b></div></div>
+  <div style="padding:0 16px 16px;display:flex;gap:8px"><button class="btn p" style="flex:1;justify-content:center">Fiche complète</button><button class="btn g" aria-label="Suivre">${ic('bookmark')}</button></div></div>`:
+ `<div class="card"><h3>Fiche du club</h3><div class="facts">${[['Stade',c.st],['Ville',c.city],['Fondation',c.fd],['Championnat',c.lg]].map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div></div><div class="card"><h3>Entraîneur</h3><div class="facts"><div><span>2019 – en cours</span><b>Mikel Arteta</b></div></div></div><p style="color:var(--muted);font-size:13px;padding:0 4px">Sélectionnez un joueur : sa fiche s'ouvre ici, sans quitter la liste.</p>`;
+ return `<div class="in"><div class="dcrumb">Explorer › Angleterre › Premier League</div><div class="dhero" style="--tint:${c.c}"><div class="id">${crest('ars',84)}<div><h1>${c.n}</h1><div class="meta">${c.co} · ${c.lg} · ${c.city}</div></div><div class="acts"><button class="btn on">${ic('check')} Suivi</button><button class="btn g">${ic('ext')} Wikipédia</button></div></div></div>
+ <div class="dtabs" role="tablist">${[['over','Aperçu'],['squad','Effectif'],['hon','Palmarès']].map(([t,l])=>`<button role="tab" aria-selected="${state.deskTab===t}" data-dt="${t}">${l}</button>`).join('')}</div>
+ <div class="dgrid"><div>${center}</div><aside class="aside">${aside}</aside></div></div>`}
+function deskComp(){
+ const md=state.md;
+ return `<div class="in"><div class="dcrumb">Compétitions › Angleterre</div><div style="padding:14px 36px 6px;display:flex;align-items:center;gap:16px"><h1 class="disp" style="font-size:46px">Premier League</h1><span style="flex:1"></span><button class="chip">${state.season}</button></div>
+ <div class="dtabs" role="tablist">${['Classement','Résultats','Palmarès','Buteurs'].map((l,i)=>`<button role="tab" aria-selected="${i===0}">${l}</button>`).join('')}</div>
+ <div class="dgrid" style="grid-template-columns:1fr 360px"><div class="card"><div class="slider" style="margin:14px 16px 6px"><button class="ib" data-md="-1" aria-label="Journée précédente">${ic('back')}</button><div class="v">Journée ${md}<small>après la journée ${md} sur 38</small></div><button class="ib" data-md="1" aria-label="Journée suivante">${ic('right')}</button></div>
+ <table class="tbl" style="font-size:15px"><thead><tr><th></th><th>Équipe</th><th>J</th><th>Forme</th><th>Pts</th></tr></thead><tbody>${TABLE.map((t,i)=>`<tr class="${i===0?'me':''}"><td class="num">${i+1}</td><td><span class="zone" style="background:${i<4?'var(--accent)':i<5?'var(--info)':'transparent'}"></span><span style="display:inline-flex;gap:10px;align-items:center;vertical-align:middle">${crest(t[0],24)}<b style="font-weight:600">${t[1]}</b></span></td><td class="num">${md}</td><td>${t[3].split('').map(x=>`<span class="pill ${x}">${x}</span>`).join(' ')}</td><td class="pts num">${t[2]-(38-md)}</td></tr>`).join('')}</tbody></table></div>
+ <aside class="aside"><div class="card"><h3>Journée ${md}</h3>${[['Arsenal','2-1','Brighton'],['Liverpool','1-1','Aston Villa'],['Man. City','3-0','Chelsea'],['Newcastle','0-2','Tottenham']].map(m=>`<div class="row" style="justify-content:space-between"><b style="font-weight:600;flex:1;text-align:right">${m[0]}</b><span class="num" style="background:var(--s2);border-radius:8px;padding:2px 10px;font-weight:700">${m[1]}</span><b style="font-weight:600;flex:1">${m[2]}</b></div>`).join('')}</div>
+ <p style="font-size:12px;color:var(--muted)">Calculé d'après les scores ; le départage officiel peut différer. Source : OpenFootball (CC0).</p></aside></div></div>`}
+function renderDesk(){
+ const pg={home:deskHome,club:deskClub,comp:deskComp,explore:deskHome}[state.deskPage]();
+ $('#desk').innerHTML=deskSide()+`<section class="main" id="dmain">${pg}</section>`;
+}
+function mountDesk(){
+ $('#stage').innerHTML=`<div class="deskwrap" id="dw"><div class="desk" id="desk"></div></div>`;
+ renderDesk(); fit();
+ $('#desk').addEventListener('click',e=>{
+  const t=e.target.closest('[data-dp],[data-sel],[data-dt],[data-md],[data-act]'); if(!t) return; const d=t.dataset;
+  const keepD=fn=>{const y=$('#dmain').scrollTop;fn();$('#dmain').scrollTop=y};
+  if(d.dp!==undefined){state.deskPage=d.dp;state.sel=null;renderDesk();}
+  else if(d.sel!==undefined){state.sel=d.sel||null;keepD(renderDesk);}
+  else if(d.dt){state.deskTab=d.dt;renderDesk();}
+  else if(d.md){state.md=Math.max(1,Math.min(38,state.md+ +d.md));keepD(renderDesk);}
+  else if(d.act==='theme'){setTheme(state.theme==='dark'?'light':'dark');}
+ });
+ $('#desk').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.sel){state.sel=e.target.dataset.sel;renderDesk();}});
+}
+function fit(){const d=$('#desk');if(!d)return;const w=document.documentElement.clientWidth-24;const s=Math.min(1,w/1240);d.style.transform=`scale(${s})`;$('#dw').style.height=(780*s)+'px';$('#dw').style.width=(1240*s)+'px'}
+addEventListener('resize',fit);
+
+/* ---------- commun ---------- */
+function setTheme(t){state.theme=t;document.documentElement.dataset.theme=t;$('#t-dark').setAttribute('aria-selected',t==='dark');$('#t-light').setAttribute('aria-selected',t==='light');
+ if(state.mode==='mob')keep(()=>renderPhone());else renderDesk()}
+function setMode(m){state.mode=m;$('#m-mob').setAttribute('aria-selected',m==='mob');$('#m-desk').setAttribute('aria-selected',m==='desk');
+ $('#legend').textContent=m==='mob'?'Smartphone : essayez la barre du bas, la recherche (bouton central), un club puis un joueur, la feuille de saison sur l’effectif, les filtres d’Explorer, et « Suivre ».':'Bureau : barre latérale, deux colonnes, et maître-détail sur l’effectif (cliquez un joueur : sa fiche s’ouvre à droite sans quitter la liste).';
+ if(m==='mob')mountPhone();else mountDesk()}
+$('#m-mob').onclick=()=>setMode('mob');$('#m-desk').onclick=()=>setMode('desk');
+$('#t-dark').onclick=()=>setTheme('dark');$('#t-light').onclick=()=>setTheme('light');
+setMode('mob');
+</script>
+</body>
+</html>

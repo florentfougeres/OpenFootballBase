@@ -1,4 +1,5 @@
 <script lang="ts">
+  let { embedded = false }: { embedded?: boolean } = $props();       // dans la page Explorer : sans fil d'Ariane ni grand titre
   import { downloadCsv } from "../lib/download";
   import { app, countryOf, href, enc, route, seasonSlug, t, type Row } from "../lib/app.svelte";
   import { q } from "../lib/db";
@@ -120,9 +121,11 @@
   const COLS = "sm:grid-cols-[2.25rem_minmax(0,1.5fr)_3rem_minmax(0,1.2fr)_3.5rem] lg:grid-cols-[2.25rem_minmax(0,1.5fr)_3rem_minmax(0,1.2fr)_minmax(0,0.9fr)_3.5rem]";
 </script>
 
+{#if !embedded}
 <Crumbs trail={[{ label: t("players"), to: href("players") }]} />
 <h1 class="text-4xl font-extrabold leading-none tracking-tight sm:text-5xl">{t("players")}</h1>
 <p class="mt-2 max-w-2xl text-muted">{t("plLead")}</p>
+{/if}
 
 <!-- Barre d'outils : recherche, saison, nationalité ; poste en boutons ; âge ; filtres actifs en pastilles -->
 <!-- Sur téléphone : recherche pleine largeur, saison et nationalité côte à côte, poste sur une ligne (sans compteurs), âge et « hors de leur pays » derrière « Plus de filtres ». -->

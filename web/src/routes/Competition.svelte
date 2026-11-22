@@ -5,6 +5,7 @@
   import { YEAR_ONLY, clubName, clubOf, compName } from "../lib/format";
   import Crumbs from "../components/Crumbs.svelte";
   import Flag from "../components/Flag.svelte";
+  import FollowButton from "../components/FollowButton.svelte";
   import Logo from "../components/Logo.svelte";
   import Spinner from "../components/Spinner.svelte";
   import Trophy from "../components/Trophy.svelte";
@@ -76,6 +77,7 @@
       <h1 class="text-3xl font-extrabold leading-none tracking-tight text-balance sm:text-4xl lg:text-5xl">{compName(code)}</h1>
       <p class="mt-2 flex items-center gap-2 text-sm text-muted">{#if !isArea(comp.country_code)}<Flag code={country.flag} label={country.name} size={16} />{/if}<span>{country.name}{#if !isArea(comp.country_code)} · {t("divisionN")} {comp.level}{/if}</span></p>
     </div>
+    <div class="ml-auto shrink-0 self-start"><FollowButton item={{ kind: "comp", id: code, label: compName(code), sub: country.name, path: `competition/${enc(code)}` }} compact /></div>
   </header>
 
   {#if views.length > 1}

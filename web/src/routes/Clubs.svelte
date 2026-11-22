@@ -1,4 +1,5 @@
 <script lang="ts">
+  let { embedded = false }: { embedded?: boolean } = $props();       // dans la page Explorer : sans fil d'Ariane ni grand titre
   import { app, countryOf, href, enc, t } from "../lib/app.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
@@ -31,9 +32,11 @@
   });
 </script>
 
+{#if !embedded}
 <Crumbs trail={[{ label: t("clubs"), to: href("clubs") }]} />
 <h1 class="text-4xl font-extrabold leading-none tracking-tight sm:text-5xl">{t("allClubs")}</h1>
 <p class="mt-2 max-w-2xl text-muted">{t("allClubsLead")}</p>
+{/if}
 
 <div class="mt-6 flex flex-col gap-2 sm:flex-row">
   <input class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-4 py-2.5 text-base outline-none placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40"

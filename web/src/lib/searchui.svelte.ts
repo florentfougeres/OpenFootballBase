@@ -1,10 +1,7 @@
-// État partagé de la recherche : « / » et ⌘K demandent le focus du champ de l'en-tête (`focusTick`) ; sur mobile, ils déplient la barre (`bar`).
-export const searchUi = $state({ focusTick: 0, bar: false });
+// État partagé de la recherche : une surcouche (plein écran sur mobile, palette centrée sur grand écran) ouverte par `bar`, par « / » ou par ⌘K.
+export const searchUi = $state({ bar: false });
 
-export const focusSearch = () => {
-  if (typeof matchMedia === "function" && matchMedia("(max-width: 1023px)").matches) searchUi.bar = true;
-  else searchUi.focusTick++;
-};
+export const focusSearch = () => { searchUi.bar = true; };
 
 // Recherches récentes : un confort propre au navigateur, jamais envoyé nulle part (localStorage peut être absent ou plein).
 const KEY = "openfootballbase.recentSearches";

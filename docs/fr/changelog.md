@@ -8,6 +8,13 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 
 ## Site et outils
 
+### 2026-11-22 (branche `redesign/app-ux`)
+- **Refonte façon application, mobile et bureau.** *Mobile* : une barre du bas à cinq entrées (Accueil, Explorer, un bouton Recherche central, Compétitions, Suivis) ; la recherche s'ouvre en plein écran avec récents et suggestions ; une barre du haut compacte avec un bouton retour dans les pages enfants ; de courtes transitions glissées dans le sens de la navigation (aucune avec « réduire les animations »). *Bureau (dès 1024 px)* : une barre latérale à gauche (recherche, navigation, vos suivis, thème et langue) remplace la barre du haut ; la recherche devient une palette centrée (`/` ou Ctrl/⌘ K).
+- **Explorer** : une seule page pour les Clubs, les Joueurs et les Pays (vue dans l'adresse, `?v=`), à la place de trois entrées séparées.
+- **Suivis** : épinglez un club, un joueur ou une compétition (bouton Suivre sur chaque page). Les suivis restent dans le navigateur de l'appareil, sans compte et sans rien envoyer ; ils apparaissent en tête de l'accueil, dans la barre latérale et sur une page Suivis, qui regroupe aussi les réglages (thème, langue, Ballon d'Or, couverture, à propos) auparavant derrière « Plus ».
+- **Volet joueur sur l'effectif (grands écrans)** : cliquer un joueur dans la liste de l'effectif ouvre un résumé (totaux de carrière, derniers clubs) à côté de la liste, sans la quitter ; un clic modifié ou un écran plus étroit ouvre toujours la page du joueur.
+- **Un seul contrôle d'onglets** : les onglets du club et du joueur, et les vues d'Explorer, partagent un composant `Segmented` (les flèches, Début et Fin changent d'onglet).
+
 ### 2026-11-22
 - **Page joueur en trois onglets** : Parcours (clubs en tableau ou en frise, puis sélections), Stats et Palmarès, sous un en-tête inchangé. Un onglet sans contenu n'apparaît pas (et la barre disparaît quand il ne reste que le Parcours) ; le Palmarès apparaît une fois son contenu chargé. L'onglet est dans l'adresse (`?tab=`) : partageable, et le retour du navigateur le restitue ; les flèches gauche et droite, Début et Fin changent d'onglet. Sur mobile, l'en-tête est plus compact (photo à côté du nom, les deux totaux côte à côte) pour atteindre les onglets sans défiler.
 

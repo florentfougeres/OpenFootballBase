@@ -8,6 +8,9 @@
   import CompLogo from "../components/CompLogo.svelte";
   import Badge from "../components/Badge.svelte";
   import Crumbs from "../components/Crumbs.svelte";
+  import FollowButton from "../components/FollowButton.svelte";
+  import Segmented from "../components/Segmented.svelte";
+  import PlayerPreview from "../components/PlayerPreview.svelte";
   import Flag from "../components/Flag.svelte";
   import Logo from "../components/Logo.svelte";
   import Spinner from "../components/Spinner.svelte";
@@ -117,6 +120,12 @@
     const qs = new URLSearchParams(route.query);
     qs.set("tab", v);
     location.hash = `#/${route.lang}/${route.parts.map(encodeURIComponent).join("/")}?${qs}`;
+  };
+  let selected = $state<string | null>(null);                 // grand écran : le joueur dont l'aperçu est ouvert à côté de la liste
+  $effect(() => { key; label; selected = null; });
+  const pickRow = (e: MouseEvent, r: Row) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || !matchMedia("(min-width: 1280px)").matches) return;
+    e.preventDefault(); selected = r.key;
   };
   let view: "squad" | "moves" = $state("squad");               // sous-affichage de l'onglet Effectif : les joueurs ou les mouvements
   const moves = resource(async () => {
@@ -240,16 +249,13 @@
           {#each (extra.data ?? []).filter((c) => c !== current?.competition) as c}<a class="link max-sm:hidden" href={href("competition", c, seasonSlug(label ?? ""))}>{compName(c)}</a>{/each}
         </p>
       </div>
+      <div class="col-span-2 sm:col-span-1 sm:ml-auto sm:self-start"><FollowButton item={{ kind: "club", id: key, label: name, sub: country, path: `club/${enc(key)}` }} /></div>
     </div>
   </header>
 
   {#if tabs.length > 1}
-    <div class="mt-4 flex rounded-lg border border-line bg-surface p-0.5 sm:inline-flex" role="tablist" aria-label={t("clubViews")}>
-      {#each tabs as v (v)}
-        <button type="button" role="tab" aria-selected={tab === v} class="flex-1 rounded-md px-4 py-2 text-sm font-semibold transition sm:flex-none sm:py-1.5 {tab === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
-          onclick={() => setTab(v)}>{t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : "honours")}</button>
-      {/each}
-    </div>
+    <Segmented class="mt-4" label={t("clubViews")} idPrefix="ctab" value={tab} onselect={setTab}
+      items={tabs.map((v) => ({ key: v, label: t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : "honours") }))} />
   {/if}
 
   {#if tab === "squad" && d.ours && seasonList.length}
@@ -384,7 +390,9 @@
         {#if !shown.length}
           <p class="card mt-4 p-4 text-muted">{t("sqNoMatch")}</p>
         {:else if mode === "list"}
-          <div class="card mt-4 gap-x-8 p-4 sm:p-5 xl:columns-2">
+          {@const sel = selected ? shown.find((r) => r.key === selected) : null}
+          <div class="mt-4 grid items-start gap-4 {sel ? 'xl:grid-cols-[minmax(0,1fr)_22rem]' : ''}">
+          <div class="card gap-x-8 p-4 sm:p-5 {sel ? '' : 'xl:columns-2'}">
             {#each POS as pos}
               {@const group = shown.filter((r) => (r.position || null) === pos)}
               {#if group.length}
@@ -399,7 +407,7 @@
                         <span class="display text-right text-2xl font-bold text-muted">{r.shirt_number ?? ""}</span>
                         <span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                           <Flag code={r.nat_flag} label={r.nationality} />
-                          <a class="font-medium hover:text-accent hover:underline" href={href("player", enc(r.key))}>{r.player}</a>
+                          <a class="font-medium hover:text-accent hover:underline {selected === r.key ? 'text-accent' : ''}" href={href("player", enc(r.key))} aria-current={selected === r.key ? "true" : undefined} onclick={(e) => pickRow(e, r)}>{r.player}</a>
                           {@render stint(r)}
                         </span>
                         <span class="text-sm text-muted tabular-nums" title={t("ageTip")}>{age != null ? `${age} ${t("ageYears")}` : ""}</span>
@@ -409,6 +417,8 @@
                 </section>
               {/if}
             {/each}
+          </div>
+          {#if sel}<PlayerPreview row={sel} onclose={() => (selected = null)} />{:else}<p class="card hidden p-4 text-sm text-muted xl:block xl:self-start">{t("pvHint")}</p>{/if}
           </div>
         {:else}
           <div class="mt-4 space-y-6">

@@ -8,6 +8,8 @@
   import Crumbs from "../components/Crumbs.svelte";
   import ErrorBox from "../components/ErrorBox.svelte";
   import Flag from "../components/Flag.svelte";
+  import FollowButton from "../components/FollowButton.svelte";
+  import Segmented from "../components/Segmented.svelte";
   import Logo from "../components/Logo.svelte";
   import PlayerHonours from "../components/PlayerHonours.svelte";
   import PlayerStats from "../components/PlayerStats.svelte";
@@ -115,14 +117,6 @@
     qs.set("tab", v);
     location.hash = `#/${route.lang}/${route.parts.map(encodeURIComponent).join("/")}?${qs}`;
   };
-  // Clavier : flèches gauche/droite d'un onglet à l'autre (le seul onglet actif est dans l'ordre de tabulation).
-  const onTabKey = (e: KeyboardEvent) => {
-    const i = tabs.indexOf(tab), n = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : -1;
-    if (n < 0) return;
-    e.preventDefault();
-    setTab(tabs[(n + tabs.length) % tabs.length]);
-    setTimeout(() => document.getElementById(`ptab-${tabs[(n + tabs.length) % tabs.length]}`)?.focus(), 0);
-  };
 </script>
 
 <Crumbs />
@@ -163,18 +157,13 @@
         {t("sumClubs")} : {totals.clubApps} {t("matchesLc")}, {totals.clubGoals} {t("goalsLc")}{#if totals.hasNat}{" · "}{t("sumNat")} : {totals.natApps} {t("capsLc")}, {totals.natGoals} {t("goalsLc")}{/if}
       </p>
     {/if}
-    <div class="mt-4 flex flex-wrap items-center gap-2"><WikiButton urls={d.urls} kind="wikiPlayer" /></div>
+    <div class="mt-4 flex flex-wrap items-center gap-2"><FollowButton item={{ kind: "player", id: key, label: d.p.name, sub: natLabel, path: `player/${enc(key)}` }} /><WikiButton urls={d.urls} kind="wikiPlayer" /></div>
     </div>
   </header>
 
   {#if tabs.length > 1}
-    <div class="mt-4 flex rounded-lg border border-line bg-surface p-0.5 sm:inline-flex" role="tablist" aria-label={t("plViews")}>
-      {#each tabs as v (v)}
-        <button type="button" role="tab" id="ptab-{v}" aria-selected={tab === v} aria-controls="ppanel-{v}" tabindex={tab === v ? 0 : -1}
-          class="flex-1 rounded-md px-4 py-2 text-sm font-semibold transition sm:flex-none sm:py-1.5 {tab === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
-          onclick={() => setTab(v)} onkeydown={onTabKey}>{t(v === "path" ? "tlTitle" : v === "stats" ? "tabStats" : "honours")}</button>
-      {/each}
-    </div>
+    <Segmented class="mt-4" label={t("plViews")} idPrefix="ptab" value={tab} onselect={setTab}
+      items={tabs.map((v) => ({ key: v, label: t(v === "path" ? "tlTitle" : v === "stats" ? "tabStats" : "honours") }))} />
   {/if}
 
   {#if tab === "path"}

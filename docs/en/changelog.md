@@ -8,6 +8,13 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 
 ## Site and tooling
 
+### 2026-11-22 (branch `redesign/app-ux`)
+- **App-like redesign, mobile and desktop.** *Mobile*: a five-entry bottom bar (Home, Explore, a central Search button, Competitions, Following); search opens full screen with recents and suggestions; a compact top bar with a back button inside child pages; short slide transitions in the direction of navigation (none with reduced motion). *Desktop (from 1024 px)*: a left sidebar (search, navigation, your follows, theme and language) replaces the top bar; search is a centred palette (`/` or Ctrl/⌘ K).
+- **Explore**: one page for Clubs, Players and Countries (view in the address, `?v=`), replacing three separate entries.
+- **Following**: pin a club, a player or a competition (Follow button on each page). Follows live only in the browser of the device, with no account and nothing sent; they appear at the top of Home, in the sidebar and on a Following page, which also holds the settings (theme, language, Ballon d'Or, coverage, about) that used to be behind "More".
+- **Squad side panel (large screens)**: clicking a player in the squad list opens a summary (career totals, last clubs) next to the list, without leaving it; a modified click or a narrower screen still opens the player page.
+- **One tab control**: the club and player tabs, and the Explore views, share a `Segmented` component (arrow keys, Home and End move between tabs).
+
 ### 2026-11-22
 - **Player page in three tabs**: Career (clubs as a table or timeline, then national-team caps), Stats and Honours, under an unchanged header. A tab with nothing to show does not appear (and the bar disappears when only Career is left); Honours appears once its content is loaded. The tab is in the address (`?tab=`), so it can be shared and the back button restores it; left and right arrows, Home and End move between tabs. On mobile the header is more compact (photo next to the name, the two totals side by side) so the tabs are reachable without scrolling.
 
