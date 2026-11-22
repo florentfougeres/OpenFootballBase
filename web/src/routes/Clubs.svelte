@@ -54,23 +54,25 @@
   <p class="mt-6 text-muted">{t("noClub")}</p>
 {:else}
   {#each groups as g (g.code)}
-    <section class="mt-8" aria-labelledby="g-{g.code}">
-      <h2 id="g-{g.code}" class="mb-3 flex items-center gap-2.5 text-2xl font-bold"><Flag code={g.flag} label={g.name} size={24} /> {g.name}
-        <span class="display text-lg font-semibold text-muted">{g.items.length}</span></h2>
-      <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {#each g.items as x (x.c.wikipedia_title)}
-          {@const n = counts.data?.[x.c.wikipedia_title]}
-          <li>
-            <a class="tile" href={href("club", enc(x.c.wikipedia_title))}>
-              <Logo club={x.c} size={32} />
-              <span class="min-w-0 flex-1">
-                <span class="block truncate font-semibold">{x.name}</span>
-                {#if n}<span class="text-xs text-muted">{n} {t("seasonsOf")}</span>{/if}
-              </span>
-            </a>
-          </li>
-        {/each}
-      </ul>
+    <section class="mt-6" aria-labelledby="g-{g.code}">
+      <!-- En-tête de pays collant (esprit FotMob) : on sait toujours dans quel pays on défile. -->
+      <h2 id="g-{g.code}" class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-10 -mx-4 flex items-center gap-2.5 bg-bg/95 px-4 py-2 text-xl font-bold backdrop-blur lg:top-0"><Flag code={g.flag} label={g.name} size={22} /> {g.name}
+        <span class="display text-base font-semibold text-muted">{g.items.length}</span></h2>
+      <div class="card mt-1 overflow-hidden">
+        <ul class="-mb-px grid lg:grid-cols-2 lg:gap-x-px lg:bg-line/60">
+          {#each g.items as x (x.c.wikipedia_title)}
+            {@const n = counts.data?.[x.c.wikipedia_title]}
+            <li class="border-b border-line/60 bg-surface lg:border-b-0 lg:[&:not(:nth-last-child(-n+2))]:border-b">
+              <a class="row" href={href("club", enc(x.c.wikipedia_title))}>
+                <Logo club={x.c} size={30} />
+                <span class="min-w-0 flex-1 truncate font-semibold">{x.name}</span>
+                {#if n}<span class="shrink-0 text-xs tabular-nums text-muted">{n} {t("seasonsOf")}</span>{/if}
+                <span class="shrink-0 text-muted" aria-hidden="true">›</span>
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </div>
     </section>
   {/each}
 {/if}

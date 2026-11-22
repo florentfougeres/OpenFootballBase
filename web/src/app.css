@@ -10,21 +10,21 @@
 :root {
   --bg: #0a0f0d; --surface: #111a15; --surface-2: #19251e; --fg: #eef3f0; --muted: #9db0a5; --line: #23322a;
   --accent: #2fd488; --accent-fg: #04140c; --accent-soft: #0f3322; --heat-t: 58; --heat-lo: #fff; --heat-hi: #000;
-  --warn: #f5b454; --warn-soft: #3a2a0f; --info: #8db1ff; --info-soft: #14233f;
+  --bad: #ff8f8f; --bad-soft: #3b1515; --warn: #f5b454; --warn-soft: #3a2a0f; --info: #8db1ff; --info-soft: #14233f;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     --bg: #f1f5f3; --surface: #ffffff; --surface-2: #e8eeea; --fg: #0b1510; --muted: #53635a; --line: #d5ded8;
     --accent: #087245; --accent-fg: #ffffff; --accent-soft: #d9f1e4; --heat-t: 86; --heat-lo: #000; --heat-hi: #fff;
-    --warn: #a14a05; --warn-soft: #fdeed2; --info: #1d4ed8; --info-soft: #e3ecfd;
+    --bad: #b42318; --bad-soft: #fde8e6; --warn: #a14a05; --warn-soft: #fdeed2; --info: #1d4ed8; --info-soft: #e3ecfd;
     color-scheme: light;
   }
 }
 :root[data-theme="light"] {
   --bg: #f1f5f3; --surface: #ffffff; --surface-2: #e8eeea; --fg: #0b1510; --muted: #53635a; --line: #d5ded8;
   --accent: #087245; --accent-fg: #ffffff; --accent-soft: #d9f1e4; --heat-t: 86; --heat-lo: #000; --heat-hi: #fff;
-  --warn: #a14a05; --warn-soft: #fdeed2; --info: #1d4ed8; --info-soft: #e3ecfd;
+  --bad: #b42318; --bad-soft: #fde8e6; --warn: #a14a05; --warn-soft: #fdeed2; --info: #1d4ed8; --info-soft: #e3ecfd;
   color-scheme: light;
 }
 
@@ -32,7 +32,7 @@
   --color-bg: var(--bg); --color-surface: var(--surface); --color-surface-2: var(--surface-2);
   --color-fg: var(--fg); --color-muted: var(--muted); --color-line: var(--line);
   --color-accent: var(--accent); --color-accent-fg: var(--accent-fg); --color-accent-soft: var(--accent-soft);
-  --color-warn: var(--warn); --color-warn-soft: var(--warn-soft); --color-info: var(--info); --color-info-soft: var(--info-soft);
+  --color-bad: var(--bad); --color-bad-soft: var(--bad-soft); --color-warn: var(--warn); --color-warn-soft: var(--warn-soft); --color-info: var(--info); --color-info-soft: var(--info-soft);
   --font-sans: "Barlow", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: "Barlow Condensed", "Barlow", ui-sans-serif, system-ui, sans-serif;
 }
@@ -73,6 +73,8 @@ input[type="search"]::-webkit-search-cancel-button { filter: grayscale(1); opaci
   .tbl tbody tr:last-child td { @apply border-b-0; }
   .tbl tbody tr:hover { background: var(--surface-2); }
   .num { @apply text-right tabular-nums; }
+  /* Ligne de liste dense (esprit FotMob) : 48 px au moins, vignette à gauche, valeur à droite, filet fin entre les lignes. */
+  .row { @apply flex min-h-12 items-center gap-3 px-4 py-1.5 no-underline transition-colors hover:bg-surface-2 active:bg-surface-2; }
   .tile { @apply flex items-center gap-3 rounded-xl border border-line bg-surface px-3.5 py-3 no-underline transition-colors hover:border-accent hover:bg-surface-2; }
 }
 

@@ -7,6 +7,7 @@
   import { resource } from "../lib/resource.svelte";
   import { clubName, clubOf, compName, natLabel, seasonAge } from "../lib/format";
   import Crumbs from "../components/Crumbs.svelte";
+  import PosPill from "../components/PosPill.svelte";
   import Flag from "../components/Flag.svelte";
   import Logo from "../components/Logo.svelte";
   import Spinner from "../components/Spinner.svelte";
@@ -112,10 +113,6 @@
     sorted.map((r) => [season, r.club, r.competition, r.shirt_number, r.player, String(r.key).startsWith("name:") ? "" : r.key, r.position, r.nationality, age(r)]));
   const reset = () => { term = ""; nat = ""; pos = ""; comp = ""; ageMin = ""; ageMax = ""; abroad = false; };
 
-  // Teinte du poste : le libellé (GK, DF…) porte l'information, la couleur n'est qu'un repère.
-  const POS_CLASS: Record<string, string> = {
-    GK: "bg-warn-soft text-warn", DF: "bg-info-soft text-info", MF: "bg-accent-soft text-accent", FW: "bg-fg/10 text-fg",
-  };
   const field = "min-h-11 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-fg outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/40 sm:min-h-0";
   let moreFilters = $state(false);                   // téléphone : âge et « hors de leur pays » repliés
   const COLS = "sm:grid-cols-[2.25rem_minmax(0,1.5fr)_3rem_minmax(0,1.2fr)_3.5rem] lg:grid-cols-[2.25rem_minmax(0,1.5fr)_3rem_minmax(0,1.2fr)_minmax(0,0.9fr)_3.5rem]";
@@ -241,11 +238,11 @@
                   <a class="truncate font-medium hover:text-accent hover:underline" href={href("player", enc(r.key))}>{r.player}</a>
                 </span>
                 <span class="text-right text-sm tabular-nums text-muted sm:hidden">{a != null ? `${a} ${t("ageYears")}` : ""}</span>
-                <span class="hidden sm:block">{#if r.position}<span class="inline-block min-w-9 rounded-md px-1.5 py-0.5 text-center text-xs font-bold {POS_CLASS[r.position] ?? 'bg-surface-2 text-muted'}">{r.position}</span>{/if}</span>
+                <span class="hidden sm:block"><PosPill pos={r.position} /></span>
                 <span class="col-span-2 flex min-w-0 items-center gap-2 text-sm sm:col-span-1">
                   <Logo club={clubOf(r.club)} size={20} />
                   <a class="truncate hover:text-accent hover:underline" href={href("club", enc(r.club), seasonSlug(season))}>{clubName(clubOf(r.club))}</a>
-                  {#if r.position}<span class="shrink-0 rounded px-1 text-[0.6875rem] font-bold sm:hidden {POS_CLASS[r.position] ?? 'bg-surface-2 text-muted'}">{r.position}</span>{/if}
+                  <span class="sm:hidden"><PosPill pos={r.position} small /></span>
                 </span>
                 <span class="hidden truncate text-xs text-muted lg:block">{compName(r.competition)}</span>
                 <span class="hidden text-right text-sm tabular-nums text-muted sm:block">{a != null ? `${a} ${t("ageYears")}` : ""}</span>

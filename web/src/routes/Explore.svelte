@@ -28,13 +28,19 @@
   {:else if view === "players"}
     <Players embedded />
   {:else}
-    <ul class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {#each countries as c (c.code)}
-        <li><a class="tile" href={href("country", c.code)}>
-          <Flag code={areaFlag(c.code) ?? c.flag} label={c.name} size={26} />
-          <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{c.name}</span><span class="text-xs text-muted">{c.clubs} {t("clubs").toLowerCase()}</span></span>
-        </a></li>
-      {/each}
-    </ul>
+    <div class="card mt-4 overflow-hidden">
+      <ul class="-mb-px grid sm:grid-cols-2 sm:gap-x-px sm:bg-line/60 lg:grid-cols-3">
+        {#each countries as c (c.code)}
+          <li class="border-b border-line/60 bg-surface">
+            <a class="row" href={href("country", c.code)}>
+              <Flag code={areaFlag(c.code) ?? c.flag} label={c.name} size={24} />
+              <span class="min-w-0 flex-1 truncate font-semibold">{c.name}</span>
+              <span class="shrink-0 text-xs tabular-nums text-muted">{c.clubs}</span>
+              <span class="shrink-0 text-muted" aria-hidden="true">›</span>
+            </a>
+          </li>
+        {/each}
+      </ul>
+    </div>
   {/if}
 </div>

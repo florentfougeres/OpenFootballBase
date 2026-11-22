@@ -1,4 +1,5 @@
 <script lang="ts">
+  import FormPills from "./FormPills.svelte";
   // Résultats et classement d'une compétition, d'après la table `match` (données ouvertes OpenFootball, CC0).
   import { app, enc, href, t, type Row } from "../lib/app.svelte";
   import { q } from "../lib/db";
@@ -205,7 +206,6 @@
     return [...by.values()];
   });
   const shortDate = (d: unknown) => (d ? new Date(String(d)).toLocaleDateString(app.lang, { day: "numeric", month: "short" }) : "–");
-  const FORM_LABEL = { w: "resW", d: "resD", l: "resL" } as const;
 
   const extra = (m: Row) => [
     m.et_home != null ? `${t("resExtra")} ${m.et_home}–${m.et_away}` : "",
@@ -236,25 +236,21 @@
           <th class="num max-sm:hidden">{t("resW")}</th><th class="num max-sm:hidden">{t("resD")}</th><th class="num max-sm:hidden">{t("resL")}</th>
           <th class="num max-md:hidden">{t("resGF")}</th><th class="num max-md:hidden">{t("resGA")}</th>
           <th class="num">{t("resGD")}</th><th class="num">{t("resPts")}</th>
-          <th class="max-2xl:hidden">{t("resForm")}</th>
+          <th class="max-sm:hidden">{t("resForm")}</th>
         </tr>
       </thead>
       <tbody>
         {#each table as l, i (l.key)}
           <tr>
             <td class="!pr-0 tabular-nums"><span class="inline-grid size-6 place-items-center rounded-md text-xs font-bold {i === 0 ? 'bg-accent text-accent-fg' : 'text-muted'}">{i + 1}</span></td>
-            <td class="max-w-[10rem] font-medium sm:max-w-[13rem]">{@render team(l.club, l.name)}</td>
+            <td class="max-w-[10rem] font-medium sm:max-w-[13rem]">{@render team(l.club, l.name)}<span class="mt-1 block sm:hidden"><FormPills form={l.form} /></span></td>
             <td class="num">{l.p}</td>
             <td class="num max-sm:hidden">{l.w}</td><td class="num max-sm:hidden">{l.d}</td><td class="num max-sm:hidden">{l.l}</td>
             <td class="num max-md:hidden">{l.gf}</td><td class="num max-md:hidden">{l.ga}</td>
             <td class="num">{l.gf - l.ga > 0 ? "+" : ""}{l.gf - l.ga}</td>
             <td class="num display text-base font-bold">{l.pts}</td>
-            <td class="max-2xl:hidden">
-              <span class="flex gap-1" role="img" aria-label={l.form.slice(-5).map((f) => t(FORM_LABEL[f])).join(" ")}>
-                {#each l.form.slice(-5) as f}
-                  <span class="grid size-5 place-items-center rounded text-[0.6875rem] font-bold {f === 'w' ? 'bg-accent text-accent-fg' : f === 'd' ? 'bg-surface-2 text-muted' : 'bg-warn-soft text-warn'}" aria-hidden="true">{t(FORM_LABEL[f])}</span>
-                {/each}
-              </span>
+            <td class="max-sm:hidden">
+              <FormPills form={l.form} />
             </td>
           </tr>
         {/each}

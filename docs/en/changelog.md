@@ -13,6 +13,7 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 - **Explore**: one page for Clubs, Players and Countries (view in the address, `?v=`), replacing three separate entries.
 - **Following**: pin a club, a player or a competition (Follow button on each page). Follows live only in the browser of the device, with no account and nothing sent; they appear at the top of Home, in the sidebar and on a Following page, which also holds the settings (theme, language, Ballon d'Or, coverage, about) that used to be behind "More".
 - **Squad side panel (large screens)**: clicking a player in the squad list opens a summary (career totals, last clubs) next to the list, without leaving it; a modified click or a narrower screen still opens the player page.
+- **FotMob-inspired density and badges**: club and country lists become dense 48 px rows (crest, name, value on the right, thin dividers) under a sticky country header; standings show the last five results as W/D/L badges (green, grey, red; letter plus colour) from small screens up, and under the team name on mobile; position tags (GK, DF, MF, FW) share one component.
 - **One tab control**: the club and player tabs, and the Explore views, share a `Segmented` component (arrow keys, Home and End move between tabs).
 
 ### 2026-11-22
