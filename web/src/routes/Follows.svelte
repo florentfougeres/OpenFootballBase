@@ -1,14 +1,11 @@
 <script lang="ts">
-  import { app, href, t } from "../lib/app.svelte";
-  import { theme, cycleTheme } from "../lib/theme.svelte";
+  import { app, t } from "../lib/app.svelte";
   import { follows, type Follow, type FollowKind } from "../lib/follow.svelte";
   import FollowButton from "../components/FollowButton.svelte";
 
-  // Suivis (clubs, joueurs, compétitions épinglés sur cet appareil) et réglages : ce qui était derrière « Plus » sur mobile.
+  // Suivis : les clubs, joueurs et compétitions épinglés sur cet appareil. Les réglages sont dans leur propre page.
   const KINDS: { k: FollowKind; label: string }[] = [{ k: "club", label: "clubs" }, { k: "player", label: "players" }, { k: "comp", label: "allComps" }];
   const by = (k: FollowKind) => follows.items.filter((f) => f.kind === k);
-  const other = $derived(app.lang === "fr" ? "en" : "fr");
-  const themeLabel = $derived(theme.value === "dark" ? t("themeDark") : theme.value === "light" ? t("themeLight") : t("themeAuto"));
   const D = { club: "M12 3 5 5.5V11c0 4.2 2.8 7.4 7 9 4.2-1.6 7-4.8 7-9V5.5z", player: "M12 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 20c.7-3.6 3.3-5.5 7-5.5s6.3 1.9 7 5.5", comp: "M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8.5 20h7" };
   const row = "flex min-h-14 items-center gap-3 px-4 py-2 text-left no-underline transition hover:bg-surface-2 active:bg-surface-2";
 </script>
@@ -37,13 +34,4 @@
     {/each}
   {/if}
   <p class="mt-3 px-1 text-sm text-muted">{t("followsNote")}</p>
-
-  <h2 class="mb-2 mt-8 px-1 text-xs font-semibold uppercase tracking-wide text-muted">{t("settings")}</h2>
-  <ul class="card divide-y divide-line/60 overflow-hidden">
-    <li><button type="button" class="{row} w-full justify-between" onclick={cycleTheme}><span class="font-semibold">{t("theme")}</span><span class="text-sm text-muted">{themeLabel}</span></button></li>
-    <li><a class="{row} justify-between" href={`#/${other}/follows`} hreflang={other} lang={other}><span class="font-semibold">{t("langLabel")}</span><span class="text-sm text-muted">{app.lang === "fr" ? "Français" : "English"} → {other.toUpperCase()}</span></a></li>
-    <li><a class="{row} justify-between" href={href("ballon-dor")}><span class="font-semibold">{t("balloon")}</span><span class="text-muted" aria-hidden="true">›</span></a></li>
-    <li><a class="{row} justify-between" href={href("coverage")}><span class="font-semibold">{t("coverage")}</span><span class="text-muted" aria-hidden="true">›</span></a></li>
-    <li><a class="{row} justify-between" href={href("about")}><span class="font-semibold">{t("about")}</span><span class="text-muted" aria-hidden="true">›</span></a></li>
-  </ul>
 </div>

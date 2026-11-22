@@ -4,13 +4,13 @@
 
   // Navigation principale sur mobile : une pilule flottante en bas, à portée du pouce, avec des libellés toujours visibles.
   // Cinq entrées : Accueil, Explorer, Recherche (bouton central, ouvre la recherche en plein écran), Compétitions, Suivis.
-  // Une capsule glisse sous l'entrée active. Les pages secondaires (Ballon d'Or, couverture, à propos) et les réglages sont dans « Suivis ».
+  // Une capsule glisse sous l'entrée active. Les réglages et les pages secondaires (Ballon d'Or, couverture, à propos) sont dans la page Réglages, par l'engrenage de la barre du haut.
   const current = $derived(route.parts[0] ?? "home");
   const GROUPS: Record<string, string[]> = {
     home: ["home"],
     explore: ["explore", "clubs", "club", "players", "player", "country"],
     competitions: ["competitions", "competition"],
-    follows: ["follows", "coverage", "about", "ballon-dor"],
+    follows: ["follows"],
   };
   const isActive = (k: string) => GROUPS[k]?.includes(current) ?? false;
   const KEYS = ["home", "explore", "search", "competitions", "follows"];

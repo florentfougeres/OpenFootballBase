@@ -25,6 +25,7 @@
   import Players from "./routes/Players.svelte";
   import Explore from "./routes/Explore.svelte";
   import Follows from "./routes/Follows.svelte";
+  import Settings from "./routes/Settings.svelte";
 
   readRoute();
   applyTheme();
@@ -37,6 +38,7 @@
     switch (h) {
       case "explore": return t("explore");
       case "follows": return t("follows");
+      case "settings": return t("settings");
       case "clubs": return t("clubs");
       case "players": return t("players");
       case "competitions": return t("allComps");
@@ -87,6 +89,8 @@
         <Explore />
       {:else if head === "follows"}
         <Follows />
+      {:else if head === "settings"}
+        <Settings />
       {:else if head === "clubs"}
         <Clubs />
       {:else if head === "country"}
