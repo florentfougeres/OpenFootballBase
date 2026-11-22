@@ -260,20 +260,20 @@
 
   {#if tab === "squad" && d.ours && seasonList.length}
     <!-- Frise des saisons : le championnat de chaque année (D1, D2…) raconte les promotions et les relégations. -->
-    <nav class="-mx-4 mt-3 flex items-stretch gap-2 sm:mx-0 sm:mt-4" aria-label={t("changeSeason")}>
-      {#if newer}<a class="btn-ghost !px-3 max-sm:hidden" href={to(newer.season)} title="{t('nextSeason')} {newer.season}" aria-label="{t('nextSeason')} {newer.season}">‹</a>
-      {:else}<span class="btn-ghost !px-3 pointer-events-none opacity-40 max-sm:hidden" aria-hidden="true">‹</span>{/if}
+    <nav class="-mx-4 mt-3 flex items-center gap-2 sm:mx-0 sm:mt-4" aria-label={t("changeSeason")}>
+      {#if newer}<a class="grid size-9 shrink-0 place-items-center rounded-full border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg max-sm:hidden" href={to(newer.season)} title="{t('nextSeason')} {newer.season}" aria-label="{t('nextSeason')} {newer.season}">‹</a>
+      {:else}<span class="grid size-9 shrink-0 place-items-center rounded-full border border-line/60 text-muted/40 max-sm:hidden" aria-hidden="true">‹</span>{/if}
       <div class="flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-4 py-1 sm:px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" bind:this={bar}>
         {#each seasonList as s (s.season)}
-          <a class="flex shrink-0 flex-col items-center rounded-lg border px-2.5 py-0.5 no-underline transition sm:px-3 sm:py-1 {s.season === label ? 'border-accent bg-accent text-accent-fg' : s.players ? 'border-line bg-surface hover:bg-surface-2' : 'border-dashed border-line bg-surface text-muted hover:bg-surface-2'}"
+          <a class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold tabular-nums no-underline transition {s.season === label ? 'border-accent bg-accent text-accent-fg' : s.players ? 'border-line bg-surface hover:bg-surface-2' : 'border-dashed border-line bg-surface text-muted hover:bg-surface-2'}"
             href={to(s.season)} aria-current={s.season === label ? "true" : undefined} title={compName(s.competition)}>
-            <span class="display text-base font-semibold leading-tight sm:text-lg">{s.season}</span>
-            <span class="text-[0.7rem] font-semibold leading-tight {s.season === label ? 'opacity-90' : level(s) === 1 ? 'text-accent' : 'text-muted'}">{level(s) ? `D${level(s)}` : "·"}{#if !s.players} <span aria-label={t("unresolved")}>∅</span>{/if}</span>
+            {s.season}
+            <span class="text-[0.6875rem] font-bold {s.season === label ? 'opacity-85' : level(s) === 1 ? 'text-accent' : 'text-muted'}">{level(s) ? `D${level(s)}` : "·"}{#if !s.players} <span aria-label={t("unresolved")}>∅</span>{/if}</span>
           </a>
         {/each}
       </div>
-      {#if older}<a class="btn-ghost !px-3 max-sm:hidden" href={to(older.season)} title="{t('prevSeason')} {older.season}" aria-label="{t('prevSeason')} {older.season}">›</a>
-      {:else}<span class="btn-ghost !px-3 pointer-events-none opacity-40 max-sm:hidden" aria-hidden="true">›</span>{/if}
+      {#if older}<a class="grid size-9 shrink-0 place-items-center rounded-full border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg max-sm:hidden" href={to(older.season)} title="{t('prevSeason')} {older.season}" aria-label="{t('prevSeason')} {older.season}">›</a>
+      {:else}<span class="grid size-9 shrink-0 place-items-center rounded-full border border-line/60 text-muted/40 max-sm:hidden" aria-hidden="true">›</span>{/if}
     </nav>
   {/if}
 
@@ -298,24 +298,31 @@
 
 
 
-        <!-- Vue : les joueurs ou les mouvements ; pour les joueurs, liste ou cartes (deux icônes à droite). Les filtres sont plus bas et ne concernent que les joueurs. -->
-        <div class="mb-3 flex items-center justify-between gap-3">
-          <div class="inline-flex rounded-lg border border-line bg-surface p-0.5" role="group" aria-label={t("sqTabs")}>
-            {#each [["squad", "players"], ["moves", "mvTab"]] as [v, k]}
-              <button type="button" aria-pressed={view === v} class="rounded-md px-4 py-1.5 text-sm font-semibold transition {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
-                onclick={() => (view = v as typeof view)}>{t(k)}</button>
-            {/each}
-          </div>
+        <!-- Une seule barre d'outils : la vue (joueurs ou mouvements) à gauche ; pour les joueurs, la nationalité, les prêtés et l'affichage (liste ou cartes) à droite. -->
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <Segmented tabs={false} class="max-sm:w-full" idPrefix="sqv" label={t("sqTabs")} value={view} onselect={(k) => (view = k)}
+            items={[{ key: "squad", label: t("players") }, { key: "moves", label: t("mvTab") }]} />
           {#if view === "squad"}
-            <div class="inline-flex rounded-lg border border-line bg-surface p-0.5" role="group" aria-label={t("viewMode")}>
-              {#each [["list", "viewList"], ["cards", "viewCards"]] as [m, k]}
-                <button type="button" class="grid size-9 place-items-center rounded-md transition sm:size-8 {mode === m ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}" aria-pressed={mode === m} aria-label={t(k)} title={t(k)}
-                  onclick={() => setMode(m as "list" | "cards")}>
-                  <svg viewBox="0 0 24 24" class="size-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    {#if m === "list"}<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />{:else}<rect x="4" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2" />{/if}
-                  </svg>
-                </button>
-              {/each}
+            <div class="flex min-w-0 items-center gap-2 max-sm:w-full sm:ml-auto">
+              {#if natOptions.length > 1}
+                <select class="h-10 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-sm sm:h-9 sm:flex-none" bind:value={fNat} aria-label={t("sqFilterNat")}>
+                  <option value="">{t("sqAllNats")}</option>
+                  {#each natOptions as n (n.label)}<option value={n.label}>{n.label} ({n.n})</option>{/each}
+                </select>
+              {/if}
+              {#if hasLoans}
+                <button type="button" class="h-10 shrink-0 whitespace-nowrap rounded-xl border px-3 text-sm font-medium transition sm:h-9 {fLoan ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface text-fg hover:bg-surface-2'}" aria-pressed={fLoan} onclick={() => (fLoan = !fLoan)}>{t("sqLoanOnly")}</button>
+              {/if}
+              <div class="inline-flex shrink-0 rounded-xl border border-line bg-surface p-0.5 max-sm:ml-auto" role="group" aria-label={t("viewMode")}>
+                {#each [["list", "viewList"], ["cards", "viewCards"]] as [m, k]}
+                  <button type="button" class="grid size-9 place-items-center rounded-[0.6rem] transition sm:size-8 {mode === m ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}" aria-pressed={mode === m} aria-label={t(k)} title={t(k)}
+                    onclick={() => setMode(m as "list" | "cards")}>
+                    <svg viewBox="0 0 24 24" class="size-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      {#if m === "list"}<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />{:else}<rect x="4" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2" />{/if}
+                    </svg>
+                  </button>
+                {/each}
+              </div>
             </div>
           {/if}
         </div>
@@ -364,28 +371,9 @@
           {#if stats.age != null}<span><strong class="font-semibold tabular-nums text-fg">{stats.age.toLocaleString(app.lang, { maximumFractionDigits: 1 })}</strong> {t("sqAge")}</span>{/if}
           {#if stats.foreignPct != null}<span title={t("sqForeignTip")}><strong class="font-semibold tabular-nums text-fg">{stats.foreignPct} %</strong> {t("sqForeign")}</span>{/if}
           {#if stats.nats}<span class="max-sm:hidden"><strong class="font-semibold tabular-nums text-fg">{stats.nats}</strong> {t("sqNats")}</span>{/if}
+          {#if filtered}<span class="tabular-nums" aria-live="polite">· {shown.length} / {rows.length} {t("srcPlayers")}</span>
+            <button type="button" class="underline hover:text-fg" onclick={() => { fNat = ""; fLoan = false; }}>{t("sqReset")}</button>{/if}
         </p>
-
-        <!-- Filtres (les joueurs seulement) : la nationalité et les prêtés, s'il y a de quoi filtrer ; l'effectif est déjà groupé par poste. Le compteur et « Réinitialiser » n'apparaissent que si un filtre est actif -->
-        {#if natOptions.length > 1 || hasLoans}
-        <div class="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 sm:flex sm:flex-wrap sm:gap-2">
-          {#if natOptions.length > 1}
-            <select class="h-10 min-w-0 rounded-lg border border-line bg-surface px-3 text-sm sm:h-auto sm:py-1.5 {hasLoans ? '' : 'col-span-2'}" bind:value={fNat} aria-label={t("sqFilterNat")}>
-              <option value="">{t("sqAllNats")}</option>
-              {#each natOptions as n (n.label)}<option value={n.label}>{n.label} ({n.n})</option>{/each}
-            </select>
-          {/if}
-          {#if hasLoans}
-            <button type="button" class="h-10 whitespace-nowrap rounded-lg border px-3 text-sm font-medium transition sm:h-auto sm:rounded-full sm:py-1 {fLoan ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface text-fg hover:bg-surface-2'}" aria-pressed={fLoan} onclick={() => (fLoan = !fLoan)}>{t("sqLoanOnly")}</button>
-          {/if}
-          {#if filtered}
-            <div class="col-span-2 flex min-h-8 items-center justify-between gap-4 text-sm text-muted sm:contents">
-              <span class="tabular-nums">{shown.length} / {rows.length} {t("srcPlayers")}</span>
-              <button type="button" class="underline hover:text-fg" onclick={() => { fNat = ""; fLoan = false; }}>{t("sqReset")}</button>
-            </div>
-          {/if}
-        </div>
-        {/if}
 
         {#if !shown.length}
           <p class="card mt-4 p-4 text-muted">{t("sqNoMatch")}</p>

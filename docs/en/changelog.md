@@ -16,6 +16,7 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 - **Squad side panel (large screens)**: clicking a player in the squad list opens a summary (career totals, last clubs) next to the list, without leaving it; a modified click or a narrower screen still opens the player page.
 - **FotMob-inspired density and badges**: club and country lists become dense 48 px rows (crest, name, value on the right, thin dividers) under a sticky country header; standings show the last five results as W/D/L badges (green, grey, red; letter plus colour) from small screens up, and under the team name on mobile; position tags (GK, DF, MF, FW) share one component.
 - **Fix: tabs flickering on the player page.** Changing a tab changed the address, which rebuilt the route and reloaded the whole player page: the Honours tab disappeared for a moment (and the page fell back to Career if you were on it). A parameter-only change no longer rebuilds the route, so nothing reloads when switching tabs or views.
+- **Calmer Squad tab**: the season strip is one line of round chips (season and division side by side) with small, discreet arrows; Players | Movements, the nationality filter, the on-loan toggle and the list/cards display now sit in a single toolbar; the filtered count and "Reset" move onto the summary line.
 - **One tab control**: the club and player tabs, and the Explore views, share a `Segmented` component (arrow keys, Home and End move between tabs).
 
 ### 2026-11-22
