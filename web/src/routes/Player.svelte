@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { app, href, enc, page, t } from "../lib/app.svelte";
+  import { app, href, enc, page, route, t } from "../lib/app.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
   import { ageAt, isOngoing, natLabel as libNatLabel, nationalTeam, wikiUrl } from "../lib/format";
@@ -99,6 +99,30 @@
     const natApps = senior?.caps ?? 0, natGoals = senior?.goals ?? 0;
     return { apps: clubApps + natApps, goals: clubGoals + natGoals, clubApps, clubGoals, natApps, natGoals, hasNat: !!senior };
   });
+
+  // Trois vues : Parcours (clubs puis sélections), Stats et Palmarès. L'onglet est dans l'adresse (`?tab=`) : partageable, et le retour du navigateur le restitue.
+  // Une vue sans donnée n'a pas d'onglet ; le palmarès se charge à part (PlayerHonours) et signale par `honoursHas` s'il a quelque chose à montrer.
+  type Tab = "path" | "stats" | "honours";
+  let honoursHas = $state(false);
+  $effect(() => { key; honoursHas = false; });
+  const tabs = $derived<Tab[]>(["path", ...(d?.statClub.length ? (["stats"] as Tab[]) : []), ...(honoursHas ? (["honours"] as Tab[]) : [])]);
+  const tab = $derived.by<Tab>(() => {
+    const want = route.query.get("tab") as Tab | null;
+    return want && tabs.includes(want) ? want : "path";
+  });
+  const setTab = (v: Tab) => {
+    const qs = new URLSearchParams(route.query);
+    qs.set("tab", v);
+    location.hash = `#/${route.lang}/${route.parts.map(encodeURIComponent).join("/")}?${qs}`;
+  };
+  // Clavier : flèches gauche/droite d'un onglet à l'autre (le seul onglet actif est dans l'ordre de tabulation).
+  const onTabKey = (e: KeyboardEvent) => {
+    const i = tabs.indexOf(tab), n = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : -1;
+    if (n < 0) return;
+    e.preventDefault();
+    setTab(tabs[(n + tabs.length) % tabs.length]);
+    setTimeout(() => document.getElementById(`ptab-${tabs[(n + tabs.length) % tabs.length]}`)?.focus(), 0);
+  };
 </script>
 
 <Crumbs />
@@ -109,11 +133,11 @@
 {:else if !d}
   <p class="text-warn">{t("noResult")}</p>
 {:else}
-  <header class="card flex flex-col gap-5 p-6 sm:flex-row sm:items-start">
+  <header class="card flex items-start gap-4 p-4 sm:gap-5 sm:p-6">
     {#if d.profile?.photo_url && !photoFailed}
-      <figure class="shrink-0 sm:w-40">
+      <figure class="w-24 shrink-0 sm:w-40">
         <!-- Cadre 4/5 recadré au centre ; une photo en pied (bien plus haute que le cadre) est calée sur le haut pour garder le visage. -->
-        <img class="aspect-[4/5] w-32 rounded-xl border border-line bg-surface-2 object-cover sm:w-40" style:object-position={tallPhoto ? "50% 6%" : "50% 50%"} src={d.profile.photo_url} alt={d.profile.photo_caption || d.p.name} loading="lazy" width="160" height="200"
+        <img class="aspect-[4/5] w-24 rounded-xl border border-line bg-surface-2 object-cover sm:w-40" style:object-position={tallPhoto ? "50% 6%" : "50% 50%"} src={d.profile.photo_url} alt={d.profile.photo_caption || d.p.name} loading="lazy" width="160" height="200"
           onerror={() => (photoFailed = true)}
           onload={(e) => { const i = e.currentTarget as HTMLImageElement; tallPhoto = i.naturalHeight / Math.max(1, i.naturalWidth) > 1.45; }} />
         <figcaption class="mt-1.5 text-[0.7rem] leading-snug text-muted">
@@ -122,7 +146,7 @@
       </figure>
     {/if}
     <div class="min-w-0 flex-1">
-    <h1 class="text-3xl font-extrabold tracking-tight">{d.p.name}</h1>
+    <h1 class="text-2xl font-extrabold tracking-tight sm:text-3xl">{d.p.name}</h1>
     {#if d.profile?.full_name && fold(d.profile.full_name) !== fold(d.p.name)}<p class="mt-1 text-sm text-muted">{d.profile.full_name}</p>{/if}
     <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
       {#if d.p.flag || d.p.nat}<span class="flex items-center gap-2"><Flag code={d.p.flag} label={d.p.nat} /><span>{natLabel}</span></span>{/if}
@@ -131,9 +155,9 @@
       {#if d.profile?.height_cm}<span>{t("heightLabel")} : {(d.profile.height_cm / 100).toLocaleString(app.lang, { minimumFractionDigits: 2 })} m</span>{/if}
     </p>
     {#if totals}
-      <ul class="mt-4 flex flex-wrap gap-3">
-        <li class="rounded-xl bg-accent-soft px-4 py-2"><strong class="block text-xl font-extrabold text-accent">{totals.apps}</strong><span class="text-xs text-muted">{t("sumApps")}</span></li>
-        <li class="rounded-xl bg-accent-soft px-4 py-2"><strong class="block text-xl font-extrabold text-accent">{totals.goals}</strong><span class="text-xs text-muted">{t("sumGoals")}</span></li>
+      <ul class="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:flex sm:flex-wrap sm:gap-3">
+        <li class="rounded-xl bg-accent-soft px-3 py-2 sm:px-4"><strong class="block text-xl font-extrabold text-accent">{totals.apps}</strong><span class="text-xs text-muted">{t("sumApps")}</span></li>
+        <li class="rounded-xl bg-accent-soft px-3 py-2 sm:px-4"><strong class="block text-xl font-extrabold text-accent">{totals.goals}</strong><span class="text-xs text-muted">{t("sumGoals")}</span></li>
       </ul>
       <p class="mt-2 text-xs text-muted">
         {t("sumClubs")} : {totals.clubApps} {t("matchesLc")}, {totals.clubGoals} {t("goalsLc")}{#if totals.hasNat}{" · "}{t("sumNat")} : {totals.natApps} {t("capsLc")}, {totals.natGoals} {t("goalsLc")}{/if}
@@ -143,6 +167,18 @@
     </div>
   </header>
 
+  {#if tabs.length > 1}
+    <div class="mt-4 flex rounded-lg border border-line bg-surface p-0.5 sm:inline-flex" role="tablist" aria-label={t("plViews")}>
+      {#each tabs as v (v)}
+        <button type="button" role="tab" id="ptab-{v}" aria-selected={tab === v} aria-controls="ppanel-{v}" tabindex={tab === v ? 0 : -1}
+          class="flex-1 rounded-md px-4 py-2 text-sm font-semibold transition sm:flex-none sm:py-1.5 {tab === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
+          onclick={() => setTab(v)} onkeydown={onTabKey}>{t(v === "path" ? "tlTitle" : v === "stats" ? "tabStats" : "honours")}</button>
+      {/each}
+    </div>
+  {/if}
+
+  {#if tab === "path"}
+  <div role="tabpanel" id="ppanel-path" aria-labelledby={tabs.length > 1 ? "ptab-path" : undefined}>
   {#if d.career.length}
     <section class="card mt-6 overflow-hidden">
       <div class="flex flex-wrap items-center justify-between gap-3 px-5 pt-4">
@@ -227,11 +263,19 @@
       </div>
     </section>
   {/if}
+  </div>
+  {/if}
 
-  <!-- monté quand la fiche est chargée : `d` reste celui du joueur précédent tant que le chargement dure -->
-  {#if !res.loading}<PlayerHonours pkey={key} qid={d.p.qid ?? null} />{/if}
+  {#if tab === "stats" && d.statClub.length}
+    <div role="tabpanel" id="ppanel-stats" aria-labelledby="ptab-stats">
+      <PlayerStats club={d.statClub} national={d.statNat} source={d.statSource} />
+    </div>
+  {/if}
 
-  {#if d.statClub.length}
-    <PlayerStats club={d.statClub} national={d.statNat} source={d.statSource} />
+  <!-- Toujours monté (une fois la fiche chargée) pour que l'onglet Palmarès sache s'il a du contenu ; `d` reste celui du joueur précédent tant que le chargement dure -->
+  {#if !res.loading}
+    <div role="tabpanel" id="ppanel-honours" aria-labelledby="ptab-honours" class={tab === "honours" ? "" : "hidden"}>
+      <PlayerHonours pkey={key} qid={d.p.qid ?? null} bind:has={honoursHas} />
+    </div>
   {/if}
 {/if}

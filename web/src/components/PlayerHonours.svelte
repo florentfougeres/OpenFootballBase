@@ -9,7 +9,8 @@
 
   // Palmarès d'un joueur : le Ballon d'Or (classements publiés) et les titres remportés avec un club dont il figure dans l'effectif listé la saison du titre.
   // C'est une approximation (il a pu partir en cours de saison ou peu jouer) : dite comme telle, jamais présentée comme un fait établi.
-  let { pkey, qid }: { pkey: string; qid: string | null } = $props();
+  // `has` : vrai quand il y a quelque chose à afficher (la page joueur s'en sert pour n'afficher l'onglet Palmarès que s'il est utile).
+  let { pkey, qid, has = $bindable(false) }: { pkey: string; qid: string | null; has?: boolean } = $props();
 
   type Title = { competition: string; years: number[]; clubs: string[] };
   const data = resource(async () => {
@@ -67,10 +68,12 @@
   const KINDS = ["league", "cup", "intl"] as const;
   const ord = (n: number) => (app.lang === "fr" ? `${n}e` : n === 2 ? "2nd" : "3rd");
   const season = (y: number) => `${y}/${String(y + 1).slice(2)}`;
+  const show = $derived(!!data.data && !data.loading && !!(total || nationalTotal || data.data.awards.length));
+  $effect(() => { has = show; });
 </script>
 
 <!-- pas de palmarès d'un autre joueur pendant le chargement : la ressource garde l'ancien résultat tant que le nouveau n'est pas arrivé -->
-{#if data.data && !data.loading && (total || nationalTotal || data.data.awards.length)}
+{#if show && data.data}
   <section class="card mt-6 overflow-hidden" aria-labelledby="player-honours">
     <div class="flex items-center gap-2 px-5 pt-4"><Trophy size={20} /><h2 id="player-honours" class="text-lg font-bold">{t("honours")}</h2></div>
 

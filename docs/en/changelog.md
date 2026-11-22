@@ -8,6 +8,9 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 
 ## Site and tooling
 
+### 2026-11-22
+- **Player page in three tabs**: Career (clubs as a table or timeline, then national-team caps), Stats and Honours, under an unchanged header. A tab with nothing to show does not appear (and the bar disappears when only Career is left); Honours appears once its content is loaded. The tab is in the address (`?tab=`), so it can be shared and the back button restores it; left and right arrows, Home and End move between tabs. On mobile the header is more compact (photo next to the name, the two totals side by side) so the tabs are reachable without scrolling.
+
 ### 2026-11-21
 - **Lighter, clearer Squad tab**: three levels clearly separated. The *view* (Players | Movements) and the *display* (list or cards, two icons on the right, players only) fit on one line; the four large figures become one summary line; the *filters* (nationality, on loan) are grouped below (no more position filter: the squad is already grouped by position), and the "11 / 42 players" counter with "Reset" only appears when a filter is active. The first player is visible without scrolling on mobile.
 - **Club page in three tabs**: Overview (the club's profile: city, founding, stadium, league, links, coaches, and a shortcut to the season's squad), Squad (with a Players | Movements switch to see arrivals and departures from one season to the next) and Honours. Title chips no longer sit under the club name: honours have their own tab. The tab is in the address (`?tab=`): it can be shared and the browser's back button restores it. Without `?tab=`, the squad opens when the address carries a season (from a table or a season's list) and the overview otherwise (from the club list, search or a player's career). The side column is gone: honours and the profile each have their own tab.
