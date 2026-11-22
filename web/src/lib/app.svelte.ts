@@ -48,7 +48,9 @@ export function readRoute() {
   if (LANGS.includes(lang)) parts.shift();
   else lang = (navigator.language || "fr").startsWith("fr") ? "fr" : "en";
   route.lang = lang;
-  route.parts = parts;
+  // Un changement de paramètre seul (onglet, vue : `?tab=`) ne remplace pas le tableau : tout ce qui lit une partie de l'adresse se recalculerait
+  // (la fiche joueur se rechargeait à chaque clic sur un onglet, et l'onglet Palmarès disparaissait un instant).
+  if (parts.length !== route.parts.length || parts.some((p, i) => p !== route.parts[i])) route.parts = parts;
   route.query = new URLSearchParams(qs);
   app.lang = lang;
   document.documentElement.lang = lang;
