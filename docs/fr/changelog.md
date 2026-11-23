@@ -9,6 +9,7 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 ## Site et outils
 
 ### 2026-11-23
+- **La page entraîneur montre la carrière de l'infobox Wikipedia** (clubs et sélections, adjoint compris, avec écussons et drapeaux des sélections) au lieu des seuls mandats Wikidata des clubs que nous couvrons ; ceux-ci restent en repli.
 - **Page entraîneur.** Un clic sur un entraîneur dans l'onglet Entraîneurs d'un club ouvre sa page (`#/<langue>/coach/<QID>`) : infobox (drapeau, mandats, premier mandat, naissance, Wikipedia), sa carrière d'entraîneur club par club et, s'il a aussi joué dans nos données, sa carrière de joueur avec un lien vers sa fiche joueur. Le lieu de naissance et les pages Wikipedia des entraîneurs qui n'ont jamais joué, ainsi que les drapeaux, arrivent avec la prochaine release de données.
 - **Onglet Entraîneurs : toute la liste d'un coup, avec un drapeau.** Plus de bouton « Tous les entraîneurs » : tous les mandats sont listés. Chaque entraîneur reçoit un petit drapeau de son pays quand les données l'ont (nouvelle colonne `flag` de la table `coach`, remplie par la prochaine release de données ; d'ici là la liste n'a pas de drapeaux, et les anciennes releases continuent de fonctionner).
 - **Les entraîneurs ont leur propre onglet dans la fiche club** (Aperçu, Effectif, Mouvements, Entraîneurs, Palmarès), affiché seulement quand le club a des mandats. L'Aperçu place maintenant la mini-carte à côté des informations du club. À cinq onglets, la barre défile sur téléphone et garde l'onglet actif visible.
