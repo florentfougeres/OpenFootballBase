@@ -215,7 +215,11 @@
             }
             for (const [key, e] of markers) if (!seen.has(key)) { e.m.remove(); markers.delete(key); }
           };
+          // Recalculé à chaque image du mouvement (et non à son arrêt) : au seuil de zoom, les groupes se défont tout de suite au lieu d'attendre la fin de l'animation.
+          let raf = 0;
+          map.on("move", () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; refresh(); }); });
           map.on("moveend", refresh);
+          cleanups.push(() => cancelAnimationFrame(raf));
           refresh();
         }
         phase = "ready";
