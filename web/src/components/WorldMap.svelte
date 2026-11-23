@@ -198,7 +198,7 @@
             } else crest.style.background = p.co || "var(--accent)";
             const tip = document.createElement("span");
             tip.className = "club-tip pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-lg bg-fg px-2.5 py-1 text-xs font-semibold text-bg opacity-0 shadow-lg transition group-hover:opacity-100 group-focus-visible:opacity-100";
-            tip.textContent = p.n + (p.city ? ` · ${p.city}` : "");
+            tip.textContent = p.n;
             a.append(dot, crest, tip);
             return a;
           };
