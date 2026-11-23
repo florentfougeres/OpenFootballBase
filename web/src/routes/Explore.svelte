@@ -24,7 +24,7 @@
   };
 
   const countries = $derived.by(() => {
-    const comps = [...app.comps.values()], clubs = [...app.clubs.values()];
+    const comps = [...app.comps.values()], clubs = [...app.clubs.values()].filter((x) => app.squadClubs.has(x.wikipedia_title as string));
     return [...app.countries.values()].map((c) => ({ ...countryOf(c.code as string), code: c.code as string,
       clubs: clubs.filter((x) => x.country_code === c.code).length, comps: comps.filter((x) => x.country_code === c.code).length }))
       .filter((c) => c.clubs || c.comps).sort((a, b) => b.clubs - a.clubs || a.name.localeCompare(b.name, app.lang));

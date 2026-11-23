@@ -12,6 +12,7 @@ export const app = $state({
   squadHasMoves: false,      // anciens exports : pas de stint_date / stint_window / stint_other_club
   careerHasClubQid: false,   // anciens exports : pas de club_qid sur les lignes de carrière
   clubs: new Map<string, Row>(),
+  squadClubs: new Set<string>(),   // clubs qui ont de vrais joueurs (`has_squads` compte aussi des saisons sans effectif : résultats, classement)
   clubByQid: new Map<string, Row>(),
   comps: new Map<string, Row>(),
   countries: new Map<string, Row>(),

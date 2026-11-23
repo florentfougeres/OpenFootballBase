@@ -22,13 +22,13 @@
   let phase = $state<"loading" | "ready" | "error">("loading");
   let list = $state<{ title: string; items: { key: string; to: string; name: string; sub: string; club?: any; code?: string }[] } | null>(null);
 
-  // Clubs avec coordonnées (les référentiels sont des Map non réactives : on lit `app.ready`).
-  const clubs = $derived.by(() => { app.ready; return [...app.clubs.values()].filter((c) => c.lat != null && c.lon != null); });
-  const withoutCoords = $derived.by(() => { app.ready; return app.clubs.size - clubs.length; });
+  // Clubs avec un vrai effectif, puis ceux qui ont des coordonnées (les référentiels sont des Map non réactives : on lit `app.ready`).
+  const squadClubs = $derived.by(() => { app.ready; return [...app.clubs.values()].filter((c) => app.squadClubs.has(c.wikipedia_title as string)); });
+  const clubs = $derived(squadClubs.filter((c) => c.lat != null && c.lon != null));
+  const withoutCoords = $derived(squadClubs.length - clubs.length);
   const perCountry = $derived.by(() => {
-    app.ready;
     const m = new Map<string, number>();
-    for (const c of app.clubs.values()) if (c.country_code) m.set(c.country_code as string, (m.get(c.country_code as string) ?? 0) + 1);
+    for (const c of squadClubs) if (c.country_code) m.set(c.country_code as string, (m.get(c.country_code as string) ?? 0) + 1);
     return m;
   });
 

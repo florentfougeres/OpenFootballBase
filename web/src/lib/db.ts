@@ -87,6 +87,7 @@ export async function loadRefs() {
     if (c.wikidata_qid) app.clubByQid.set(c.wikidata_qid, c);
   }
   for (const c of await q(`SELECT * FROM competition`)) app.comps.set(c.code, c);
+  for (const r of await q(`SELECT DISTINCT club FROM club_season WHERE players > 0`)) app.squadClubs.add(r.club as string);
   if (app.has.country) for (const c of await q(`SELECT * FROM country`)) app.countries.set(c.code, c);
 }
 

@@ -29,7 +29,7 @@
     if (!app.ready) return null;
     const [stats] = await q(`SELECT (SELECT count(*) FROM club) AS clubs, (SELECT count(DISTINCT coalesce(player_qid, 'n:' || player)) FROM squad) AS players`);
     const comps = [...app.comps.values()];
-    const squadClubs = [...app.clubs.values()];
+    const squadClubs = [...app.clubs.values()].filter((x) => app.squadClubs.has(x.wikipedia_title as string));
     const countries = [...app.countries.values()].map((c) => ({
       code: c.code, name_en: c.name_en, name_fr: c.name_fr, flag: c.flag as string | null,
       comps: comps.filter((x) => x.country_code === c.code).length,
