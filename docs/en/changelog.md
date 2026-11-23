@@ -9,6 +9,7 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 ## Site and tooling
 
 ### 2026-11-23
+- **Club coaches completed from the coaches' infoboxes.** Wikidata lists only some head coaches on a club's page (Manchester City showed four, nothing between 2013 and 2016). The Coaches tab now adds the coaches whose Wikipedia infobox ("Teams managed") names the club, assistant posts excluded, for those Wikidata does not already give for that club.
 - **The coach page shows the Wikipedia infobox career** (clubs and national teams, assistant roles included, with club crests and national-team flags) instead of only the Wikidata tenures of the clubs we cover; those remain as a fallback.
 - **Coach page.** Clicking a coach in the club's Coaches tab opens his page (`#/<lang>/coach/<QID>`): infobox (country flag, tenures, first tenure, birth, Wikipedia), his coaching career club by club, and, when he also played in our data, his playing career with a link to his player page. Birth place and Wikipedia pages of coaches who never played, and the flags, come with the next data release.
 - **Coaches tab: the whole list at once, with a flag.** No more "All coaches" button: every tenure is listed. Each coach gets a small flag of his country when the data has it (new `flag` column of the `coach` table, filled by the next data release; until then the list has no flags, and older releases keep working).

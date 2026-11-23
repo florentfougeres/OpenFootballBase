@@ -57,9 +57,20 @@
     if (!tt || !app.has.coach) return [] as { qid: string; name: string; from: number; to: number | null; player: boolean; flag: string | null }[];
     // `flag` (drapeau du pays de l'entraîneur) n'existe que dans les releases récentes : on lit toutes les colonnes sans la nommer.
     const rows = await q(`SELECT *, CAST(start_date AS VARCHAR) AS s, CAST(end_date AS VARCHAR) AS e FROM coach WHERE club = ? ORDER BY start_date DESC`, [tt]);
-    const ids = [...new Set(rows.map((r) => r.coach_qid as string))];
+    // Wikidata ne liste pas tous les entraîneurs sur la page d'un club (Manchester City : Pellegrini manquait) : on complète avec les carrières d'infobox
+    // (« Teams managed ») des entraîneurs qui citent ce club, adjoints exclus, pour ceux que Wikidata ne donne pas déjà pour ce club.
+    const known = new Set(rows.map((r) => r.coach_qid as string));
+    const extra = app.has.coach_career ? await q(`SELECT c.coach_qid, c.start_year, c.end_year, n.name, n.flag FROM coach_career c
+        JOIN (SELECT coach_qid, any_value(coach_name) AS name, any_value(flag) AS flag FROM coach GROUP BY coach_qid) n ON n.coach_qid = c.coach_qid
+        WHERE c.team_link = ? AND c.start_year IS NOT NULL AND COALESCE(c.assistant, false) = false`, [tt]) : [];
+    const more = extra.filter((r) => !known.has(r.coach_qid as string));
+    const ids = [...new Set([...rows.map((r) => r.coach_qid as string), ...more.map((r) => r.coach_qid as string)])];
     const players = ids.length && app.has.career ? new Set((await q(`SELECT DISTINCT player_qid FROM career WHERE player_qid IN (${ids.map(() => "?").join(",")})`, ids)).map((r) => r.player_qid as string)) : new Set<string>();
-    return rows.map((r) => ({ qid: r.coach_qid as string, name: r.coach_name as string, from: Number(String(r.s).slice(0, 4)), to: r.e ? Number(String(r.e).slice(0, 4)) : null, player: players.has(r.coach_qid as string), flag: (r.flag as string | null) ?? null }));
+    const all = [
+      ...rows.map((r) => ({ qid: r.coach_qid as string, name: r.coach_name as string, from: Number(String(r.s).slice(0, 4)), to: r.e ? Number(String(r.e).slice(0, 4)) : null, player: players.has(r.coach_qid as string), flag: (r.flag as string | null) ?? null })),
+      ...more.map((r) => ({ qid: r.coach_qid as string, name: r.name as string, from: Number(r.start_year), to: r.end_year != null ? Number(r.end_year) : null, player: players.has(r.coach_qid as string), flag: (r.flag as string | null) ?? null })),
+    ];
+    return all.sort((a, b) => b.from - a.from || (b.to ?? 9999) - (a.to ?? 9999));
   });
   const title = $derived(d?.ours?.wikipedia_title as string | undefined);
   const iso = $derived(d?.w?.country_iso ? String(d.w.country_iso).toLowerCase() : null);
