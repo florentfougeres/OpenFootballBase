@@ -8,6 +8,12 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 
 ## Site and tooling
 
+### 2026-11-23
+- **Ballon d'Or moves to Competitions.** It is content (rankings by edition), not a service page, so it no longer sits next to Coverage and About in the sidebar and the Settings page: it is now a card at the top of the Competitions page, and Competitions stays highlighted while you read it.
+- **Home gets to the content.** The big title, the introduction and the figures strip are gone from the top (the page keeps a visually hidden heading for screen readers). You land on a search entry, your follows (with real crests, competition logos and player initials), the featured competitions as chips, then featured clubs and countries as dense rows, two columns on large screens. The database figures move to the bottom of the page.
+- **Club page: fewer stacked controls.** The tabs and the season selector now form one sticky bar (under the top bar on mobile, at the top on desktop). **Movements** is now a tab of its own (Overview | Squad | Movements | Honours) instead of a switch inside Squad. The season strip is replaced by a season button (with the division) that opens a list of every season, plus previous/next arrows on larger screens; on mobile, nationality and on-loan filters fold into a Filters sheet with a badge counting active filters.
+- **New `Sheet` component**: a bottom sheet on mobile, a centred dialog on large screens (Esc, backdrop or button to close; focus enters, stays inside and returns to the trigger).
+
 ### 2026-11-22 (branch `redesign/app-ux`)
 - **Settings get their own page.** On mobile they were under the Following tab, which was an odd place for them. A gear icon in the top bar now opens a Settings page (theme, language, Ballon d'Or, coverage, about); the Following tab only lists what you follow. The top bar no longer carries separate theme and language buttons.
 - **App-like redesign, mobile and desktop.** *Mobile*: a five-entry bottom bar (Home, Explore, a central Search button, Competitions, Following); search opens full screen with recents and suggestions; a compact top bar with a back button inside child pages; short slide transitions in the direction of navigation (none with reduced motion). *Desktop (from 1024 px)*: a left sidebar (search, navigation, your follows, theme and language) replaces the top bar; search is a centred palette (`/` or Ctrl/⌘ K).

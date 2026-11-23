@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Trophy from "../components/Trophy.svelte";
   import { app, countryOf, enc, href, isArea, t, type Row } from "../lib/app.svelte";
   import { nationalTeam } from "../lib/format";
   import Flag from "../components/Flag.svelte";
@@ -84,6 +85,12 @@
 <Crumbs trail={[{ label: t("allComps"), to: href("competitions") }]} />
 <h1 class="text-4xl font-extrabold leading-none tracking-tight sm:text-5xl">{t("allComps")}</h1>
 <p class="mt-2 max-w-2xl text-muted">{t("allCompsLead")}</p>
+<!-- Le Ballon d'Or est du contenu (des classements par édition), pas une page de service : on le trouve ici, avec les compétitions. -->
+<a class="tile mt-4 max-w-lg" href={href("ballon-dor")}>
+  <span class="grid size-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent"><Trophy size={20} /></span>
+  <span class="min-w-0 flex-1"><span class="block font-semibold">{t("balloon")}</span><span class="block truncate text-xs text-muted">{t("balloonLead")}</span></span>
+  <span class="text-muted" aria-hidden="true">›</span>
+</a>
 
 <!-- Sur téléphone les filtres tiennent sur deux lignes : le sélecteur pleine largeur, puis les confédérations sur UNE ligne qui défile (elles retournent à la ligne dès « md »). -->
 <div class="mt-4 flex rounded-lg border border-line bg-surface p-0.5 sm:mt-6 sm:inline-flex" role="tablist" aria-label={t("compKinds")}>

@@ -9,7 +9,7 @@
   const GROUPS: Record<string, string[]> = {
     home: ["home"],
     explore: ["explore", "clubs", "club", "players", "player", "country"],
-    competitions: ["competitions", "competition"],
+    competitions: ["competitions", "competition", "ballon-dor"],
     follows: ["follows"],
   };
   const isActive = (k: string) => GROUPS[k]?.includes(current) ?? false;

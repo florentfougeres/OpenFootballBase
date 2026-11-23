@@ -22,11 +22,11 @@ Ce document fixe le système visuel et les conventions d'interface de l'applicat
 
 | Écran | Mobile (< 1024 px) | Bureau (≥ 1024 px) |
 |---|---|---|
-| Entrées principales | Barre du bas : Accueil, Explorer, Recherche (bouton central), Compétitions, Suivis | Barre latérale : Accueil, Explorer, Compétitions, Suivis ; Ballon d'Or, Couverture, À propos en bas |
+| Entrées principales | Barre du bas : Accueil, Explorer, Recherche (bouton central), Compétitions, Suivis | Barre latérale : Accueil, Explorer, Compétitions, Suivis ; Couverture et À propos en bas |
 | Recherche | Plein écran | Palette centrée (`/`, Ctrl/⌘ K) |
 | Retour | Bouton dans la barre du haut quand la profondeur > 0 | Fil d'Ariane |
 | Suivis | Page Suivis (clubs, joueurs, compétitions épinglés) | Liste dans la barre latérale + page Suivis |
-| Réglages | Engrenage de la barre du haut → page Réglages (thème, langue, Ballon d'Or, couverture, à propos) | Thème et langue en bas de la barre latérale ; liens secondaires dans la barre latérale |
+| Réglages | Engrenage de la barre du haut → page Réglages (thème, langue, couverture, à propos) | Thème et langue en bas de la barre latérale ; liens secondaires dans la barre latérale |
 
 La profondeur et le sens (avant / arrière) viennent de la pile de navigation de `lib/app.svelte.ts` ; les écrans racines sont l'accueil, Explorer, Compétitions et Suivis.
 
@@ -34,6 +34,8 @@ La profondeur et le sens (avant / arrière) viennent de la pile de navigation de
 
 - `Segmented` : onglets (flèches, Début, Fin) ou bascule à `aria-pressed` ; hauteur tactile 40 px sur mobile.
 - `FollowButton` : suivre / ne plus suivre (stockage local, notification annoncée sans prendre le focus).
+- `Sheet` : feuille modale (du bas sur mobile, centrée sur bureau) pour les choix secondaires (saisons, filtres) ; focus géré.
+- `FollowAvatar` : écusson, logo ou initiales d'un suivi.
 - `PlayerPreview` : volet de détail d'un joueur à côté de l'effectif (≥ 1280 px).
 - `SearchOverlay`, `Sidebar`, `BottomNav`, `Header`, `Toast` : la coque.
 

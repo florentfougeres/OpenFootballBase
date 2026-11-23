@@ -1,12 +1,12 @@
 <script lang="ts">
   import { app, t } from "../lib/app.svelte";
   import { follows, type Follow, type FollowKind } from "../lib/follow.svelte";
+  import FollowAvatar from "../components/FollowAvatar.svelte";
   import FollowButton from "../components/FollowButton.svelte";
 
   // Suivis : les clubs, joueurs et compétitions épinglés sur cet appareil. Les réglages sont dans leur propre page.
   const KINDS: { k: FollowKind; label: string }[] = [{ k: "club", label: "clubs" }, { k: "player", label: "players" }, { k: "comp", label: "allComps" }];
   const by = (k: FollowKind) => follows.items.filter((f) => f.kind === k);
-  const D = { club: "M12 3 5 5.5V11c0 4.2 2.8 7.4 7 9 4.2-1.6 7-4.8 7-9V5.5z", player: "M12 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 20c.7-3.6 3.3-5.5 7-5.5s6.3 1.9 7 5.5", comp: "M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8.5 20h7" };
   const row = "flex min-h-14 items-center gap-3 px-4 py-2 text-left no-underline transition hover:bg-surface-2 active:bg-surface-2";
 </script>
 
@@ -23,7 +23,7 @@
           {#each by(g.k) as f (f.id)}
             <li class="flex items-center pr-2">
               <a class="{row} min-w-0 flex-1" href={`#/${app.lang}/${f.path}`}>
-                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-surface-2 text-muted"><svg viewBox="0 0 24 24" class="size-[18px]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={D[f.kind]} /></svg></span>
+                <FollowAvatar {f} size={36} />
                 <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{f.label}</span>{#if f.sub}<span class="block truncate text-sm text-muted">{f.sub}</span>{/if}</span>
               </a>
               <FollowButton item={f} compact />

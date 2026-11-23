@@ -11,6 +11,7 @@
   import FollowButton from "../components/FollowButton.svelte";
   import Segmented from "../components/Segmented.svelte";
   import PlayerPreview from "../components/PlayerPreview.svelte";
+  import Sheet from "../components/Sheet.svelte";
   import Flag from "../components/Flag.svelte";
   import Logo from "../components/Logo.svelte";
   import Spinner from "../components/Spinner.svelte";
@@ -107,10 +108,10 @@
   const partial = $derived(!!squad?.rows.length && squad.rows.filter((r: Row) => r.confidence === "inferred").length * 2 > squad.rows.length);
 
   // Mouvements : on compare l'effectif de la saison à celui de la précédente (aucun tableau de transferts requis).
-  // Trois vues : Aperçu (la fiche du club), Effectif (une saison, avec ses mouvements) et Palmarès. L'onglet est dans l'adresse (`?tab=`) : partageable, et le retour du navigateur le restitue.
+  // Quatre vues : Aperçu (la fiche du club), Effectif et Mouvements (une saison, arrivées et départs) et Palmarès. L'onglet est dans l'adresse (`?tab=`) : partageable, et le retour du navigateur le restitue.
   // Sans `?tab=` : l'effectif quand l'adresse porte une saison (on vient d'un classement ou d'une liste de la saison), sinon l'aperçu (on vient voir le club).
-  type Tab = "overview" | "squad" | "honours";
-  const tabs = $derived<Tab[]>(["overview", ...(d?.ours ? (["squad"] as Tab[]) : []), ...(honours.loading || honours.data?.length ? (["honours"] as Tab[]) : [])]);
+  type Tab = "overview" | "squad" | "moves" | "honours";
+  const tabs = $derived<Tab[]>(["overview", ...(d?.ours ? (["squad", "moves"] as Tab[]) : []), ...(honours.loading || honours.data?.length ? (["honours"] as Tab[]) : [])]);
   const tab = $derived.by<Tab>(() => {
     const want = route.query.get("tab") as Tab | null;
     if (want && tabs.includes(want)) return want;
@@ -127,7 +128,8 @@
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || !matchMedia("(min-width: 1280px)").matches) return;
     e.preventDefault(); selected = r.key;
   };
-  let view: "squad" | "moves" = $state("squad");               // sous-affichage de l'onglet Effectif : les joueurs ou les mouvements
+  const view = $derived<"squad" | "moves">(tab === "moves" ? "moves" : "squad");          // Effectif (les joueurs) ou Mouvements (arrivées et départs)
+  let seasonSheet = $state(false), filterSheet = $state(false);
   const moves = resource(async () => {
     const tt = title, lbl = label, prev = older;
     if (view !== "moves" || !tt || !lbl || !prev?.players || !squad) return null;
@@ -154,6 +156,7 @@
   const POS = ["GK", "DF", "MF", "FW", null] as const;
   let fNat = $state("");
   let fLoan = $state(false);
+  const nFilters = $derived((fNat ? 1 : 0) + (fLoan ? 1 : 0));
   $effect(() => { label; fNat = ""; fLoan = false; });
 
   const rows = $derived((squad?.rows ?? []) as Row[]);
@@ -183,11 +186,6 @@
   const MODE_KEY = "openfootballbase.squadView";
   let mode: "list" | "cards" = $state((() => { try { return localStorage.getItem(MODE_KEY) === "cards" ? "cards" : "list"; } catch { return "list"; } })());
   const setMode = (m: "list" | "cards") => { mode = m; try { localStorage.setItem(MODE_KEY, m); } catch { /* stockage indisponible */ } };
-  let bar: HTMLElement | undefined = $state();
-  $effect(() => {                                                      // garde la saison courante visible dans la frise défilante
-    label; seasonList.length;
-    bar?.querySelector("[aria-current=true]")?.scrollIntoView({ inline: "center", block: "nearest" });
-  });
   const exportCsv = () => downloadCsv(`${seasonSlug(label ?? "")}-${(title ?? key).replace(/[^\w]+/g, "-")}.csv`,
     ["season", "club", "shirt_number", "player", "player_qid", "position", "nationality", "age"],
     shown.map((r) => [label, title, r.shirt_number, r.player, String(r.key).startsWith("name:") ? "" : r.key, r.position, r.nationality, ageOf(r)]));
@@ -253,32 +251,90 @@
     </div>
   </header>
 
-  {#if tabs.length > 1}
-    <Segmented class="mt-4" label={t("clubViews")} idPrefix="ctab" value={tab} onselect={setTab}
-      items={tabs.map((v) => ({ key: v, label: t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : "honours") }))} />
-  {/if}
-
-  {#if tab === "squad" && d.ours && seasonList.length}
-    <!-- Frise des saisons : le championnat de chaque année (D1, D2…) raconte les promotions et les relégations. -->
-    <nav class="-mx-4 mt-3 flex items-center gap-2 sm:mx-0 sm:mt-4" aria-label={t("changeSeason")}>
-      {#if newer}<a class="grid size-9 shrink-0 place-items-center rounded-full border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg max-sm:hidden" href={to(newer.season)} title="{t('nextSeason')} {newer.season}" aria-label="{t('nextSeason')} {newer.season}">‹</a>
-      {:else}<span class="grid size-9 shrink-0 place-items-center rounded-full border border-line/60 text-muted/40 max-sm:hidden" aria-hidden="true">‹</span>{/if}
-      <div class="flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-4 py-1 sm:px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" bind:this={bar}>
-        {#each seasonList as s (s.season)}
-          <a class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold tabular-nums no-underline transition {s.season === label ? 'border-accent bg-accent text-accent-fg' : s.players ? 'border-line bg-surface hover:bg-surface-2' : 'border-dashed border-line bg-surface text-muted hover:bg-surface-2'}"
-            href={to(s.season)} aria-current={s.season === label ? "true" : undefined} title={compName(s.competition)}>
-            {s.season}
-            <span class="text-[0.6875rem] font-bold {s.season === label ? 'opacity-85' : level(s) === 1 ? 'text-accent' : 'text-muted'}">{level(s) ? `D${level(s)}` : "·"}{#if !s.players} <span aria-label={t("unresolved")}>∅</span>{/if}</span>
-          </a>
-        {/each}
+  <!-- Une seule barre collante : les onglets, puis (Effectif, Mouvements) la saison et, pour les joueurs, les filtres et l'affichage. -->
+  <div class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 -mx-4 mt-3 border-b border-line/60 bg-bg/95 px-4 py-2 backdrop-blur lg:top-0 lg:mx-0 lg:px-0">
+    {#if tabs.length > 1}
+      <Segmented label={t("clubViews")} idPrefix="ctab" value={tab} onselect={setTab} class="max-sm:w-full"
+        items={tabs.map((v) => ({ key: v, label: t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : v === "moves" ? "mvTab" : "honours") }))} />
+    {/if}
+    {#if (tab === "squad" || tab === "moves") && d.ours && seasonList.length}
+      <div class="mt-2 flex items-center gap-2">
+        <div class="flex shrink-0 items-center gap-1" role="group" aria-label={t("changeSeason")}>
+          {#if older}<a class="grid size-10 place-items-center rounded-xl border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg max-sm:hidden sm:size-9" href={to(older.season)} aria-label="{t('prevSeason')} {older.season}">‹</a>
+          {:else}<span class="grid size-10 place-items-center rounded-xl border border-line/60 text-muted/40 max-sm:hidden sm:size-9" aria-hidden="true">‹</span>{/if}
+          <button type="button" class="inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-3.5 text-sm font-semibold tabular-nums transition hover:bg-surface-2 sm:h-9" aria-haspopup="dialog" onclick={() => (seasonSheet = true)}>
+            {label}{#if level(current ?? {})}<span class="text-[0.6875rem] font-bold text-accent">D{level(current ?? {})}</span>{/if}
+            <svg viewBox="0 0 24 24" class="size-4 text-muted" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+          {#if newer}<a class="grid size-10 place-items-center rounded-xl border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg max-sm:hidden sm:size-9" href={to(newer.season)} aria-label="{t('nextSeason')} {newer.season}">›</a>
+          {:else}<span class="grid size-10 place-items-center rounded-xl border border-line/60 text-muted/40 max-sm:hidden sm:size-9" aria-hidden="true">›</span>{/if}
+        </div>
+        {#if tab === "squad"}
+          <div class="ml-auto flex min-w-0 items-center gap-2">
+            {#if natOptions.length > 1}
+              <select class="h-9 min-w-0 rounded-xl border border-line bg-surface px-3 text-sm max-sm:hidden" bind:value={fNat} aria-label={t("sqFilterNat")}>
+                <option value="">{t("sqAllNats")}</option>
+                {#each natOptions as n (n.label)}<option value={n.label}>{n.label} ({n.n})</option>{/each}
+              </select>
+            {/if}
+            {#if hasLoans}
+              <button type="button" class="h-9 shrink-0 whitespace-nowrap rounded-xl border px-3 text-sm font-medium transition max-sm:hidden {fLoan ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface text-fg hover:bg-surface-2'}" aria-pressed={fLoan} onclick={() => (fLoan = !fLoan)}>{t("sqLoanOnly")}</button>
+            {/if}
+            {#if natOptions.length > 1 || hasLoans}
+              <button type="button" class="relative grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-surface text-muted transition hover:text-fg sm:hidden" aria-haspopup="dialog" aria-label={t("filters")} onclick={() => (filterSheet = true)}>
+                <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" /><circle cx="16" cy="7" r="2" /><circle cx="8" cy="17" r="2" /></svg>
+                {#if nFilters}<span class="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-accent text-[0.625rem] font-bold text-accent-fg">{nFilters}</span>{/if}
+              </button>
+            {/if}
+            <div class="inline-flex shrink-0 rounded-xl border border-line bg-surface p-0.5" role="group" aria-label={t("viewMode")}>
+              {#each [["list", "viewList"], ["cards", "viewCards"]] as [m, k]}
+                <button type="button" class="grid size-9 place-items-center rounded-[0.6rem] transition sm:size-8 {mode === m ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}" aria-pressed={mode === m} aria-label={t(k)} title={t(k)}
+                  onclick={() => setMode(m as "list" | "cards")}>
+                  <svg viewBox="0 0 24 24" class="size-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    {#if m === "list"}<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />{:else}<rect x="4" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2" />{/if}
+                  </svg>
+                </button>
+              {/each}
+            </div>
+          </div>
+        {/if}
       </div>
-      {#if older}<a class="grid size-9 shrink-0 place-items-center rounded-full border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg max-sm:hidden" href={to(older.season)} title="{t('prevSeason')} {older.season}" aria-label="{t('prevSeason')} {older.season}">›</a>
-      {:else}<span class="grid size-9 shrink-0 place-items-center rounded-full border border-line/60 text-muted/40 max-sm:hidden" aria-hidden="true">›</span>{/if}
-    </nav>
-  {/if}
+    {/if}
+  </div>
+
+  <Sheet open={seasonSheet} onclose={() => (seasonSheet = false)} title={t("seasonTab")}>
+    <ul>
+      {#each seasonList as s (s.season)}
+        <li><a class="flex min-h-12 items-center gap-3 rounded-xl px-3 no-underline transition hover:bg-surface-2 {s.season === label ? 'bg-accent-soft text-accent' : ''}" href={to(s.season)} aria-current={s.season === label ? "true" : undefined} onclick={() => (seasonSheet = false)}>
+          <span class="display w-20 text-lg font-semibold tabular-nums">{s.season}</span>
+          <span class="min-w-0 flex-1 truncate text-sm text-muted">{compName(s.competition)}</span>
+          <span class="shrink-0 text-xs font-bold {level(s) === 1 ? 'text-accent' : 'text-muted'}">{level(s) ? `D${level(s)}` : "·"}{#if !s.players} <span aria-label={t("unresolved")}>∅</span>{/if}</span>
+        </a></li>
+      {/each}
+    </ul>
+  </Sheet>
+  <Sheet open={filterSheet} onclose={() => (filterSheet = false)} title={t("filters")}>
+    <div class="grid gap-3 px-3 pb-2">
+      {#if natOptions.length > 1}
+        <label class="grid gap-1.5 text-sm font-semibold">{t("sqFilterNat")}
+          <select class="h-11 rounded-xl border border-line bg-bg px-3 text-base font-normal" bind:value={fNat}>
+            <option value="">{t("sqAllNats")}</option>
+            {#each natOptions as n (n.label)}<option value={n.label}>{n.label} ({n.n})</option>{/each}
+          </select>
+        </label>
+      {/if}
+      {#if hasLoans}
+        <button type="button" class="flex min-h-11 items-center justify-between rounded-xl border px-4 text-left text-base font-medium {fLoan ? 'border-accent bg-accent-soft text-accent' : 'border-line'}" aria-pressed={fLoan} onclick={() => (fLoan = !fLoan)}>{t("sqLoanOnly")}<span aria-hidden="true">{fLoan ? "✓" : ""}</span></button>
+      {/if}
+      <div class="mt-1 flex gap-2">
+        <button type="button" class="btn-ghost min-h-11 flex-1 justify-center" onclick={() => { fNat = ""; fLoan = false; }}>{t("sqReset")}</button>
+        <button type="button" class="btn min-h-11 flex-1 justify-center" onclick={() => (filterSheet = false)}>{shown.length} {t("srcPlayers")}</button>
+      </div>
+    </div>
+  </Sheet>
 
   <div class="mt-6">
-    {#if tab === "squad"}
+    {#if tab === "squad" || tab === "moves"}
     <div class="min-w-0">
       {#if !d.ours}
         <p class="card border-info/30 bg-info-soft p-4 text-info">{t("noSquadsHere")}</p>
@@ -297,35 +353,6 @@
         {/snippet}
 
 
-
-        <!-- Une seule barre d'outils : la vue (joueurs ou mouvements) à gauche ; pour les joueurs, la nationalité, les prêtés et l'affichage (liste ou cartes) à droite. -->
-        <div class="mb-3 flex flex-wrap items-center gap-2">
-          <Segmented tabs={false} class="max-sm:w-full" idPrefix="sqv" label={t("sqTabs")} value={view} onselect={(k) => (view = k)}
-            items={[{ key: "squad", label: t("players") }, { key: "moves", label: t("mvTab") }]} />
-          {#if view === "squad"}
-            <div class="flex min-w-0 items-center gap-2 max-sm:w-full sm:ml-auto">
-              {#if natOptions.length > 1}
-                <select class="h-10 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-sm sm:h-9 sm:flex-none" bind:value={fNat} aria-label={t("sqFilterNat")}>
-                  <option value="">{t("sqAllNats")}</option>
-                  {#each natOptions as n (n.label)}<option value={n.label}>{n.label} ({n.n})</option>{/each}
-                </select>
-              {/if}
-              {#if hasLoans}
-                <button type="button" class="h-10 shrink-0 whitespace-nowrap rounded-xl border px-3 text-sm font-medium transition sm:h-9 {fLoan ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface text-fg hover:bg-surface-2'}" aria-pressed={fLoan} onclick={() => (fLoan = !fLoan)}>{t("sqLoanOnly")}</button>
-              {/if}
-              <div class="inline-flex shrink-0 rounded-xl border border-line bg-surface p-0.5 max-sm:ml-auto" role="group" aria-label={t("viewMode")}>
-                {#each [["list", "viewList"], ["cards", "viewCards"]] as [m, k]}
-                  <button type="button" class="grid size-9 place-items-center rounded-[0.6rem] transition sm:size-8 {mode === m ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}" aria-pressed={mode === m} aria-label={t(k)} title={t(k)}
-                    onclick={() => setMode(m as "list" | "cards")}>
-                    <svg viewBox="0 0 24 24" class="size-[18px]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      {#if m === "list"}<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />{:else}<rect x="4" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2" />{/if}
-                    </svg>
-                  </button>
-                {/each}
-              </div>
-            </div>
-          {/if}
-        </div>
 
         {#if view === "moves"}
           {#if !older?.players}

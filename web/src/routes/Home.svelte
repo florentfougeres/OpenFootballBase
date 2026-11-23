@@ -2,7 +2,8 @@
   import { app, areaFlag, enc, href, route, seasonSlug, t } from "../lib/app.svelte";
   import { clubName } from "../lib/format";
   import { follows } from "../lib/follow.svelte";
-  import SearchBox from "../components/SearchBox.svelte";
+  import FollowAvatar from "../components/FollowAvatar.svelte";
+  import { searchUi } from "../lib/searchui.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
   import Flag from "../components/Flag.svelte";
@@ -60,48 +61,17 @@
   const otherCountries = $derived(countries.filter((c) => !topCodes.has(c.code)));
 </script>
 
-<section class="border-b border-line bg-surface">
-  <div class="mx-auto grid max-w-6xl gap-x-10 gap-y-5 px-4 py-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-    <div class="min-w-0">
-      <h1 class="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">{t("heroTitle")}</h1>
-      <p class="mt-1.5 max-w-xl text-sm text-muted">{t("heroLead")}</p>
-      <div class="mt-5"><SearchBox variant="hero" /></div>
-    </div>
-    <!-- Les chiffres s'alignent sur le bas du champ de recherche (grand écran) ou le suivent en dessous (mobile). -->
-    {#if data.data}
-      <dl class="grid grid-cols-4 gap-x-6 lg:pb-1">
-        {#each [[nf(data.data.stats.players), t("statPlayers")], [nf(data.data.stats.clubs), t("statClubs")], [seasonsN, t("statSeasons")], [countries.length, t("countries").toLowerCase()]] as [n, label]}
-          <div><dd class="display text-xl font-bold leading-none tabular-nums">{n}</dd><dt class="mt-1 text-xs text-muted">{label}</dt></div>
-        {/each}
-      </dl>
-    {/if}
-  </div>
-</section>
-
-<div class="mx-auto max-w-6xl px-4 pb-6 pt-4">
-  {#if follows.items.length}
-    <!-- Mes suivis : ce que le visiteur a épinglé sur cet appareil, en tête de l'accueil -->
-    <section class="mt-2" aria-labelledby="my-follows">
-      <div class="flex items-baseline justify-between px-0.5">
-        <h2 id="my-follows" class="text-lg font-bold">{t("followsMine")}</h2>
-        <a class="link inline-flex min-h-11 items-center text-sm" href={href("follows")}>{t("seeAll")} →</a>
-      </div>
-      <ul class="-mx-4 mt-1 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:px-0">
-        {#each follows.items.slice(0, 12) as f (f.kind + f.id)}
-          <li class="snap-start">
-            <a class="flex w-40 flex-col gap-2.5 rounded-2xl border border-line bg-surface p-3 no-underline transition hover:border-accent active:scale-[0.98] sm:w-48" href={`#/${app.lang}/${f.path}`}>
-              <span class="grid size-10 place-items-center rounded-full bg-accent-soft text-accent"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d={f.kind === "club" ? "M12 3 5 5.5V11c0 4.2 2.8 7.4 7 9 4.2-1.6 7-4.8 7-9V5.5z" : f.kind === "player" ? "M12 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 20c.7-3.6 3.3-5.5 7-5.5s6.3 1.9 7 5.5" : "M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8.5 20h7"} /></svg></span>
-              <span class="min-w-0"><span class="block truncate font-semibold leading-tight">{f.label}</span>{#if f.sub}<span class="block truncate text-xs text-muted">{f.sub}</span>{/if}</span>
-            </a>
-          </li>
-        {/each}
-      </ul>
-    </section>
-  {/if}
+<div class="mx-auto max-w-6xl px-4 pb-6 pt-3 lg:pt-8">
+  <h1 class="sr-only">{t("heroTitle")}</h1>
+  <!-- Une entrée de recherche (ouvre la recherche) ; les chiffres de la base sont en bas de page. -->
+  <button type="button" class="flex h-12 w-full items-center gap-3 rounded-2xl border border-line bg-surface px-4 text-left text-muted transition hover:border-accent lg:h-14 lg:max-w-2xl lg:text-lg" aria-haspopup="dialog" onclick={() => (searchUi.bar = true)}>
+    <svg viewBox="0 0 24 24" class="size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+    <span class="truncate">{t("spPlaceholder")}</span>
+    <kbd class="ml-auto hidden rounded border border-line px-1.5 text-xs font-semibold lg:inline" aria-hidden="true">/</kbd>
+  </button>
 
   {#if urlTerm}
-    <div class="mt-2 flex items-baseline justify-between gap-3">
+    <div class="mt-6 flex items-baseline justify-between gap-3">
       <h2 class="text-lg font-bold">{t("spAll").replace(/\s+pour$|\s+for$/, "")} « {urlTerm} »</h2>
       <a class="link text-sm" href={href("")}>{t("sqReset")}</a>
     </div>
@@ -113,43 +83,78 @@
   {:else if data.loading && !data.data}
     <Spinner />
   {:else if data.data}
-    <div class="mt-4 grid gap-4 lg:grid-cols-2">
-      {#if featuredComps.length}
-        <section class="card overflow-hidden" aria-labelledby="feat-comps">
-          <div class="flex items-center justify-between border-b border-line px-4 py-2.5">
-            <h2 id="feat-comps" class="text-sm font-bold">{t("featuredComps")}</h2>
-            <a class="link inline-flex min-h-11 items-center text-xs sm:min-h-0" href={href("competitions")}>{t("allComps")} →</a>
-          </div>
-          <ul class="divide-y divide-line/60">
-            {#each featuredComps as c (c.code)}
-              <li>
-                <a class="flex items-center gap-3 px-4 py-2 text-sm no-underline transition hover:bg-surface-2" href={href("competition", c.code)}>
-                  {#if c.logo_url}
-                    <span class="block size-7 shrink-0 overflow-hidden rounded-md bg-white p-0.5"><img class="size-full object-contain" src={c.logo_url} alt="" loading="lazy" /></span>
-                  {:else}
-                    <span class="grid size-7 shrink-0 place-items-center rounded-md bg-surface-2"><Flag code={c.flag} size={18} /></span>
-                  {/if}
-                  <span class="min-w-0 flex-1 truncate font-semibold">{app.lang === "fr" ? c.name_fr : c.name_en}</span>
-                  <span class="shrink-0 text-xs text-muted">{countries.find((x) => x.code === c.country_code)?.name ?? c.country_code}</span>
-                </a>
-              </li>
-            {/each}
-          </ul>
-        </section>
-      {/if}
-
-      <section class="card overflow-hidden" aria-labelledby="feat-clubs">
-        <div class="flex items-center justify-between border-b border-line px-4 py-2.5">
-          <h2 id="feat-clubs" class="text-sm font-bold">{t("featuredClubs")}</h2>
-          <a class="link inline-flex min-h-11 items-center text-xs sm:min-h-0" href={href("clubs")}>{t("allClubs")} →</a>
+    {#if follows.items.length}
+      <section class="mt-6" aria-labelledby="my-follows">
+        <div class="flex items-baseline justify-between">
+          <h2 id="my-follows" class="text-xl font-bold">{t("followsMine")}</h2>
+          <a class="link inline-flex min-h-11 items-center text-sm" href={href("follows")}>{t("seeAll")} →</a>
         </div>
-        <ul class="divide-y divide-line/60">
+        <ul class="-mx-4 mt-1 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
+          {#each follows.items.slice(0, 8) as f (f.kind + f.id)}
+            <li class="snap-start max-lg:w-40 max-lg:shrink-0">
+              <a class="flex h-full flex-col gap-3 rounded-2xl border border-line bg-surface p-3.5 no-underline transition hover:border-accent active:scale-[0.98]" href={`#/${app.lang}/${f.path}`}>
+                <FollowAvatar {f} size={44} />
+                <span class="min-w-0"><span class="block truncate font-semibold leading-tight">{f.label}</span>{#if f.sub}<span class="block truncate text-xs text-muted">{f.sub}</span>{/if}</span>
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
+
+    {#if featuredComps.length}
+      <section class="mt-7" aria-labelledby="feat-comps">
+        <div class="flex items-baseline justify-between">
+          <h2 id="feat-comps" class="text-xl font-bold">{t("featuredComps")}</h2>
+          <a class="link inline-flex min-h-11 items-center text-sm" href={href("competitions")}>{t("allComps")} →</a>
+        </div>
+        <ul class="-mx-4 mt-1 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:flex-wrap lg:px-0">
+          {#each featuredComps as c (c.code)}
+            <li class="shrink-0">
+              <a class="flex h-11 items-center gap-2.5 rounded-full border border-line bg-surface pl-2 pr-4 text-sm font-semibold no-underline transition hover:border-accent hover:bg-surface-2" href={href("competition", c.code)}>
+                {#if c.logo_url}<span class="block size-7 overflow-hidden rounded-full bg-white p-0.5"><img class="size-full object-contain" src={c.logo_url} alt="" loading="lazy" /></span>
+                {:else}<span class="grid size-7 place-items-center rounded-full bg-surface-2"><Flag code={c.flag} size={16} /></span>{/if}
+                {app.lang === "fr" ? c.name_fr : c.name_en}
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
+
+    <div class="mt-7 grid gap-x-8 gap-y-7 lg:grid-cols-2">
+      <section aria-labelledby="feat-clubs">
+        <div class="flex items-baseline justify-between">
+          <h2 id="feat-clubs" class="text-xl font-bold">{t("featuredClubs")}</h2>
+          <a class="link inline-flex min-h-11 items-center text-sm" href={href("explore")}>{t("allClubs")} →</a>
+        </div>
+        <ul class="card mt-1 divide-y divide-line/60 overflow-hidden">
           {#each data.data.clubs.slice(0, 8) as x (x.wikipedia_title)}
             <li>
-              <a class="flex items-center gap-3 px-4 py-2 text-sm no-underline transition hover:bg-surface-2" href={href("club", enc(x.wikipedia_title), seasonSlug(x.season))}>
-                <Logo club={x} size={26} />
+              <a class="row" href={href("club", enc(x.wikipedia_title), seasonSlug(x.season))}>
+                <Logo club={x} size={32} />
                 <span class="min-w-0 flex-1 truncate font-semibold">{clubName(x)}</span>
                 <span class="shrink-0 text-xs tabular-nums text-muted">{x.season}</span>
+                <span class="shrink-0 text-muted" aria-hidden="true">›</span>
+              </a>
+            </li>
+          {/each}
+        </ul>
+      </section>
+
+      <section aria-labelledby="by-country">
+        <div class="flex items-baseline justify-between">
+          <h2 id="by-country" class="text-xl font-bold">{t("byCountry")}</h2>
+          <a class="link inline-flex min-h-11 items-center text-sm" href={href("explore") + "?v=countries"}>{t("seeAll")} →</a>
+        </div>
+        <ul class="card mt-1 divide-y divide-line/60 overflow-hidden">
+          {#each topCountries.slice(0, 8) as c (c.code)}
+            <li>
+              <a class="row" href={href("country", c.code)}>
+                <Flag code={areaFlag(c.code) ?? c.flag} label={c.name} size={24} />
+                <span class="min-w-0 flex-1 truncate font-semibold">{c.name}</span>
+                <span class="shrink-0 text-xs tabular-nums text-muted">{c.clubs || ""}</span>
+                <span class="shrink-0 text-muted" aria-hidden="true">›</span>
               </a>
             </li>
           {/each}
@@ -157,36 +162,10 @@
       </section>
     </div>
 
-    <section class="card mt-4 overflow-hidden" aria-labelledby="by-country">
-      <div class="flex items-baseline justify-between gap-3 border-b border-line px-4 py-2.5">
-        <h2 id="by-country" class="text-sm font-bold">{t("byCountry")}</h2>
-        <span class="text-xs text-muted">{t("topCountries")}</span>
-      </div>
-      {#snippet row(c: (typeof countries)[number])}
-        <li>
-          <a class="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm no-underline transition hover:bg-surface-2" href={href("country", c.code)}>
-            <Flag code={areaFlag(c.code) ?? c.flag} label={c.name} size={20} />
-            <span class="min-w-0 flex-1 truncate font-medium">{c.name}</span>
-            <span class="shrink-0 text-xs tabular-nums text-muted">{c.clubs || ""}</span>
-          </a>
-        </li>
-      {/snippet}
-      <ul class="grid gap-x-2 gap-y-0.5 p-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {#each topCountries as c (c.code)}{@render row(c)}{/each}
-      </ul>
-      {#if otherCountries.length}
-        <div class="border-t border-line">
-          <button type="button" class="flex w-full items-center justify-between px-4 py-2.5 text-sm font-semibold transition hover:bg-surface-2" aria-expanded={showAll} aria-controls="other-countries" onclick={() => (showAll = !showAll)}>
-            <span>{showAll ? t("fewerCountries") : t("moreCountries")} <span class="font-normal tabular-nums text-muted">· {otherCountries.length}</span></span>
-            <span class="text-muted transition {showAll ? 'rotate-90' : ''}" aria-hidden="true">›</span>
-          </button>
-          {#if showAll}
-            <ul id="other-countries" class="grid gap-x-2 gap-y-0.5 border-t border-line p-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {#each otherCountries as c (c.code)}{@render row(c)}{/each}
-            </ul>
-          {/if}
-        </div>
-      {/if}
-    </section>
+    <dl class="mt-8 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-5 text-sm text-muted">
+      {#each [[nf(data.data.stats.players), t("statPlayers")], [nf(data.data.stats.clubs), t("statClubs")], [seasonsN, t("statSeasons")], [countries.length, t("countries").toLowerCase()]] as [n, label]}
+        <div class="flex items-baseline gap-1.5"><dd class="display text-xl font-bold tabular-nums text-fg">{n}</dd><dt>{label}</dt></div>
+      {/each}
+    </dl>
   {/if}
 </div>

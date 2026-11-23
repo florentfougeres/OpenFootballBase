@@ -10,8 +10,8 @@
   const switchHref = $derived(`#/${other}/${route.parts.map(encodeURIComponent).join("/")}`);
   const current = $derived(route.parts[0] ?? "home");
   const GROUPS: Record<string, string[]> = {
-    home: ["home"], explore: ["explore", "clubs", "club", "players", "player", "country"], competitions: ["competitions", "competition"],
-    follows: ["follows"], "ballon-dor": ["ballon-dor"], coverage: ["coverage"], about: ["about"],
+    home: ["home"], explore: ["explore", "clubs", "club", "players", "player", "country"], competitions: ["competitions", "competition", "ballon-dor"],
+    follows: ["follows"], coverage: ["coverage"], about: ["about"],
   };
   const on = (k: string) => GROUPS[k]?.includes(current) ?? false;
   const main = $derived([
@@ -21,7 +21,7 @@
     { k: "follows", label: t("follows"), to: href("follows"), d: "M6.5 3.5h11v17L12 16.8l-5.5 3.7z" },
   ]);
   const more = $derived([
-    { k: "ballon-dor", label: t("balloon"), to: href("ballon-dor") }, { k: "coverage", label: t("coverage"), to: href("coverage") }, { k: "about", label: t("about"), to: href("about") },
+    { k: "coverage", label: t("coverage"), to: href("coverage") }, { k: "about", label: t("about"), to: href("about") },
   ]);
   const KIND = { club: "M12 3 5 5.5V11c0 4.2 2.8 7.4 7 9 4.2-1.6 7-4.8 7-9V5.5z", player: "M12 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 20c.7-3.6 3.3-5.5 7-5.5s6.3 1.9 7 5.5", comp: "M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8.5 20h7" } as const;
   const link = "flex min-h-11 items-center gap-3 rounded-xl px-3 text-[0.95rem] font-semibold no-underline transition";
