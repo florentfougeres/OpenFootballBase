@@ -5,6 +5,7 @@
   import Logo from "./Logo.svelte";
   import Flag from "./Flag.svelte";
   import Spinner from "./Spinner.svelte";
+  import { STYLE, isDark, loadMapLibre, watchTheme } from "../lib/maplib";
 
   // Carte d'Explorer : les pays (cercle = nombre de clubs) ou les clubs (regroupés, puis écussons), sur un fond de carte CARTO clair (Positron) ou sombre (Dark Matter) selon le thème.
   // Le zoom descend jusqu'à une région, jamais jusqu'à la rue ; là où des clubs se recouvrent encore, un groupe s'ouvre en liste. Les repères sont de vrais liens et boutons (clavier, lecteur d'écran).
@@ -15,8 +16,6 @@
   const CLUSTER_MAX_ZOOM = 7;                           // au-delà, plus aucun groupe : chaque club a son repère
   const CREST_ZOOM = 5.5;                               // à partir de là, un club isolé s'affiche avec son écusson
   const NATIONS = ["ENG", "SCO", "WAL", "NIR"];        // le fond de pays n'a qu'un Royaume-Uni (GBR) : un tap sur lui propose les quatre nations
-  const BASE = "https://basemaps.cartocdn.com/gl/";
-  const STYLE = { light: BASE + "positron-gl-style/style.json", dark: BASE + "dark-matter-gl-style/style.json" };
 
   let host: HTMLDivElement | undefined = $state();
   let phase = $state<"loading" | "ready" | "error">("loading");
@@ -34,9 +33,6 @@
 
   const css = (v: string) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-  /** Thème sombre : forcé (`data-theme`) ou, à défaut, celui du système (l'app est sombre sauf demande contraire). */
-  const isDark = () => { const th = document.documentElement.dataset.theme; return th === "dark" || (th !== "light" && !matchMedia("(prefers-color-scheme: light)").matches); };
-
   const BUBBLE = "grid place-items-center rounded-full border-2 border-white bg-accent font-bold tabular-nums text-accent-fg shadow-md transition active:scale-95 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg";
 
   $effect(() => {
@@ -51,17 +47,13 @@
 
     (async () => {
       try {
-        const [ml, worker, SC, geo] = await Promise.all([
-          import("maplibre-gl"),
-          import("maplibre-gl/dist/maplibre-gl-worker.mjs?raw"),          // le worker (un fichier autonome) est lancé depuis un blob : même chemin en développement et en production, la CSP autorise `worker-src blob:`
+        const [maplibre, SC, geo] = await Promise.all([
+          loadMapLibre(),
           import("supercluster"),
           wanted === "countries" ? fetch(new URL(import.meta.env.BASE_URL + "geo/countries.json", location.href)).then((r) => r.json()) : Promise.resolve(null),
-          import("maplibre-gl/dist/maplibre-gl.css"),
         ]);
         if (off) return;
-        const maplibre = (ml as any).default ?? ml;
         const Supercluster = (SC as any).default ?? SC;
-        maplibre.setWorkerUrl(URL.createObjectURL(new Blob([worker.default], { type: "text/javascript" })));
 
         let dark = isDark();
         map = new maplibre.Map({
@@ -104,11 +96,7 @@
           dark = d;
           map.setStyle(d ? STYLE.dark : STYLE.light);
         };
-        const mo = new MutationObserver(applyTheme);
-        mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-        const mq = matchMedia("(prefers-color-scheme: dark)");
-        mq.addEventListener("change", applyTheme);
-        cleanups.push(() => { mo.disconnect(); mq.removeEventListener("change", applyTheme); });
+        cleanups.push(watchTheme(applyTheme));
 
         // Les repères grossissent avec le zoom (cercles de pays) : petits sur la carte du monde où l'Europe est dense, pleins à l'échelle d'un pays.
         const scale = () => el.style.setProperty("--k", String(Math.max(0.5, Math.min(1, 0.5 + (map.getZoom() - 1) * 0.2))));
@@ -234,7 +222,7 @@
 </script>
 
 <div class="relative mt-4 overflow-hidden rounded-2xl border border-line bg-surface-2" role="region" aria-label={mode === "clubs" ? t("mapClubs") : t("mapCountries")}>
-  <div bind:this={host} class="map h-[max(20rem,calc(100dvh-19rem))] w-full sm:h-[min(68dvh,46rem)]"></div>
+  <div bind:this={host} class="map map-themed h-[max(20rem,calc(100dvh-19rem))] w-full sm:h-[min(68dvh,46rem)]"></div>
   {#if phase === "loading"}<div class="absolute inset-0 grid place-items-center bg-surface-2"><Spinner /></div>{/if}
   {#if phase === "error"}<p class="absolute inset-0 grid place-items-center p-6 text-center text-sm text-muted">{t("mapError")}</p>{/if}
   {#if phase === "ready"}
@@ -262,16 +250,6 @@
 </Sheet>
 
 <style>
-  /* Commandes de zoom au thème de l'app, avec une cible tactile de 44 px. */
-  .map :global(.maplibregl-ctrl-group) { background: var(--surface); border: 1px solid var(--line); border-radius: 0.75rem; box-shadow: none; overflow: hidden; }
-  .map :global(.maplibregl-ctrl-group button) { width: 44px; height: 44px; }
-  .map :global(.maplibregl-ctrl-group button + button) { border-top: 1px solid var(--line); }
-  :global(:root:not([data-theme="light"])) .map :global(.maplibregl-ctrl-icon) { filter: invert(1); }
-  @media (prefers-color-scheme: light) { :global(:root:not([data-theme="dark"])) .map :global(.maplibregl-ctrl-icon) { filter: none; } }
-  :global(:root[data-theme="light"]) .map :global(.maplibregl-ctrl-icon) { filter: none; }
-  .map :global(.maplibregl-ctrl-attrib) { background: var(--surface); color: var(--muted); font-size: 10px; border-radius: 0.5rem 0 0 0; }
-  .map :global(.maplibregl-ctrl-attrib a) { color: var(--muted); }
-  .map :global(.maplibregl-canvas) { outline: none; }
   /* Point ou écusson selon le zoom (l'attribut est posé par le composant) ; le repère survolé passe devant les autres. */
   :global(.map[data-crest="1"] .club-dot), :global(.map[data-crest="0"] .club-crest) { display: none; }
   .map :global(.maplibregl-marker:hover), .map :global(.maplibregl-marker:focus-within) { z-index: 5; }

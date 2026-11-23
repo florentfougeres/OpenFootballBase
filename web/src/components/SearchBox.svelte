@@ -67,19 +67,19 @@
   }
   $effect(() => { active; open && document.getElementById(idOf(active))?.scrollIntoView({ block: "nearest" }); });
 
-  const panel = $derived(variant === "overlay" ? "relative mt-3 !border-0 !shadow-none" : "absolute top-full z-40 mt-1.5 " + (variant === "header" ? "right-0 w-[min(34rem,92vw)]" : "left-0 right-0"));
+  const panel = $derived(variant === "overlay" ? "relative mt-3 !border-0 !shadow-none max-lg:col-span-2 max-lg:row-start-2" : "absolute top-full z-40 mt-1.5 " + (variant === "header" ? "right-0 w-[min(34rem,92vw)]" : "left-0 right-0"));
   const maxH = $derived(variant === "overlay" ? "max-h-[calc(100dvh-8.5rem)] lg:max-h-[min(30rem,60vh)]" : variant === "bar" ? "max-h-[46vh]" : "max-h-[min(34rem,70vh)]");
 </script>
 
-<div bind:this={root} class="relative {variant === 'hero' ? 'w-full max-w-3xl' : variant === 'bar' || variant === 'overlay' ? 'w-full' : 'hidden lg:block'}"
+<div bind:this={root} class="relative {variant === 'hero' ? 'w-full max-w-3xl' : variant === 'bar' ? 'w-full' : variant === 'overlay' ? 'w-full max-lg:contents' : 'hidden lg:block'}"
   onfocusout={(e) => { if (!root?.contains(e.relatedTarget as Node)) close(); }}>
-  <label class="relative block">
+  <label class="relative block {variant === 'overlay' ? 'max-lg:col-start-1 max-lg:row-start-1' : ''}">
     <span class="sr-only">{t("searchTrigger")}</span>
     <svg viewBox="0 0 24 24" class="pointer-events-none absolute left-3 top-1/2 {variant === 'hero' || variant === 'overlay' ? 'size-5' : 'size-4'} -translate-y-1/2 text-muted" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
     <input bind:this={field} bind:value={input} onfocus={show} oninput={show} onkeydown={onKey} type="text" role="combobox" aria-expanded={open} aria-controls={`sb-list-${uid}`} aria-autocomplete="list"
       aria-activedescendant={open && (flat.length || (term.length < 2 && recent.length)) ? idOf(active) : undefined}
       placeholder={variant === "header" ? `${t("searchTrigger")}…` : t("spPlaceholder")} autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
-      class="w-full rounded-lg border border-line bg-surface pl-9 pr-16 text-fg outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40
+      class="w-full rounded-lg border border-line bg-surface pl-9 pr-16 text-fg outline-none transition text-ellipsis placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/40
         {variant === 'hero' || variant === 'overlay' ? 'h-12 bg-bg pl-11 text-base' : 'h-9 text-sm'} {variant === 'header' ? 'w-40 xl:w-52 2xl:w-64 2xl:focus:w-80' : ''}" />
     <span class="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
       {#if busy}<span class="size-4 animate-spin rounded-full border-2 border-line border-t-accent" aria-hidden="true"></span>{/if}

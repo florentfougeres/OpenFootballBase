@@ -16,6 +16,7 @@
   import Logo from "../components/Logo.svelte";
   import Spinner from "../components/Spinner.svelte";
   import WikiButton from "../components/WikiButton.svelte";
+  import ClubMap from "../components/ClubMap.svelte";
   import ErrorBox from "../components/ErrorBox.svelte";
 
   // Une seule page pour le club et son effectif : sans `slug`, la saison la plus récente qui a un effectif ; avec, celle de l'adresse.
@@ -53,11 +54,12 @@
   // Entraîneurs : les mandats publiés (Wikidata), le plus récent d'abord ; un entraîneur qui a aussi été joueur dans notre base mène à sa fiche.
   const coaches = resource(async () => {
     const tt = title;
-    if (!tt || !app.has.coach) return [] as { qid: string; name: string; from: number; to: number | null; player: boolean }[];
-    const rows = await q(`SELECT coach_qid, coach_name, CAST(start_date AS VARCHAR) AS s, CAST(end_date AS VARCHAR) AS e FROM coach WHERE club = ? ORDER BY start_date DESC`, [tt]);
+    if (!tt || !app.has.coach) return [] as { qid: string; name: string; from: number; to: number | null; player: boolean; flag: string | null }[];
+    // `flag` (drapeau du pays de l'entraîneur) n'existe que dans les releases récentes : on lit toutes les colonnes sans la nommer.
+    const rows = await q(`SELECT *, CAST(start_date AS VARCHAR) AS s, CAST(end_date AS VARCHAR) AS e FROM coach WHERE club = ? ORDER BY start_date DESC`, [tt]);
     const ids = [...new Set(rows.map((r) => r.coach_qid as string))];
     const players = ids.length && app.has.career ? new Set((await q(`SELECT DISTINCT player_qid FROM career WHERE player_qid IN (${ids.map(() => "?").join(",")})`, ids)).map((r) => r.player_qid as string)) : new Set<string>();
-    return rows.map((r) => ({ qid: r.coach_qid as string, name: r.coach_name as string, from: Number(String(r.s).slice(0, 4)), to: r.e ? Number(String(r.e).slice(0, 4)) : null, player: players.has(r.coach_qid as string) }));
+    return rows.map((r) => ({ qid: r.coach_qid as string, name: r.coach_name as string, from: Number(String(r.s).slice(0, 4)), to: r.e ? Number(String(r.e).slice(0, 4)) : null, player: players.has(r.coach_qid as string), flag: (r.flag as string | null) ?? null }));
   });
   const title = $derived(d?.ours?.wikipedia_title as string | undefined);
   const iso = $derived(d?.w?.country_iso ? String(d.w.country_iso).toLowerCase() : null);
@@ -108,10 +110,10 @@
   const partial = $derived(!!squad?.rows.length && squad.rows.filter((r: Row) => r.confidence === "inferred").length * 2 > squad.rows.length);
 
   // Mouvements : on compare l'effectif de la saison à celui de la précédente (aucun tableau de transferts requis).
-  // Quatre vues : Aperçu (la fiche du club), Effectif et Mouvements (une saison, arrivées et départs) et Palmarès. L'onglet est dans l'adresse (`?tab=`) : partageable, et le retour du navigateur le restitue.
+  // Cinq vues : Aperçu (la fiche du club), Effectif et Mouvements (une saison, arrivées et départs), Entraîneurs et Palmarès. L'onglet est dans l'adresse (`?tab=`) : partageable, et le retour du navigateur le restitue.
   // Sans `?tab=` : l'effectif quand l'adresse porte une saison (on vient d'un classement ou d'une liste de la saison), sinon l'aperçu (on vient voir le club).
-  type Tab = "overview" | "squad" | "moves" | "honours";
-  const tabs = $derived<Tab[]>(["overview", ...(d?.ours ? (["squad", "moves"] as Tab[]) : []), ...(honours.loading || honours.data?.length ? (["honours"] as Tab[]) : [])]);
+  type Tab = "overview" | "squad" | "moves" | "coaches" | "honours";
+  const tabs = $derived<Tab[]>(["overview", ...(d?.ours ? (["squad", "moves"] as Tab[]) : []), ...(coaches.loading || coaches.data?.length ? (["coaches"] as Tab[]) : []), ...(honours.loading || honours.data?.length ? (["honours"] as Tab[]) : [])]);
   const tab = $derived.by<Tab>(() => {
     const want = route.query.get("tab") as Tab | null;
     if (want && tabs.includes(want)) return want;
@@ -255,7 +257,7 @@
   <div class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 -mx-4 mt-3 border-b border-line/60 bg-bg/95 px-4 py-2 backdrop-blur lg:top-0 lg:mx-0 lg:px-0">
     {#if tabs.length > 1}
       <Segmented label={t("clubViews")} idPrefix="ctab" value={tab} onselect={setTab} class="max-sm:w-full"
-        items={tabs.map((v) => ({ key: v, label: t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : v === "moves" ? "mvTab" : "honours") }))} />
+        items={tabs.map((v) => ({ key: v, label: t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : v === "moves" ? "mvTab" : v === "coaches" ? "coaches" : "honours") }))} />
     {/if}
     {#if (tab === "squad" || tab === "moves") && d.ours && seasonList.length}
       <div class="mt-2 flex items-center gap-2">
@@ -523,6 +525,25 @@
       {/if}
       
       </div>
+    {:else if tab === "coaches"}
+      {#if coaches.data?.length}
+      <div class="max-w-2xl">
+        <h2 class="mb-2 text-xl font-bold">{t("coaches")}</h2>
+        <div class="card mb-6 px-4 py-3">
+          <ul class="divide-y divide-line/60">
+            {#each coaches.data as k, i (i)}          <!-- clé = rang : un même entraîneur peut avoir deux mandats qui commencent la même année -->
+
+              <li class="flex items-center gap-3 py-2">
+                {#if k.flag}<Flag code={k.flag} size={16} />{/if}
+                <a class="min-w-0 flex-1 truncate font-medium hover:text-accent hover:underline" href={href("coach", enc(k.qid))}>{k.name}</a>
+                <span class="shrink-0 text-sm tabular-nums text-muted">{k.to === k.from ? k.from : `${k.from}–${k.to ?? ""}`}{#if k.to === null}<span class="sr-only"> {t("coachesNow")}</span>{/if}</span>
+              </li>
+            {/each}
+          </ul>
+          <p class="border-t border-line pt-2 text-xs text-muted">{t("coachesNote")}</p>
+        </div>
+      </div>
+      {:else}<Spinner />{/if}
     {:else if tab === "overview"}
       <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
         <div class="min-w-0">
@@ -549,32 +570,8 @@
     
         </div>
         <div class="min-w-0">
-          {#if coaches.data?.length}
-        <h2 class="mb-2 text-xl font-bold">{t("coaches")}</h2>
-        <div class="card mb-6 px-4 py-3">
-          <ul class="divide-y divide-line/60">
-            {#each coaches.data.slice(0, 8) as k (k.qid + k.from)}
-              <li class="flex items-baseline justify-between gap-3 py-2">
-                {#if k.player}<a class="min-w-0 truncate font-medium hover:text-accent hover:underline" href={href("player", enc(k.qid))}>{k.name}</a>{:else}<span class="min-w-0 truncate font-medium">{k.name}</span>{/if}
-                <span class="shrink-0 text-sm tabular-nums text-muted">{k.to === k.from ? k.from : `${k.from}–${k.to ?? ""}`}{#if k.to === null}<span class="sr-only"> {t("coachesNow")}</span>{/if}</span>
-              </li>
-            {/each}
-          </ul>
-          {#if coaches.data.length > 8}
-            <details class="group border-t border-line pt-2">
-              <summary class="cursor-pointer list-none text-sm font-semibold text-accent [&::-webkit-details-marker]:hidden">{t("coachesAll")} ({coaches.data.length})</summary>
-              <ul class="mt-1 divide-y divide-line/60">
-                {#each coaches.data.slice(8) as k (k.qid + k.from)}
-                  <li class="flex items-baseline justify-between gap-3 py-2">
-                    {#if k.player}<a class="min-w-0 truncate font-medium hover:text-accent hover:underline" href={href("player", enc(k.qid))}>{k.name}</a>{:else}<span class="min-w-0 truncate font-medium">{k.name}</span>{/if}
-                    <span class="shrink-0 text-sm tabular-nums text-muted">{k.to === k.from ? k.from : `${k.from}–${k.to ?? ""}`}</span>
-                  </li>
-                {/each}
-              </ul>
-            </details>
-          {/if}
-          <p class="border-t border-line pt-2 text-xs text-muted">{t("coachesNote")}</p>
-        </div>
+          {#if d.w?.lat != null && d.w?.lon != null}
+        <div><ClubMap lat={d.w.lat} lon={d.w.lon} name={name} logo={d.w.logo_url} color={d.w.colors_hex} /></div>
       {/if}
       
         </div>

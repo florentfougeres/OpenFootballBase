@@ -21,9 +21,9 @@
     <!-- Voile (grand écran) : un clic à côté ferme -->
     <button type="button" class="fade absolute inset-0 hidden cursor-default bg-black/55 backdrop-blur-[2px] lg:block" aria-label={t("close")} tabindex="-1" onclick={close}></button>
     <div class="panel relative flex min-h-0 w-full flex-1 flex-col px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] lg:max-w-2xl lg:flex-none lg:rounded-2xl lg:border lg:border-line lg:bg-surface lg:p-3 lg:shadow-2xl">
-      <div class="flex items-center gap-2">
-        <div class="min-w-0 flex-1"><SearchBox variant="overlay" autofocus onclose={close} /></div>
-        <button type="button" class="min-h-11 shrink-0 rounded-xl px-3 text-sm font-semibold text-accent lg:hidden" onclick={close}>{t("cancel")}</button>
+      <div class="grid min-h-0 grid-cols-[minmax(0,1fr)_auto] content-start items-center gap-x-1 max-lg:flex-1 lg:block">
+        <SearchBox variant="overlay" autofocus onclose={close} />
+        <button type="button" class="col-start-2 row-start-1 min-h-11 shrink-0 rounded-xl px-3 text-sm font-semibold text-accent lg:hidden" onclick={close}>{t("cancel")}</button>
       </div>
     </div>
   </div>

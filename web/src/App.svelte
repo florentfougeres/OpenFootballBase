@@ -22,6 +22,7 @@
   import Home from "./routes/Home.svelte";
   import OfCompetition from "./routes/OfCompetition.svelte";
   import Player from "./routes/Player.svelte";
+  import Coach from "./routes/Coach.svelte";
   import Players from "./routes/Players.svelte";
   import Explore from "./routes/Explore.svelte";
   import Follows from "./routes/Follows.svelte";
@@ -105,6 +106,8 @@
         <Players />
       {:else if head === "player"}
         <Player key={route.parts[1]} />
+      {:else if head === "coach"}
+        <Coach qid={route.parts[1]} />
       {:else if head === "coverage"}
         <Coverage slug={route.parts[1]} />
       {:else if head === "ballon-dor"}
