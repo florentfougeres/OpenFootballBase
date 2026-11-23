@@ -19,11 +19,11 @@
   }
 </script>
 
-<div class="flex rounded-xl border border-line bg-surface p-0.5 max-sm:overflow-x-auto max-sm:[scrollbar-width:none] max-sm:[&::-webkit-scrollbar]:hidden sm:inline-flex {cls}" role={tabs ? "tablist" : "group"} aria-label={label}>
+<div class="inline-flex max-w-full overflow-x-auto rounded-xl border border-line bg-surface p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden {cls}" role={tabs ? "tablist" : "group"} aria-label={label}>
   {#each items as it (it.key)}
     <button type="button" id="{idPrefix}-{it.key}" role={tabs ? "tab" : undefined} aria-selected={tabs ? value === it.key : undefined} aria-pressed={tabs ? undefined : value === it.key}
       tabindex={tabs && value !== it.key ? -1 : 0} onkeydown={onKey}
-      class="min-h-10 min-w-fit flex-1 whitespace-nowrap rounded-[0.6rem] px-2.5 text-sm font-semibold transition sm:min-h-9 sm:flex-none sm:px-4 {value === it.key ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg active:bg-surface-2'}"
+      class="min-h-10 min-w-fit whitespace-nowrap rounded-[0.6rem] px-2.5 text-sm font-semibold transition sm:min-h-9 sm:flex-none sm:px-4 {value === it.key ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg active:bg-surface-2'}"
       onclick={() => onselect(it.key)}>{it.label}</button>
   {/each}
 </div>

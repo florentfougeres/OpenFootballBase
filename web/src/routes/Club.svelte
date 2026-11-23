@@ -267,7 +267,7 @@
   <!-- Une seule barre collante : les onglets, puis (Effectif, Mouvements) la saison et, pour les joueurs, les filtres et l'affichage. -->
   <div class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 -mx-4 mt-3 border-b border-line/60 bg-bg/95 px-4 py-2 backdrop-blur lg:top-0 lg:mx-0 lg:px-0">
     {#if tabs.length > 1}
-      <Segmented label={t("clubViews")} idPrefix="ctab" value={tab} onselect={setTab} class="max-sm:w-full"
+      <Segmented label={t("clubViews")} idPrefix="ctab" value={tab} onselect={setTab}
         items={tabs.map((v) => ({ key: v, label: t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : v === "moves" ? "mvTab" : v === "coaches" ? "coaches" : "honours") }))} />
     {/if}
     {#if (tab === "squad" || tab === "moves") && d.ours && seasonList.length}

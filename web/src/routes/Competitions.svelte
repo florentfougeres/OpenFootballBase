@@ -10,6 +10,7 @@
   import Crumbs from "../components/Crumbs.svelte";
   import CompetitionCard from "../components/CompetitionCard.svelte";
   import Icon, { type IconName } from "../components/Icon.svelte";
+  import Segmented from "../components/Segmented.svelte";
   import Spinner from "../components/Spinner.svelte";
   import ErrorBox from "../components/ErrorBox.svelte";
 
@@ -93,12 +94,8 @@
 </a>
 
 <!-- Sur téléphone les filtres tiennent sur deux lignes : le sélecteur pleine largeur, puis les confédérations sur UNE ligne qui défile (elles retournent à la ligne dès « md »). -->
-<div class="mt-4 flex rounded-lg border border-line bg-surface p-0.5 sm:mt-6 sm:inline-flex" role="tablist" aria-label={t("compKinds")}>
-  {#each [["clubs", "shield", "compClubs"], ["national", "flag", "compNational"]] as [v, icon, key]}
-    <button type="button" role="tab" aria-selected={view === v} class="flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold transition sm:flex-none sm:px-4 {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
-      onclick={() => (view = v as typeof view)}><Icon name={icon as IconName} size={16} />{t(key)}</button>
-  {/each}
-</div>
+<Segmented class="mt-4 sm:mt-6" label={t("compKinds")} idPrefix="ck" value={view} onselect={(v) => (view = v as typeof view)}
+  items={[{ key: "clubs", label: t("compClubs") }, { key: "national", label: t("compNational") }]} />
 
 {#if latest.error}
   <div class="mt-6"><ErrorBox message={latest.error} /></div>

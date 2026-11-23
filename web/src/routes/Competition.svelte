@@ -7,6 +7,7 @@
   import Flag from "../components/Flag.svelte";
   import FollowButton from "../components/FollowButton.svelte";
   import Logo from "../components/Logo.svelte";
+  import Segmented from "../components/Segmented.svelte";
   import Spinner from "../components/Spinner.svelte";
   import Trophy from "../components/Trophy.svelte";
     import Badge from "../components/Badge.svelte";
@@ -81,12 +82,8 @@
   </header>
 
   {#if views.length > 1}
-    <div class="mt-6 inline-flex rounded-lg border border-line bg-surface p-0.5" role="tablist" aria-label={t("compView")}>
-      {#each views.map((x) => [x, TAB_KEY[x]]) as [v, k]}
-        <button type="button" role="tab" aria-selected={view === v} class="flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-semibold transition {view === v ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg'}"
-          onclick={() => (chosen = v as typeof view)}>{#if v === "honours"}<Trophy size={15} />{/if}{t(k)}</button>
-      {/each}
-    </div>
+    <Segmented class="mt-6" label={t("compView")} idPrefix="cv" value={view} onselect={(v) => (chosen = v as typeof view)}
+      items={views.map((x) => ({ key: x as string, label: t(TAB_KEY[x]) }))} />
   {/if}
 
   {#if seasons.loading && !seasons.data}
