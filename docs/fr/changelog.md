@@ -9,6 +9,7 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 ## Site et outils
 
 ### 2026-11-23
+- **Les cartes des clubs de la saison ont toutes la même hauteur** sur la page championnat : un nom long (« Borussia Mönchengladbach ») qui passe sur deux lignes ne rend plus sa carte plus haute que les autres.
 - **Le bouton de recherche mobile est centré dans la barre du bas** (il dépassait au-dessus de la pilule).
 - **La même barre d'onglets partout.** Club, joueur, compétition (Saison / Résultats / Palmarès) et Compétitions (Clubs / Équipes nationales) utilisent le même composant `Segmented` : sur téléphone, des onglets à la largeur de leur contenu au lieu d'une barre pleine largeur sur les fiches club et joueur, et la barre défile sur le côté quand elle ne tient pas (cinq onglets sur un club).
 - **Entraîneurs des clubs complétés par l'infobox des entraîneurs.** Wikidata ne liste qu'une partie des entraîneurs principaux sur la page d'un club (Manchester City en montrait quatre, rien entre 2013 et 2016). L'onglet Entraîneurs ajoute les entraîneurs dont l'infobox Wikipedia (« Teams managed ») cite le club, postes d'adjoint exclus, pour ceux que Wikidata ne donne pas déjà pour ce club.

@@ -9,6 +9,7 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 ## Site and tooling
 
 ### 2026-11-23
+- **Season club cards all have the same height** on the competition page: a long name ("Borussia Mönchengladbach") that wraps no longer makes its card taller than the others.
 - **The mobile search button is centred in the bottom bar** (it used to stick out above the pill).
 - **The same tab bar everywhere.** Club, player, competition (Season / Results / Honours) and Competitions (Clubs / National teams) now use the one `Segmented` component: content-width pills on a phone instead of a full-width bar on club and player pages, and the bar scrolls sideways when it does not fit (five tabs on a club).
 - **Club coaches completed from the coaches' infoboxes.** Wikidata lists only some head coaches on a club's page (Manchester City showed four, nothing between 2013 and 2016). The Coaches tab now adds the coaches whose Wikipedia infobox ("Teams managed") names the club, assistant posts excluded, for those Wikidata does not already give for that club.

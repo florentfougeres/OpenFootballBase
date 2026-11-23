@@ -111,10 +111,10 @@
     {#if clubs.loading && !clubs.data}
       <Spinner />
     {:else if clubs.data}
-      <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 min-[1280px]:grid-cols-5">
+      <ul class="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 min-[1280px]:grid-cols-5">          <!-- auto-rows-fr : toutes les cartes à la même hauteur (« Borussia Mönchengladbach » passe sur deux lignes) -->
         {#each clubs.data as r (r.club)}
-          <li>
-            <a class="group flex items-center gap-3.5 rounded-xl border border-line bg-surface px-4 py-4 no-underline shadow-sm transition hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+          <li class="flex">
+            <a class="group flex w-full items-center gap-3.5 rounded-xl border border-line bg-surface px-4 py-4 no-underline shadow-sm transition hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
               href={href("club", enc(r.club), seasonSlug(label))}>
               <Logo club={r.c} size={48} />
               <span class="min-w-0 flex-1">
