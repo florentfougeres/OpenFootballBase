@@ -19,14 +19,15 @@ const DUCKDB = {
 // Politique de sécurité du site publié (GitHub Pages ne permet pas d'en-têtes HTTP : on passe par une balise <meta>).
 // Tout vient de la même origine (page, Parquet), sauf le moteur DuckDB-WASM (jsDelivr, avec empreinte vérifiée) les logos et les photos (Wikimedia ; les photos passent par `en.wikipedia.org/wiki/Special:FilePath`, qui redirige vers upload.wikimedia.org).
 // `style-src 'unsafe-inline'` : les attributs `style` de Svelte (largeurs de barres, couleurs de clubs). `wasm-unsafe-eval` : DuckDB-WASM.
+// Le fond de la carte d'Explorer (style, tuiles vectorielles, polices et pictogrammes) vient de CARTO (basemaps.cartocdn.com) : c'est le seul tiers qui reçoit l'adresse IP du visiteur, et seulement quand il ouvre la carte.
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'wasm-unsafe-eval'",
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://upload.wikimedia.org https://thumb.wikimedia.org https://commons.wikimedia.org https://en.wikipedia.org",
+  "img-src 'self' data: blob: https://basemaps.cartocdn.com https://tiles.basemaps.cartocdn.com https://upload.wikimedia.org https://thumb.wikimedia.org https://commons.wikimedia.org https://en.wikipedia.org",
   "font-src 'self'",
-  "connect-src 'self' blob: https://cdn.jsdelivr.net",
+  "connect-src 'self' blob: https://cdn.jsdelivr.net https://basemaps.cartocdn.com https://tiles.basemaps.cartocdn.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'none'",

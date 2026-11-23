@@ -27,6 +27,7 @@ There is no backend, no account, no user-generated content and no secret in the 
 
 - The query engine still comes from jsDelivr at run time (integrity-checked). Hosting it ourselves is possible but doubles the first-load download (see [website.md](website.md)).
 - Club logos and player photos are hotlinked from Wikimedia; visitors' browsers contact Wikimedia servers.
+- The Explore map's basemap (style, tiles, fonts) comes from CARTO (`basemaps.cartocdn.com`): a visitor who opens the map sends their IP address to CARTO. Nothing is requested before the map is opened.
 - The CSV export neutralises quotes and separators but not spreadsheet formulas (`=`, `+`, `-`, `@`) in names that come from Wikipedia.
 - Branch protection on `main` is not enabled (solo project); enable it if more people push.
 - Data is as reliable as Wikipedia: a vandalised page can briefly reach a squad. Revisions are recorded (`source_revid`) so a row can be traced.

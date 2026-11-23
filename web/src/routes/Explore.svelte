@@ -4,11 +4,24 @@
   import Players from "./Players.svelte";
   import Flag from "../components/Flag.svelte";
   import Segmented from "../components/Segmented.svelte";
+  import WorldMap from "../components/WorldMap.svelte";
 
   // « Explorer » : l'entrée unique pour parcourir les clubs, les joueurs et les pays. La vue est dans l'adresse (`?v=`).
   type V = "clubs" | "players" | "countries";
   const view = $derived<V>((["clubs", "players", "countries"] as const).find((v) => v === route.query.get("v")) ?? "clubs");
-  const go = (v: V) => { location.hash = `#/${route.lang}/explore${v === "clubs" ? "" : `?v=${v}`}`; };
+  // Affichage : liste ou carte (clubs et pays seulement), lui aussi dans l'adresse (`?m=map`).
+  const asMap = $derived(view !== "players" && route.query.get("m") === "map");
+  const go = (v: V) => {
+    const q = new URLSearchParams();
+    if (v !== "clubs") q.set("v", v);
+    if (v !== "players" && route.query.get("m") === "map") q.set("m", "map");
+    location.hash = `#/${route.lang}/explore${q.size ? `?${q}` : ""}`;
+  };
+  const setMode = (m: "list" | "map") => {
+    const q = new URLSearchParams(route.query);
+    if (m === "map") q.set("m", "map"); else q.delete("m");
+    location.hash = `#/${route.lang}/explore${q.size ? `?${q}` : ""}`;
+  };
 
   const countries = $derived.by(() => {
     const comps = [...app.comps.values()], clubs = [...app.clubs.values()];
@@ -18,12 +31,21 @@
   });
 </script>
 
-<h1 class="text-4xl font-extrabold leading-none tracking-tight sm:text-5xl">{t("explore")}</h1>
+<div class="flex items-center justify-between gap-3">
+  <h1 class="text-4xl font-extrabold leading-none tracking-tight sm:text-5xl">{t("explore")}</h1>
+  {#if view !== "players"}
+    <Segmented class="shrink-0" tabs={false} label={t("displayMode")} idPrefix="xm" value={asMap ? "map" : "list"} onselect={setMode}
+      items={[{ key: "list", label: t("listMode") }, { key: "map", label: t("mapMode") }]} />
+  {/if}
+</div>
 <Segmented class="mt-5" tabs={false} label={t("exploreViews")} idPrefix="xp" value={view} onselect={go}
   items={[{ key: "clubs", label: t("clubs") }, { key: "players", label: t("players") }, { key: "countries", label: t("countries") }]} />
 
+
 <div class="mt-2">
-  {#if view === "clubs"}
+  {#if asMap && app.ready}
+    {#key view}<WorldMap mode={view === "clubs" ? "clubs" : "countries"} />{/key}
+  {:else if view === "clubs"}
     <Clubs embedded />
   {:else if view === "players"}
     <Players embedded />

@@ -27,6 +27,7 @@ Il n'y a pas de serveur, pas de compte, pas de contenu produit par les visiteurs
 
 - Le moteur de requêtes vient encore de jsDelivr à l'exécution (avec contrôle d'intégrité). L'héberger nous-mêmes est possible mais double le téléchargement de la première visite (voir [website.md](website.md)).
 - Les logos de clubs et les photos de joueurs sont liés directement depuis Wikimedia ; les navigateurs des visiteurs contactent les serveurs de Wikimedia.
+- Le fond de la carte d'Explorer (style, tuiles, polices) vient de CARTO (`basemaps.cartocdn.com`) : un visiteur qui ouvre la carte envoie son adresse IP à CARTO. Rien n'est demandé avant l'ouverture de la carte.
 - L'export CSV neutralise guillemets et séparateurs mais pas les formules de tableur (`=`, `+`, `-`, `@`) dans les noms issus de Wikipedia.
 - La protection de la branche `main` n'est pas activée (projet à un seul mainteneur) ; à activer si plusieurs personnes poussent.
 - Les données valent ce que vaut Wikipedia : une page vandalisée peut brièvement atteindre un effectif. Les révisions sont enregistrées (`source_revid`) pour retracer une ligne.
