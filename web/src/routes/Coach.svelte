@@ -51,8 +51,11 @@
   const birthText = $derived.by(() => {
     const b = d?.birth ?? (d?.profile?.birth_date ? { birth_date: d.profile.birth_date, precision: "day" } : null);
     if (!b?.birth_date) return d?.profile?.birth_year ? String(d.profile.birth_year) : null;
-    const date = new Date(String(b.birth_date).slice(0, 10) + "T00:00:00");
-    return b.precision === "year" ? String(date.getFullYear()) : date.toLocaleDateString(app.lang, { day: "numeric", month: "long", year: "numeric" });
+    // `coach_profile.birth_date` est une DATE (nombre de ms pour DuckDB-WASM) ; `birth.birth_date` un texte AAAA-MM-JJ.
+    const raw = b.birth_date;
+    const date = typeof raw === "number" || raw instanceof Date ? new Date(raw) : new Date(String(raw).slice(0, 10) + "T00:00:00");
+    if (Number.isNaN(date.getTime())) return d?.profile?.birth_year ? String(d.profile.birth_year) : null;
+    return b.precision === "year" ? String(date.getFullYear()) : date.toLocaleDateString(app.lang, { day: "numeric", month: "long", year: "numeric", timeZone: typeof raw === "number" || raw instanceof Date ? "UTC" : undefined });
   });
   const place = $derived((d?.profile?.birth_place as string | undefined) ?? null);
 </script>
