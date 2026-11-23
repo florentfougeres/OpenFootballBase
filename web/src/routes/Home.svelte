@@ -69,6 +69,7 @@
     <span class="truncate">{t("spPlaceholder")}</span>
     <kbd class="ml-auto hidden rounded border border-line px-1.5 text-xs font-semibold lg:inline" aria-hidden="true">/</kbd>
   </button>
+  <p class="mt-3 max-w-2xl text-sm leading-snug text-muted">{t("heroLead")} <a class="link" href={href("about")}>{t("about")}</a></p>
 
   {#if urlTerm}
     <div class="mt-6 flex items-baseline justify-between gap-3">
