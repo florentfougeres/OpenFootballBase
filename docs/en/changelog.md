@@ -9,6 +9,7 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 ## Site and tooling
 
 ### 2026-11-23
+- **The mobile search button is centred in the bottom bar** (it used to stick out above the pill).
 - **The same tab bar everywhere.** Club, player, competition (Season / Results / Honours) and Competitions (Clubs / National teams) now use the one `Segmented` component: content-width pills on a phone instead of a full-width bar on club and player pages, and the bar scrolls sideways when it does not fit (five tabs on a club).
 - **Club coaches completed from the coaches' infoboxes.** Wikidata lists only some head coaches on a club's page (Manchester City showed four, nothing between 2013 and 2016). The Coaches tab now adds the coaches whose Wikipedia infobox ("Teams managed") names the club, assistant posts excluded, for those Wikidata does not already give for that club.
 - **The coach page shows the Wikipedia infobox career** (clubs and national teams, assistant roles included, with club crests and national-team flags) instead of only the Wikidata tenures of the clubs we cover; those remain as a fallback.

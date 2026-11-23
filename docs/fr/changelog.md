@@ -9,6 +9,7 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 ## Site et outils
 
 ### 2026-11-23
+- **Le bouton de recherche mobile est centré dans la barre du bas** (il dépassait au-dessus de la pilule).
 - **La même barre d'onglets partout.** Club, joueur, compétition (Saison / Résultats / Palmarès) et Compétitions (Clubs / Équipes nationales) utilisent le même composant `Segmented` : sur téléphone, des onglets à la largeur de leur contenu au lieu d'une barre pleine largeur sur les fiches club et joueur, et la barre défile sur le côté quand elle ne tient pas (cinq onglets sur un club).
 - **Entraîneurs des clubs complétés par l'infobox des entraîneurs.** Wikidata ne liste qu'une partie des entraîneurs principaux sur la page d'un club (Manchester City en montrait quatre, rien entre 2013 et 2016). L'onglet Entraîneurs ajoute les entraîneurs dont l'infobox Wikipedia (« Teams managed ») cite le club, postes d'adjoint exclus, pour ceux que Wikidata ne donne pas déjà pour ce club.
 - **La page entraîneur montre la carrière de l'infobox Wikipedia** (clubs et sélections, adjoint compris, avec écussons et drapeaux des sélections) au lieu des seuls mandats Wikidata des clubs que nous couvrons ; ceux-ci restent en repli.

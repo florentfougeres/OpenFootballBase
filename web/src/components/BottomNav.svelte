@@ -84,9 +84,9 @@
   .tab svg { transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1); }
   .tab:active svg { transform: scale(0.88); }
   .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
-  /* Recherche : un bouton rond qui dépasse un peu de la pilule, l'action principale de l'app. */
+  /* Recherche : un bouton rond centré dans la pilule, l'action principale de l'app. */
   .puck {
-    display: grid; place-items: center; width: 3.25rem; height: 3.25rem; margin-top: -1rem; border-radius: 9999px;
+    display: grid; place-items: center; width: 3.25rem; height: 3.25rem; border-radius: 9999px;
     background: var(--accent); color: var(--accent-fg); box-shadow: 0 4px 10px rgb(0 0 0 / 0.28); transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .search:active .puck { transform: scale(0.93); }
