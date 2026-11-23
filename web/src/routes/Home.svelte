@@ -91,9 +91,9 @@
         </div>
         <ul class="-mx-4 mt-1 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0">
           {#each follows.items.slice(0, 8) as f (f.kind + f.id)}
-            <li class="snap-start max-lg:w-40 max-lg:shrink-0">
-              <a class="flex h-full flex-col gap-3 rounded-2xl border border-line bg-surface p-3.5 no-underline transition hover:border-accent active:scale-[0.98]" href={`#/${app.lang}/${f.path}`}>
-                <FollowAvatar {f} size={44} />
+            <li class="snap-start max-lg:w-56 max-lg:shrink-0">
+              <a class="flex h-full items-center gap-3 rounded-2xl border border-line bg-surface p-3 no-underline transition hover:border-accent active:scale-[0.98]" href={`#/${app.lang}/${f.path}`}>
+                <FollowAvatar {f} size={40} />
                 <span class="min-w-0"><span class="block truncate font-semibold leading-tight">{f.label}</span>{#if f.sub}<span class="block truncate text-xs text-muted">{f.sub}</span>{/if}</span>
               </a>
             </li>
