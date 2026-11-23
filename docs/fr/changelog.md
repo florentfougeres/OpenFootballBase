@@ -9,6 +9,7 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 ## Site et outils
 
 ### 2026-11-23
+- **Le sélecteur Liste / Carte d'Explorer est compact sur téléphone** : deux petits boutons à côté du titre, au lieu d'une barre pleine largeur qui débordait de l'écran.
 - **Les cartes des clubs de la saison ont toutes la même hauteur** sur la page championnat : un nom long (« Borussia Mönchengladbach ») qui passe sur deux lignes ne rend plus sa carte plus haute que les autres.
 - **Le bouton de recherche mobile est centré dans la barre du bas** (il dépassait au-dessus de la pilule).
 - **La même barre d'onglets partout.** Club, joueur, compétition (Saison / Résultats / Palmarès) et Compétitions (Clubs / Équipes nationales) utilisent le même composant `Segmented` : sur téléphone, une barre pleine largeur sur toutes les pages (club, joueur, championnat), qui défile sur le côté quand elle ne tient pas (cinq onglets sur un club).

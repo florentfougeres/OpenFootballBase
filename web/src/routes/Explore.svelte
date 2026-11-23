@@ -34,7 +34,7 @@
 <div class="flex items-center justify-between gap-3">
   <h1 class="text-4xl font-extrabold leading-none tracking-tight sm:text-5xl">{t("explore")}</h1>
   {#if view !== "players"}
-    <Segmented class="shrink-0" tabs={false} label={t("displayMode")} idPrefix="xm" value={asMap ? "map" : "list"} onselect={setMode}
+    <Segmented class="w-auto! shrink-0 [&>button]:min-h-8 [&>button]:flex-none [&>button]:px-3 [&>button]:text-xs sm:[&>button]:min-h-9 sm:[&>button]:px-4 sm:[&>button]:text-sm" tabs={false} label={t("displayMode")} idPrefix="xm" value={asMap ? "map" : "list"} onselect={setMode}
       items={[{ key: "list", label: t("listMode") }, { key: "map", label: t("mapMode") }]} />
   {/if}
 </div>

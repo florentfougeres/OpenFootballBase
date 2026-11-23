@@ -9,6 +9,7 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 ## Site and tooling
 
 ### 2026-11-23
+- **The List / Map switch of Explore is compact on a phone**: two small buttons beside the title instead of a full-width bar that overflowed the screen.
 - **Season club cards all have the same height** on the competition page: a long name ("Borussia Mönchengladbach") that wraps no longer makes its card taller than the others.
 - **The mobile search button is centred in the bottom bar** (it used to stick out above the pill).
 - **The same tab bar everywhere.** Club, player, competition (Season / Results / Honours) and Competitions (Clubs / National teams) now use the one `Segmented` component: a full-width bar on a phone on every page (club, player, competition), and the bar scrolls sideways when it does not fit (five tabs on a club).
