@@ -260,7 +260,11 @@
           {#each (extra.data ?? []).filter((c) => c !== current?.competition) as c}<a class="link max-sm:hidden" href={href("competition", c, seasonSlug(label ?? ""))}>{compName(c)}</a>{/each}
         </p>
       </div>
-      <div class="col-span-2 sm:col-span-1 sm:ml-auto sm:self-start"><FollowButton item={{ kind: "club", id: key, label: name, sub: country, path: `club/${enc(key)}` }} /></div>
+      <div class="col-span-2 flex flex-wrap items-center gap-2 sm:col-span-1 sm:ml-auto sm:self-start">
+        <FollowButton item={{ kind: "club", id: key, label: name, sub: country, path: `club/${enc(key)}` }} />
+        {#if d.ours && label}<a class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-line bg-surface px-3.5 text-sm font-semibold no-underline transition hover:bg-surface-2" href="{href("lineup")}?src=club&club={enc(title ?? key)}&s={enc(label)}">
+          <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4zM4 12h16M12 4v16" /></svg>{t("lineupFromClub")}</a>{/if}
+      </div>
     </div>
   </header>
 

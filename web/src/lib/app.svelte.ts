@@ -39,7 +39,7 @@ export const route = $state({ lang: "fr" as Lang, parts: [] as string[], query: 
 
 /** Pile de navigation : sens du dernier changement de page (avant / arrière) et profondeur par rapport à un écran racine (accueil, explorer, compétitions, suivis). */
 export const nav = $state({ dir: "fwd" as "fwd" | "back", depth: 0 });
-const ROOTS = ["", "explore", "competitions", "follows"];
+const ROOTS = ["", "explore", "competitions", "more"];
 const stack: string[] = [];
 
 export function readRoute() {

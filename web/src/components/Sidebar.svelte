@@ -11,13 +11,14 @@
   const current = $derived(route.parts[0] ?? "home");
   const GROUPS: Record<string, string[]> = {
     home: ["home"], explore: ["explore", "clubs", "club", "players", "player", "country"], competitions: ["competitions", "competition", "ballon-dor"],
-    follows: ["follows"], coverage: ["coverage"], about: ["about"],
+    follows: ["follows"], lineup: ["lineup"], coverage: ["coverage"], about: ["about"],
   };
   const on = (k: string) => GROUPS[k]?.includes(current) ?? false;
   const main = $derived([
     { k: "home", label: t("home"), to: href(""), d: "M3.5 11 12 4l8.5 7M6 9.5V20h12V9.5M10 20v-5h4v5" },
     { k: "explore", label: t("explore"), to: href("explore"), d: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM15.5 8.5l-2 5-5 2 2-5z" },
     { k: "competitions", label: t("allComps"), to: href("competitions"), d: "M8 4h8v5a4 4 0 0 1-8 0zM8 6H5.5a2 2 0 0 0 0 4H8M16 6h2.5a2 2 0 0 1 0 4H16M12 13v4M8.5 20h7M10 17h4" },
+    { k: "lineup", label: t("lineupTitle"), to: href("lineup"), d: "M4 4h16v16H4zM4 12h16M12 4v16" },
     { k: "follows", label: t("follows"), to: href("follows"), d: "M6.5 3.5h11v17L12 16.8l-5.5 3.7z" },
   ]);
   const more = $derived([

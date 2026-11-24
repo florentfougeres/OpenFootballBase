@@ -27,6 +27,8 @@
   import Explore from "./routes/Explore.svelte";
   import Follows from "./routes/Follows.svelte";
   import Settings from "./routes/Settings.svelte";
+  import Lineup from "./routes/Lineup.svelte";
+  import More from "./routes/More.svelte";
 
   readRoute();
   applyTheme();
@@ -39,6 +41,8 @@
     switch (h) {
       case "explore": return t("explore");
       case "follows": return t("follows");
+      case "lineup": return t("lineupTitle");
+      case "more": return t("more");
       case "settings": return t("settings");
       case "clubs": return t("clubs");
       case "players": return t("players");
@@ -83,11 +87,15 @@
   {:else if !app.ready}
     <div class="mx-auto max-w-6xl px-4"><Spinner /><p class="text-sm text-muted">{t("loading")}</p></div>
   {:else}
-    <div class="mx-auto px-4 py-8 {head === 'competition' || head === 'competitions' || head === 'club' || head === 'coverage' || head === 'players' || head === 'explore' ? 'max-w-[88rem]' : 'max-w-6xl'}">
+    <div class="mx-auto px-4 py-8 {head === 'lineup' ? 'max-lg:py-3' : ''} {head === 'competition' || head === 'competitions' || head === 'club' || head === 'coverage' || head === 'players' || head === 'explore' || head === 'lineup' ? 'max-w-[88rem]' : 'max-w-6xl'}">
       {#if head === "club"}
         <Club key={route.parts[1]} slug={route.parts[2]} />
       {:else if head === "explore"}
         <Explore />
+      {:else if head === "more"}
+        <More />
+      {:else if head === "lineup"}
+        <Lineup />
       {:else if head === "follows"}
         <Follows />
       {:else if head === "settings"}
@@ -120,7 +128,7 @@
     </div>
   {/if}
 </main>
-<Footer />
+<div class={head === "lineup" ? "max-lg:hidden" : ""}><Footer /></div>
 <div class="h-[calc(5.25rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true"></div>
 </div>
 <BottomNav />
