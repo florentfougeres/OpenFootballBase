@@ -268,12 +268,13 @@
     return () => mq.removeEventListener("change", on);
   });
 
-  // Styles prêts à l'emploi (un tap) ; les réglages fins sont repliés sous « Personnaliser ».
-  const presets = $derived([
-    ...(!find && colors.length ? [{ key: "club", label: t("lineupPresetClub"), run: () => { lineup = { ...lineup, display: "number", style: clubStyle() }; } }] : []),
-    { key: "classic", label: t("lineupPresetClassic"), run: () => { lineup = { ...lineup, display: find ? "initials" : "number", style: defaultStyle() }; } },
-    { key: "minimal", label: t("lineupPresetMinimal"), run: () => { lineup = { ...lineup, display: "none", style: { ...defaultStyle(), color: "#111827", size: 90 } }; } },
-  ]);
+  // Photo et maillot s'excluent : avec les photos le marqueur est un rond ; en quittant « photo », le marqueur d'avant revient.
+  let lastMarker = untrack(() => lineup.style.marker);
+  function setDisplay(d: Display) {
+    if (d === "photo" && lineup.display !== "photo") { lastMarker = lineup.style.marker; lineup.style.marker = "circle"; }
+    else if (d !== "photo" && lineup.display === "photo") lineup.style.marker = lastMarker;
+    lineup.display = d;
+  }
 
   async function share() {
     const url = `${location.origin}${location.pathname}${base}&${encodeLineup(lineup)}`;
@@ -285,6 +286,16 @@
   }
 
   let svg: SVGSVGElement | undefined = $state();
+  let shot = $state<{ url: string; file: File } | null>(null);
+  async function saveToPhotos() {
+    if (!shot) return;
+    const files = [shot.file];
+    try {
+      if (navigator.canShare?.({ files })) { await navigator.share({ files, title: heading }); return; }
+    } catch (e: any) { if (e?.name === "AbortError") return; }
+    const a = document.createElement("a"); a.href = shot.url; a.download = shot.file.name; a.click();          // navigateur sans partage de fichier : téléchargement
+  }
+  const closeShot = () => { if (shot) URL.revokeObjectURL(shot.url); shot = null; };
   /** Image PNG : le terrain est un SVG aux couleurs fixes, dessiné tel quel sur un canvas (aucune bibliothèque). */
   async function exportPng() {
     if (!svg) return;
@@ -349,8 +360,11 @@
       }
       const blob = await new Promise<Blob | null>((ok) => c.toBlob(ok, "image/png"));
       if (!blob) throw new Error("png");
+      const name = `${heading.replace(/[^\w-]+/g, "_")}-${lineup.formation}.png`;
+      // Téléphone : l'image s'affiche avec un bouton « Enregistrer dans Photos » (feuille de partage du système, geste frais de l'utilisateur) au lieu d'aller dans Téléchargements.
+      if (!desktop) { shot = { url: URL.createObjectURL(blob), file: new File([blob], name, { type: "image/png" }) }; return; }
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-      a.download = `${heading.replace(/[^\w-]+/g, "_")}-${lineup.formation}.png`; a.click();
+      a.download = name; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
       notify(t("lineupPngDone"));
     } catch { notify(t("lineupPngError")); } finally { URL.revokeObjectURL(url); }
@@ -406,17 +420,10 @@
         <button type="button" class="h-10 rounded-xl border border-line bg-surface px-3.5 text-sm font-semibold text-warn transition hover:bg-surface-2 disabled:opacity-50" disabled={!filled} onclick={() => (lineup = cleared())}>{t("lineupClearAll")}</button>
       </div>
     {:else if tab === "style"}
-      <p class="eyebrow">{t("lineupPresets")}</p>
-      <div class="mt-2 grid grid-cols-{presets.length} gap-2" role="group" aria-label={t("lineupPresets")}>
-        {#each presets as p (p.key)}
-          <button type="button" class="min-h-10 rounded-lg border border-line bg-surface px-1 text-xs font-semibold transition hover:bg-surface-2" onclick={p.run}>{p.label}</button>
-        {/each}
-      </div>
-
-      <p class="eyebrow mt-3">{t("lineupContent")}</p>
+      <p class="eyebrow">{t("lineupContent")}</p>
       <div class="mt-2 grid grid-cols-3 gap-2" role="group" aria-label={t("lineupContent")}>
         {#each DISPLAYS as d (d)}
-          <button type="button" class="min-h-10 rounded-lg border px-1 text-xs font-semibold transition {lineup.display === d ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface hover:bg-surface-2'}" aria-pressed={lineup.display === d} onclick={() => (lineup.display = d)}>{t("disp_" + d)}</button>
+          <button type="button" class="min-h-10 rounded-lg border px-1 text-xs font-semibold transition {lineup.display === d ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface hover:bg-surface-2'}" aria-pressed={lineup.display === d} onclick={() => setDisplay(d)}>{t("disp_" + d)}</button>
         {/each}
       </div>
       {#if lineup.display === "photo"}<p class="mt-2 text-xs text-muted">{t("lineupPhotoNote")}</p>{/if}
@@ -429,10 +436,10 @@
           <p class="eyebrow mt-2">{t("lineupMarker")}</p>
           <div class="mt-2 grid grid-cols-2 gap-2" role="group" aria-label={t("lineupMarker")}>
             {#each ["circle", "jersey"] as const as m (m)}
-              <button type="button" class="min-h-10 rounded-lg border px-2 text-sm font-semibold transition {lineup.style.marker === m ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface hover:bg-surface-2'}" aria-pressed={lineup.style.marker === m} onclick={() => (lineup.style.marker = m)}>{t("mk_" + m)}</button>
+              <button type="button" class="min-h-10 rounded-lg border px-2 text-sm font-semibold transition disabled:opacity-40 {lineup.style.marker === m ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface hover:bg-surface-2'}" aria-pressed={lineup.style.marker === m} disabled={m === "jersey" && lineup.display === "photo"} onclick={() => (lineup.style.marker = m)}>{t("mk_" + m)}</button>
             {/each}
           </div>
-          {#if lineup.style.marker === "jersey" && lineup.display === "photo"}<p class="mt-2 text-xs text-muted">{t("lineupJerseyPhoto")}</p>{/if}
+          {#if lineup.display === "photo"}<p class="mt-2 text-xs text-muted">{t("lineupJerseyPhoto")}</p>{/if}
 
           <p class="eyebrow mt-3">{t("lineupColor")}</p>
           {@render swatches(lineup.style.color, (c) => (lineup.style.color = c))}
@@ -465,7 +472,7 @@
       <ul class="divide-y divide-line/60 overflow-hidden rounded-xl border border-line">
         {@render toggle(t("lineupShowFormation"), lineup.opts.formation, (v) => (lineup.opts.formation = v))}
         {#if logo}{@render toggle(t("lineupShowBadge"), lineup.opts.badge, (v) => (lineup.opts.badge = v))}{/if}
-        {@render toggle(t("lineupShowPhotos"), lineup.display === "photo", (v) => (lineup.display = v ? "photo" : find ? "initials" : "number"))}
+        {@render toggle(t("lineupShowPhotos"), lineup.display === "photo", (v) => setDisplay(v ? "photo" : find ? "initials" : "number"))}
         {@render toggle(t("lineupShowNat"), lineup.opts.nat, (v) => (lineup.opts.nat = v))}
         {@render toggle(t("lineupGkTop"), lineup.opts.gkTop, (v) => (lineup.opts.gkTop = v))}
       </ul>
@@ -624,6 +631,16 @@
   <div class="overflow-y-auto px-5 pb-5">
     {@render panel()}
   </div>
+</Sheet>
+
+<Sheet open={shot !== null} onclose={closeShot} title={t("lineupSaveTitle")}>
+  {#if shot}
+    <div class="overflow-y-auto px-5 pb-5">
+      <img src={shot.url} alt={heading} class="mx-auto max-h-[44dvh] w-auto rounded-xl border border-line" />
+      <button type="button" class="mt-3 h-12 w-full rounded-xl bg-accent px-4 text-base font-bold text-accent-fg transition hover:opacity-90" onclick={saveToPhotos}>{t("lineupSavePhotos")}</button>
+      <p class="mt-2 text-xs text-muted">{t("lineupSaveHint")}</p>
+    </div>
+  {/if}
 </Sheet>
 
 {#if open !== null && !desktop}
