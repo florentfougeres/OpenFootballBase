@@ -297,8 +297,10 @@
     try {
       const img = new Image();
       await new Promise<void>((ok, ko) => { img.onload = () => ok(); img.onerror = () => ko(new Error("svg")); img.src = url; });
-      const c = document.createElement("canvas"); c.width = W * scale; c.height = H * scale;
+      const FOOT = 6;          // bandeau sous le terrain (filigrane) : l'image est plus haute que le terrain, rien ne se chevauche
+      const c = document.createElement("canvas"); c.width = W * scale; c.height = (H + FOOT) * scale;
       const ctx = c.getContext("2d")!;
+      ctx.fillStyle = "#14281d"; ctx.fillRect(0, H * scale, W * scale, FOOT * scale);
       ctx.drawImage(img, 0, 0);
       if (logo) {
         try {
@@ -333,6 +335,18 @@
           ctx.restore();
         } catch { /* sans drapeau */ }
       }));
+      // Filigrane : le logo du site et « Fait avec OpenFootballBase », centrés dans le bandeau.
+      {
+        const label = t("lineupBuiltWith"), fy = (H + FOOT / 2) * scale;
+        ctx.font = `700 ${2.3 * scale}px system-ui, -apple-system, 'Segoe UI', sans-serif`; ctx.textBaseline = "middle";
+        const tw = ctx.measureText(label).width, size = 3.6 * scale, gap = 1.2 * scale, x0 = (W * scale - (size + gap + tw)) / 2;
+        try {
+          const lg = new Image();
+          await new Promise<void>((ok, ko) => { lg.onload = () => ok(); lg.onerror = () => ko(new Error("logo")); lg.src = `${import.meta.env.BASE_URL}logo.svg`; });
+          ctx.drawImage(lg, x0, fy - size / 2, size, size);
+        } catch { /* sans logo : le texte reste */ }
+        ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillText(label, x0 + size + gap, fy);
+      }
       const blob = await new Promise<Blob | null>((ok) => c.toBlob(ok, "image/png"));
       if (!blob) throw new Error("png");
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
