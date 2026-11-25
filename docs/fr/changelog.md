@@ -9,6 +9,7 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 ## Site et outils
 
 ### 2026-11-25
+- **Un clic sur un joueur ouvre sa fiche directement.** Sur grand écran, la liste de l'effectif ouvrait d'abord un petit aperçu à côté de la liste ; il est supprimé (composant `PlayerPreview` retiré), la ligne entière mène à la fiche du joueur.
 - **Tous les tableaux au style épuré** : la classe commune `.tbl` perd ses filets marqués (en-têtes discrets, lignes plus aérées, bords alignés sur le remplissage de la carte). Cela couvre le classement des compétitions, les statistiques du joueur par saison, compétition et sélection, et les tableaux de l'aperçu du club et de « Cette saison ». La grille de couverture (carte de chaleur) garde sa forme de grille.
 - **En-tête de la fiche joueur refait en une seule carte épurée** : liseré et teinte aux couleurs du club, photo carrée calée sur le visage, nom et club, puis les faits en valeur d'abord et libellé dessous (matchs et buts en carrière, pays, âge avec la date de naissance, taille, numéro, poste, lieu de naissance), sans cases ni filets. Le crédit de la photo passe en pied de carte.
 - **Carrière en liste épurée** (comme FotMob) : une seule carte « Carrière » en sections (Carrière professionnelle, Équipe nationale, Équipes nationales de jeunes), une ligne par passage avec écusson ou drapeau, nom, dates, puis matchs et buts alignés à droite ; plus de tableau à filets. La frise reste au choix.

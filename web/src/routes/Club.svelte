@@ -10,7 +10,6 @@
   import Crumbs from "../components/Crumbs.svelte";
   import FollowButton from "../components/FollowButton.svelte";
   import Segmented from "../components/Segmented.svelte";
-  import PlayerPreview from "../components/PlayerPreview.svelte";
   import Sheet from "../components/Sheet.svelte";
   import Flag from "../components/Flag.svelte";
   import Logo from "../components/Logo.svelte";
@@ -137,12 +136,6 @@
     const qs = new URLSearchParams(route.query);
     qs.set("tab", v);
     location.hash = `#/${route.lang}/${route.parts.map(encodeURIComponent).join("/")}?${qs}`;
-  };
-  let selected = $state<string | null>(null);                 // grand écran : le joueur dont l'aperçu est ouvert à côté de la liste
-  $effect(() => { key; label; selected = null; });
-  const pickRow = (e: MouseEvent, r: Row) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || !matchMedia("(min-width: 1280px)").matches) return;
-    e.preventDefault(); selected = r.key;
   };
   const nowCoach = $derived(coaches.data?.find((k) => k.to == null) ?? null);          // entraîneur en poste : le mandat sans fin
   const view = $derived<"squad" | "moves">(tab === "moves" ? "moves" : "squad");          // Effectif (les joueurs) ou Mouvements (arrivées et départs)
@@ -450,9 +443,8 @@
         {#if !shown.length}
           <p class="card mt-4 p-4 text-muted">{t("sqNoMatch")}</p>
         {:else if mode === "list"}
-          {@const sel = selected ? shown.find((r) => r.key === selected) : null}
-          <div class="mt-4 grid items-start gap-4 {sel ? 'xl:grid-cols-[minmax(0,1fr)_22rem]' : ''}">
-          <div class="card gap-x-8 p-4 sm:p-5 {sel ? '' : 'xl:columns-2'}">
+          <div class="mt-4">
+          <div class="card gap-x-8 p-4 sm:p-5 xl:columns-2">
             {#each POS as pos}
               {@const group = shown.filter((r) => (r.position || null) === pos)}
               {#if group.length}
@@ -467,7 +459,7 @@
                         <span class="display text-right text-2xl font-bold text-fg">{r.shirt_number ?? ""}</span>
                         <span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                           <Flag code={r.nat_flag} label={r.nationality} />
-                          <a class="font-medium after:absolute after:inset-0 hover:text-accent hover:underline {selected === r.key ? 'text-accent' : ''}" href={href("player", enc(r.key))} aria-current={selected === r.key ? "true" : undefined} onclick={(e) => pickRow(e, r)}>{r.player}</a>
+                          <a class="font-medium after:absolute after:inset-0 hover:text-accent hover:underline" href={href("player", enc(r.key))}>{r.player}</a>
                           {@render stint(r)}
                         </span>
                         <span class="text-sm text-muted tabular-nums" title={t("ageTip")}>{age != null ? `${age} ${t("ageYears")}` : "-"}{#if age == null}<span class="sr-only">{t("ageUnknown")}</span>{/if}</span>
@@ -478,7 +470,6 @@
               {/if}
             {/each}
           </div>
-          {#if sel}<PlayerPreview row={sel} onclose={() => (selected = null)} />{:else}<p class="card hidden p-4 text-sm text-muted xl:block xl:self-start">{t("pvHint")}</p>{/if}
           </div>
         {:else}
           <div class="mt-4 space-y-6">

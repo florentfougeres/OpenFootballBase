@@ -9,6 +9,7 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 ## Site and tooling
 
 ### 2026-11-25
+- **A click on a player opens their page directly.** On wide screens the squad list first opened a small preview beside the list; it is gone (the `PlayerPreview` component is removed) and the whole row leads to the player's page.
 - **Every table in the clean style**: the shared `.tbl` class loses its strong rules (quiet headers, airier rows, edges aligned with the card padding). This covers competition standings, the player's statistics by season, competition and national team, and the tables in the club overview and "This season". The coverage grid (heat map) keeps its grid form.
 - **Player page header rebuilt as a single clean card**: club-colour edge and tint, square photo framed on the face, name and club, then the facts value first with the label below (career matches and goals, country, age with birth date, height, number, position, place of birth), with no boxes or rules. The photo credit moves to the foot of the card.
 - **Cleaner career list** (like FotMob): a single "Career" card in sections (Professional career, National team, Youth national teams), one row per spell with crest or flag, name, dates, then matches and goals aligned on the right; no more ruled table. The timeline stays an option.
