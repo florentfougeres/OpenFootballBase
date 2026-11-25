@@ -8,6 +8,9 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 
 ## Site and tooling
 
+### 2026-11-25
+- **Faster start-up.** The 20 views over range-read tables (matches, coaches, stats, honours…) are no longer created at start-up but on the first query that mentions them: creating a view reads the file footer, one network round trip each, which cost about 5 s on GitHub Pages before the home page. The home-page tables and `career` stay immediate.
+
 ### 2026-11-24
 - **Line-up builder: usability pass** (from a design critique). The tool now opens on **Formation** with a hint on the empty pitch ("Tap a + to pick a player") and an **Auto line-up** button. Choosing a player is a **tray** at the bottom of a phone (the pitch moves up so the chosen position stays visible and highlighted) or a **list in the side panel** on a computer; after a player is placed on an empty position, the next empty one opens by itself. Positions have a **44 px tap area**, and no text on the pitch goes below **8 px** on screen. **Undo / redo** (50 steps), and the line-up is **saved in the browser** per club and season and restored after a reload. The default style comes from the **club**: shirts in its colours (also first in the colour lists), with the fine settings folded under **Customise**. **Photo** and **shirt** are mutually exclusive (choosing photos switches the marker to a disc and disables the shirt; leaving photos brings the previous marker back). On a phone, **PNG image** shows the picture with a **Save to Photos** button (the system share sheet) instead of sending it to Downloads. Sharing uses the phone's share sheet. The club page has a **Build a line-up** button that opens the tool with that squad.
 - **A "More" tab replaces "Follows" in the phone's bottom bar.** It opens a page that lists Line-up, Follows, Ballon d'Or, Coverage, About and Settings. The pitch discs of the line-up are smaller.

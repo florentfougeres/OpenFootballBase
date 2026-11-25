@@ -4,6 +4,8 @@ import { app, type Row } from "./app.svelte";
 declare const __DUCKDB__: { version: string; wasm: string; worker: string };   // injecté par vite.config.ts : version du paquet et empreintes SHA-384
 
 let conn: duckdb.AsyncDuckDBConnection | null = null;
+const lazyViews = new Map<string, string>();        // nom de la vue → CREATE VIEW, tant qu'elle n'est pas créée
+const lazyBuilt = new Map<string, Promise<unknown>>();
 
 const seasonSlug = (label: string) => label.replace("/", "-");
 
@@ -54,9 +56,14 @@ export async function loadData(db: duckdb.AsyncDuckDB, manifest: any, base: URL)
   const list = (a: string[]) => "[" + a.map((x) => `'${x}'`).join(",") + "]";
   const views = [`CREATE VIEW squad AS SELECT * FROM read_parquet(${list(squad)}, union_by_name=true)`,
                  `CREATE VIEW club_season AS SELECT * FROM read_parquet(${list(clubSeason)}, union_by_name=true)`];
+  // Les vues des fichiers lus à plages ne sont créées qu'à leur première requête (voir `q`) : créer une vue lit le pied du fichier, un aller-retour réseau
+  // chacune (≈ 5 s au total sur GitHub Pages pour une vingtaine de fichiers que l'accueil n'ouvre pas). `career` reste immédiate : `careerHasClubQid` est lu avant ses requêtes.
   for (const n of ["club", "competition", "competition_club", "season", "known_gap", "country", "career", "national", "player_profile", "squad_source", "birth", "entity_wiki", "stat_club", "stat_national", "stat_source", "winner", "award", "national_title", "coach", "coach_profile", "coach_career", "match", "match_goal", "match_lineup", "match_card", "match_competition", "player_openfootball"]) {
-    if (files[n]) views.push(`CREATE VIEW ${n} AS SELECT * FROM read_parquet('${files[n]}')`);
     app.has[n] = Boolean(files[n]);
+    if (!files[n]) continue;
+    const create = `CREATE VIEW ${n} AS SELECT * FROM read_parquet('${files[n]}')`;
+    if (PRELOAD.has(n) || n === "club" || n === "career") views.push(create);
+    else lazyViews.set(n, create);
   }
   for (const v of views) await conn.query(v);
   performance.mark("db:views");
@@ -68,9 +75,21 @@ export async function loadData(db: duckdb.AsyncDuckDB, manifest: any, base: URL)
   }
 }
 
+/** Crée, à la première requête qui les cite, les vues différées. */
+function ensureViews(sql: string) {
+  const need: Promise<unknown>[] = [];
+  for (const [name, create] of lazyViews) {
+    if (!new RegExp(`\\b${name}\\b`).test(sql)) continue;
+    if (!lazyBuilt.has(name)) lazyBuilt.set(name, conn!.query(create));
+    need.push(lazyBuilt.get(name)!);
+  }
+  return need.length ? Promise.all(need) : undefined;
+}
+
 /** Requête paramétrée → lignes JS (BigInt ramenés à Number). */
 export async function q(sql: string, params: unknown[] = []): Promise<Row[]> {
   if (!conn) throw new Error("base non initialisée");
+  await ensureViews(sql);
   const stmt = await conn.prepare(sql);
   const res = await stmt.query(...params);
   await stmt.close();
