@@ -37,7 +37,7 @@ export async function search(term: string): Promise<Groups> {
     .slice(0, 5)
     .map(({ c }) => ({
       id: `c:${c.wikipedia_title}`, kind: "club" as const, label: clubName(c), club: c,
-      sub: [countryOf(c.country_code).name, c.league].filter(Boolean).join(" · "), meta: "",
+      sub: [countryOf(c.country_code).name, c.league].filter(Boolean).join(", "), meta: "",
       to: href("club", enc(c.wikipedia_title)),
     }));
 
@@ -86,7 +86,7 @@ export async function search(term: string): Promise<Groups> {
     players = players.slice(0, 5);
     out.players = players.map((p) => ({
       id: `p:${p.key}`, kind: "player" as const, label: p.player, flag: p.flag,
-      sub: [p.pos, p.club ? clubName(app.clubs.get(p.club) ?? { wikipedia_title: p.club, name_en: p.club }) : ""].filter(Boolean).join(" · "),
+      sub: [p.pos, p.club ? clubName(app.clubs.get(p.club) ?? { wikipedia_title: p.club, name_en: p.club }) : ""].filter(Boolean).join(", "),
       meta: p.first === p.last ? String(p.first) : `${String(p.first).slice(0, 4)}–${String(p.last).slice(2, 4)}`,
       to: href("player", enc(p.key)),
     }));

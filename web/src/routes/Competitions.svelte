@@ -78,7 +78,7 @@
     {/if}
     <span class="min-w-0">
       <span class="block truncate font-semibold">{label(c)}</span>
-      <span class="block truncate text-xs text-muted">{[placeOf(c)?.name, `${c.first}${c.first !== c.last ? ` – ${c.last}` : ""}`, `${(c.n as number).toLocaleString(app.lang)} ${t("matchesN")}`].filter(Boolean).join(" · ")}</span>
+      <span class="block truncate text-xs text-muted">{[placeOf(c)?.name, `${c.first}${c.first !== c.last ? ` – ${c.last}` : ""}`, `${(c.n as number).toLocaleString(app.lang)} ${t("matchesN")}`].filter(Boolean).join(", ")}</span>
     </span>
   </a>
 {/snippet}
@@ -105,12 +105,12 @@
   <nav class="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:mt-5 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden" aria-label={t("compClubs")}>
     {#each confs as c (c.conf)}
       <button type="button" class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3.5 py-1 text-sm font-semibold transition hover:bg-surface-2 md:px-4 md:py-1.5" onclick={() => jump(`conf-${c.conf}`)}>
-        {#if c.conf === "WORLD"}<Icon name="globe" size={15} />{/if}{shown(c.conf, c.area)} <span class="font-normal text-muted">· {c.n}</span>
+        {#if c.conf === "WORLD"}<Icon name="globe" size={15} />{/if}{shown(c.conf, c.area)} <span class="font-normal text-muted">({c.n})</span>
       </button>
     {/each}
     {#if others.length}
       <button type="button" class="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3.5 py-1 text-sm font-semibold transition hover:bg-surface-2 md:px-4 md:py-1.5" onclick={() => jump("conf-OTHERS")}>
-        <Icon name="list" size={15} />{t("compOthers")} <span class="font-normal text-muted">· {others.length}</span>
+        <Icon name="list" size={15} />{t("compOthers")} <span class="font-normal text-muted">({others.length})</span>
       </button>
     {/if}
   </nav>

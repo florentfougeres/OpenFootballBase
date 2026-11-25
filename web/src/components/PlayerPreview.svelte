@@ -23,7 +23,7 @@
     <div class="min-w-0 flex-1">
       <h2 class="text-2xl font-bold leading-tight">{row.player}</h2>
       <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-        <Flag code={row.nat_flag} label={row.nationality} />{row.nationality}{#if row.position}<span>· {t(row.position)}</span>{/if}{#if row.shirt_number}<span class="tabular-nums">· #{row.shirt_number}</span>{/if}
+        <Flag code={row.nat_flag} label={row.nationality} />{row.nationality}{#if row.position}<span>, {t(row.position)}</span>{/if}{#if row.shirt_number}<span class="tabular-nums">, #{row.shirt_number}</span>{/if}
       </p>
     </div>
     <button type="button" class="grid size-11 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-fg" aria-label={t("pvClose")} onclick={onclose}>

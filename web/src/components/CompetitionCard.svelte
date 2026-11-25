@@ -17,6 +17,6 @@
   {/if}
   <span class="min-w-0">
     <span class="block truncate font-semibold">{compName(code)}</span>
-    <span class="block truncate text-xs text-muted">{[c.name, clubs ? plural(clubs, "clubsN") : "", season].filter(Boolean).join(" · ")}</span>
+    <span class="block truncate text-xs text-muted">{[c.name, clubs ? plural(clubs, "clubsN") : "", season].filter(Boolean).join(", ")}</span>
   </span>
 </a>

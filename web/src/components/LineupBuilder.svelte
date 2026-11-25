@@ -484,7 +484,7 @@
 {#snippet picker()}
   {#if open !== null}
     <div class="flex items-center justify-between gap-3 px-4 pb-2 pt-3">
-      <h2 class="min-w-0 truncate text-base font-bold">{t("lineupPick")} · {slotRole ? roleLabel(slotRole.role, app.lang) : ""} <span class="font-semibold tabular-nums text-muted">{filled}/{slots.length}</span></h2>
+      <h2 class="min-w-0 truncate text-base font-bold">{t("lineupPick")} : {slotRole ? roleLabel(slotRole.role, app.lang) : ""} <span class="font-semibold tabular-nums text-muted">{filled}/{slots.length}</span></h2>
       <button type="button" class="grid size-10 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-fg" aria-label={t("close")} onclick={closePicker}>
         <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
       </button>
@@ -508,7 +508,7 @@
         <li>
           <button type="button" class="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left hover:bg-surface-2 {here ? 'bg-accent-soft' : ''}" onclick={() => assign(open!, r.key as string)}>
             <span class="w-6 shrink-0 text-right text-sm tabular-nums text-muted">{r.shirt_number ?? ""}</span>
-            <span class="min-w-0 flex-1 truncate font-medium">{r.player}{#if find && r.club}<span class="block truncate text-xs font-normal text-muted">{clubName(clubOf(r.club))}{r.last ? ` · ${r.last}` : ""}</span>{/if}</span>
+            <span class="min-w-0 flex-1 truncate font-medium">{r.player}{#if find && r.club}<span class="block truncate text-xs font-normal text-muted">{clubName(clubOf(r.club))}{r.last ? `, ${r.last}` : ""}</span>{/if}</span>
             {#if placed.has(r.key as string) && !here}<span class="shrink-0 text-xs text-muted">{t("lineupPlaced")}</span>{/if}
             <PosPill pos={r.position} small />
           </button>

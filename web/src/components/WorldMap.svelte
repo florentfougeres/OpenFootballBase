@@ -227,7 +227,7 @@
   {#if phase === "error"}<p class="absolute inset-0 grid place-items-center p-6 text-center text-sm text-muted">{t("mapError")}</p>{/if}
   {#if phase === "ready"}
     <p class="pointer-events-none absolute left-3 top-3 max-w-[calc(100%-5.5rem)] rounded-lg bg-surface/90 px-2.5 py-1 text-xs font-medium text-muted shadow-sm">
-      {mode === "clubs" ? `${clubs.length} ${t("clubsN")}${withoutCoords > 0 ? ` · ${withoutCoords} ${t("mapNoCoords")}` : ""}` : t("mapCountriesHint")}
+      {mode === "clubs" ? `${clubs.length} ${t("clubsN")}${withoutCoords > 0 ? `, ${withoutCoords} ${t("mapNoCoords")}` : ""}` : t("mapCountriesHint")}
     </p>
   {/if}
 </div>

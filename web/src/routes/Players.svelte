@@ -184,7 +184,7 @@
   <p class="mt-6 text-warn">{String(data.error)}</p>
 {:else}
   <p class="mt-6 text-lg" aria-live="polite"><strong class="display text-3xl font-bold tabular-nums">{rows.length.toLocaleString(app.lang)}</strong> {t("srcPlayers")}
-    <span class="text-sm text-muted">{#if filtered}/ {all.length.toLocaleString(app.lang)}{/if} · {season}</span></p>
+    <span class="text-sm text-muted">{#if filtered}/ {all.length.toLocaleString(app.lang)}{/if} {season}</span></p>
 
   <div class="mt-4 grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)]">
     <!-- Par championnat : un clic filtre -->

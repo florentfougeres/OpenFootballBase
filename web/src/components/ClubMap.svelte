@@ -55,7 +55,7 @@
   });
 </script>
 
-<div class="relative overflow-hidden rounded-2xl border border-line bg-surface-2" role="region" aria-label={`${t("map")} · ${name}`}>
+<div class="relative overflow-hidden rounded-2xl border border-line bg-surface-2" role="region" aria-label={`${t("map")}, ${name}`}>
   <div bind:this={host} class="map-themed h-44 w-full sm:h-56"></div>
   {#if failed}<p class="absolute inset-0 grid place-items-center p-4 text-center text-sm text-muted">{t("mapError")}</p>{/if}
 </div>

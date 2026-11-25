@@ -17,6 +17,7 @@
   import Spinner from "../components/Spinner.svelte";
   import WikiButton from "../components/WikiButton.svelte";
   import ClubMap from "../components/ClubMap.svelte";
+  import ClubOverview from "../components/ClubOverview.svelte";
   import ErrorBox from "../components/ErrorBox.svelte";
 
   // Une seule page pour le club et son effectif : sans `slug`, la saison la plus récente qui a un effectif ; avec, celle de l'adresse.
@@ -76,7 +77,7 @@
   const iso = $derived(d?.w?.country_iso ? String(d.w.country_iso).toLowerCase() : null);
   const flag = $derived(d?.ours ? countryOf(d.ours.country_code).flag : iso);
   const country = $derived(d?.ours ? countryOf(d.ours.country_code).name : d?.w?.country_iso ? countryName(d.w.country_iso) : "");
-  $effect(() => { page.name = name ? (label && d?.ours ? `${name} · ${label}` : name) : null; return () => { page.name = null; }; });          // titre de l'onglet du navigateur
+  $effect(() => { page.name = name ? (label && d?.ours ? `${name} ${label}` : name) : null; return () => { page.name = null; }; });          // titre de l'onglet du navigateur
   const name = $derived(d ? (d.ours ? clubName(d.ours) : app.lang === "fr" ? d.w?.name_local : d.w?.name_en || d.w?.name_local) : "");
   const sub = $derived(d?.w && d.w.name_en && d.w.name_en !== name ? d.w.name_en : d?.w && d.w.name_local !== name ? d.w.name_local : "");
   const logo = $derived({ logo_url: d?.ours?.logo_url || d?.w?.logo_url || commonsLogo(d?.w?.logo_commons_url),
@@ -124,13 +125,13 @@
 
   // Mouvements : on compare l'effectif de la saison à celui de la précédente (aucun tableau de transferts requis).
   // Cinq vues : Aperçu (la fiche du club), Effectif et Mouvements (une saison, arrivées et départs), Entraîneurs et Palmarès. L'onglet est dans l'adresse (`?tab=`) : partageable, et le retour du navigateur le restitue.
-  // Sans `?tab=` : l'effectif (c'est la page du club), « À propos » (la fiche) en dernier ; un club sans effectif n'a que la fiche.
-  type Tab = "overview" | "squad" | "moves" | "coaches" | "honours";
-  const tabs = $derived<Tab[]>([...(d?.ours ? (["squad", "moves"] as Tab[]) : []), ...(coaches.loading || coaches.data?.length ? (["coaches"] as Tab[]) : []), ...(honours.loading || honours.data?.length ? (["honours"] as Tab[]) : []), "overview"]);
+  // Sans `?tab=` : l'aperçu (la fiche du club d'abord, puis prochain match, classement, buteurs), puis l'effectif, « À propos » (la fiche) en dernier ; un club sans effectif n'a que la fiche.
+  type Tab = "glance" | "overview" | "squad" | "moves" | "coaches" | "honours";
+  const tabs = $derived<Tab[]>([...(d?.ours ? (["glance", "squad", "moves"] as Tab[]) : (["overview"] as Tab[])), ...(coaches.loading || coaches.data?.length ? (["coaches"] as Tab[]) : []), ...(honours.loading || honours.data?.length ? (["honours"] as Tab[]) : [])]);
   const tab = $derived.by<Tab>(() => {
     const want = route.query.get("tab") as Tab | null;
     if (want && tabs.includes(want)) return want;
-    return d?.ours ? "squad" : "overview";
+    return d?.ours ? "glance" : "overview";
   });
   const setTab = (v: Tab) => {
     const qs = new URLSearchParams(route.query);
@@ -227,11 +228,11 @@
     add(t("nickname"), w.nickname);
     add(t("city"), w.city);
     add(t("founded"), fmtFounded(w.founded));
-    add(t("stadium"), w.stadium ? w.stadium + (w.stadium_capacity ? ` · ${Number(w.stadium_capacity).toLocaleString(app.lang)} ${t("capacity")}` : "") : "");
-    add(t("league"), w.league ? w.league + (w.division ? ` · ${t("division")} ${w.division}` : "") : "", undefined, leagueCode ? href("competition", leagueCode) : undefined);
+    add(t("stadium"), w.stadium ? w.stadium + (w.stadium_capacity ? `, ${Number(w.stadium_capacity).toLocaleString(app.lang)} ${t("capacity")}` : "") : "");
+    add(t("league"), w.league ? w.league + (w.division ? `, ${t("division")} ${w.division}` : "") : "", undefined, leagueCode ? href("competition", leagueCode) : undefined);
     add(t("website"), w.website ? String(w.website).replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : "", w.website);
     if (w.lat != null && w.lon != null)
-      add("GPS", `${t("map")} · ${w.lat.toFixed(3)}, ${w.lon.toFixed(3)}`, `https://www.openstreetmap.org/?mlat=${w.lat}&mlon=${w.lon}#map=14/${w.lat}/${w.lon}`);
+      add("GPS", `${t("map")} (${w.lat.toFixed(3)}, ${w.lon.toFixed(3)})`, `https://www.openstreetmap.org/?mlat=${w.lat}&mlon=${w.lon}#map=14/${w.lat}/${w.lon}`);
     return items;
   });
   const external = $derived(d?.w ? [
@@ -249,6 +250,30 @@
 {:else if !d}
   <p class="text-warn">{t("clubNotFound")}</p>
 {:else}
+  <!-- La fiche du club : ce qu'on sait de lui (une ligne par fait), les liens vers les autres sources, puis la carte. Placée à la suite de l'aperçu, ou seule pour un club sans effectif. -->
+  {#snippet about()}
+    {#if info.length || external.length}
+      <section class="card p-4 sm:p-5 lg:mb-4 lg:break-inside-avoid" aria-labelledby="about-club">
+        <h2 id="about-club" class="mb-3 text-lg font-bold">{t("about_club")}</h2>
+        {#if info.length}
+          <dl class="grid grid-cols-[minmax(6rem,auto)_1fr] text-sm">
+            {#each info as it}
+              <dt class="border-t border-line/60 py-2.5 pr-4 text-muted [&:nth-child(-n+2)]:border-t-0">{it.label}</dt>
+              <dd class="min-w-0 border-t border-line/60 py-2.5 font-medium [&:nth-child(-n+2)]:border-t-0">{#if it.to}<a class="link" href={it.to}>{it.value}</a>{:else if it.href}<a class="link break-all" href={it.href} target="_blank" rel="noopener">{it.value}</a>{:else}{it.value}{/if}</dd>
+            {/each}
+          </dl>
+        {/if}
+        {#if external.length}
+          <p class="mt-4 flex flex-wrap gap-2">{#each external as [label, url]}<a class="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3.5 text-sm font-semibold no-underline transition hover:bg-surface-2" href={url} target="_blank" rel="noopener">{label}<span class="text-muted" aria-hidden="true">↗</span></a>{/each}</p>
+        {/if}
+        <div class="mt-3"><WikiButton urls={d!.urls} kind="wikiClub" fallbackKey="wikiLocalOnly" /></div>
+      </section>
+    {/if}
+    {#if d?.w?.lat != null && d?.w?.lon != null}
+      <div class="overflow-hidden rounded-2xl lg:mb-4 lg:break-inside-avoid"><ClubMap lat={d.w.lat} lon={d.w.lon} name={name} logo={d.w.logo_url} color={d.w.colors_hex} /></div>
+    {/if}
+  {/snippet}
+
   <!-- Mobile : une carte compacte (logo et nom côte à côte, palmarès sur une ligne qui défile) sur fond neutre avec la bande de couleur du club ; la teinte pleine revient dès « sm ». -->
   <header class="card overflow-hidden sm:[background:var(--tint)]" style:--tint={kit[0] ? `color-mix(in oklab, ${kit[0]} 11%, var(--surface))` : "var(--surface)"}>
     {#if kit[0]}<div class="flex h-1.5" aria-hidden="true"><span class="flex-1" style:background={kit[0]}></span>{#if kit[1]}<span class="w-1/3" style:background={kit[1]}></span>{/if}</div>{/if}
@@ -274,7 +299,7 @@
   <div class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 -mx-4 mt-3 border-b border-line/60 bg-bg/95 px-4 py-2 backdrop-blur lg:top-0 lg:mx-0 lg:px-0">
     {#if tabs.length > 1}
       <Segmented label={t("clubViews")} idPrefix="ctab" value={tab} onselect={setTab}
-        items={tabs.map((v) => ({ key: v, label: t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : v === "moves" ? "mvTab" : v === "coaches" ? "coaches" : "honours"), short: v === "overview" ? t("clubOverviewS") : v === "moves" ? t("mvTabS") : v === "coaches" ? t("coachesS") : undefined }))} />
+        items={tabs.map((v) => ({ key: v, label: t(v === "glance" ? "ovTab" : v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : v === "moves" ? "mvTab" : v === "coaches" ? "coaches" : "honours"), short: v === "overview" ? t("clubOverviewS") : v === "moves" ? t("mvTabS") : v === "coaches" ? t("coachesS") : v === "honours" ? t("honoursS") : undefined }))} />
     {/if}
     {#if (tab === "squad" || tab === "moves") && d.ours && seasonList.length}
       <div class="mt-2 flex items-center gap-2">
@@ -327,7 +352,7 @@
         <li><a class="flex min-h-12 items-center gap-3 rounded-xl px-3 no-underline transition hover:bg-surface-2 {s.season === label ? 'bg-accent-soft text-accent' : ''}" href={to(s.season)} aria-current={s.season === label ? "true" : undefined} onclick={() => (seasonSheet = false)}>
           <span class="display w-20 text-lg font-semibold tabular-nums">{s.season}</span>
           <span class="min-w-0 flex-1 truncate text-sm text-muted">{compName(s.competition)}</span>
-          <span class="shrink-0 text-xs font-bold {level(s) === 1 ? 'text-accent' : 'text-muted'}">{level(s) ? `D${level(s)}` : "·"}{#if !s.players} <span class="font-medium normal-case text-muted">{t("unresolved")}</span>{/if}</span>
+          <span class="shrink-0 text-xs font-bold {level(s) === 1 ? 'text-accent' : 'text-muted'}">{level(s) ? `D${level(s)}` : "–"}{#if !s.players} <span class="font-medium normal-case text-muted">{t("unresolved")}</span>{/if}</span>
         </a></li>
       {/each}
     </ul>
@@ -393,7 +418,7 @@
                 {/if}
               </li>
             {/snippet}
-            <p class="text-sm text-muted">{mv.prev} → {label} · <strong class="text-fg">{mv.kept}</strong> {t("mvKept")}</p>
+            <p class="text-sm text-muted">{mv.prev} → {label}, <strong class="text-fg">{mv.kept}</strong> {t("mvKept")}</p>
             <div class="mt-3 grid gap-4 xl:grid-cols-2">
               <section class="card p-4" aria-labelledby="mv-in">
                 <h2 id="mv-in" class="mb-1 flex items-baseline gap-2 border-b border-line pb-1 text-lg font-bold text-accent">{t("mvArrivals")} <span class="display text-base font-semibold">{mv.arrivals.length}</span></h2>
@@ -418,7 +443,7 @@
           {#if stats.age != null}<span><strong class="font-semibold tabular-nums text-fg">{stats.age.toLocaleString(app.lang, { maximumFractionDigits: 1 })}</strong> {t("sqAge")}</span>{/if}
           {#if stats.foreignPct != null}<span title={t("sqForeignTip")}><strong class="font-semibold tabular-nums text-fg">{stats.foreignPct} %</strong> {t("sqForeign")}</span>{/if}
           {#if stats.nats}<span class="max-sm:hidden"><strong class="font-semibold tabular-nums text-fg">{stats.nats}</strong> {t("sqNats")}</span>{/if}
-          {#if filtered}<span class="tabular-nums" aria-live="polite">· {shown.length} / {rows.length} {t("srcPlayers")}</span>
+          {#if filtered}<span class="tabular-nums" aria-live="polite">({shown.length} / {rows.length} {t("srcPlayers")})</span>
             <button type="button" class="underline hover:text-fg" onclick={() => { fNat = ""; fLoan = false; }}>{t("sqReset")}</button>{/if}
         </p>
 
@@ -445,7 +470,7 @@
                           <a class="font-medium after:absolute after:inset-0 hover:text-accent hover:underline {selected === r.key ? 'text-accent' : ''}" href={href("player", enc(r.key))} aria-current={selected === r.key ? "true" : undefined} onclick={(e) => pickRow(e, r)}>{r.player}</a>
                           {@render stint(r)}
                         </span>
-                        <span class="text-sm text-muted tabular-nums" title={t("ageTip")}>{age != null ? `${age} ${t("ageYears")}` : "—"}{#if age == null}<span class="sr-only">{t("ageUnknown")}</span>{/if}</span>
+                        <span class="text-sm text-muted tabular-nums" title={t("ageTip")}>{age != null ? `${age} ${t("ageYears")}` : "-"}{#if age == null}<span class="sr-only">{t("ageUnknown")}</span>{/if}</span>
                       </li>
                     {/each}
                   </ul>
@@ -527,11 +552,11 @@
                         <CompLogo code={h.code} size={32} />
                         <span class="min-w-0 flex-1">
                           <a class="line-clamp-2 font-semibold leading-snug no-underline hover:text-accent" href={href("competition", h.code)}>{compName(h.code)}</a>
-                          <span class="block truncate text-xs tabular-nums text-muted">{h.years.slice(0, 4).map((y) => titleYear(h.code, y)).join(" · ")}{h.years.length > 4 ? " …" : ""}</span>
+                          <span class="block truncate text-xs tabular-nums text-muted">{h.years.slice(0, 4).map((y) => titleYear(h.code, y)).join(", ")}{h.years.length > 4 ? " …" : ""}</span>
                         </span>
                         {#if h.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
                       </summary>
-                      {#if h.years.length > 4}<p class="mt-1.5 pl-[4.75rem] text-sm leading-relaxed tabular-nums text-muted">{h.years.map((y) => titleYear(h.code, y)).join(" · ")}</p>{/if}
+                      {#if h.years.length > 4}<p class="mt-1.5 pl-[4.75rem] text-sm leading-relaxed tabular-nums text-muted">{h.years.map((y) => titleYear(h.code, y)).join(", ")}</p>{/if}
                     </details>
                   </li>
                 {/each}
@@ -562,31 +587,10 @@
         </div>
       </div>
       {:else}<Spinner />{/if}
+    {:else if tab === "glance" && d.ours}
+      <ClubOverview club={d.ours.wikipedia_title as string} season={label ?? null} comp={(current?.competition as string) ?? null}>{@render about()}</ClubOverview>
     {:else if tab === "overview"}
-      <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
-        <div class="min-w-0">
-          <h2 id="about-club" class="mb-3 text-xl font-bold">{t("about_club")}</h2>
-          {#if external.length}
-            <p class="mb-4 flex flex-wrap gap-2">{#each external as [label, url]}<a class="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3.5 text-sm font-semibold no-underline transition hover:bg-surface-2" href={url} target="_blank" rel="noopener">{label}<span class="text-muted" aria-hidden="true">↗</span></a>{/each}</p>
-          {/if}
-      {#if info.length || external.length}
-        <dl class="space-y-3 text-sm">
-          {#each info as it}
-            <div><dt class="eyebrow">{it.label}</dt>
-              <dd class="mt-0.5 font-medium">{#if it.to}<a class="link" href={it.to}>{it.value}</a>{:else if it.href}<a class="link break-all" href={it.href} target="_blank" rel="noopener">{it.value}</a>{:else}{it.value}{/if}</dd></div>
-          {/each}
-        </dl>
-      {/if}
-      <div class="mt-4"><WikiButton urls={d.urls} kind="wikiClub" fallbackKey="wikiLocalOnly" /></div>
-    
-        </div>
-        <div class="min-w-0">
-          {#if d.w?.lat != null && d.w?.lon != null}
-        <div><ClubMap lat={d.w.lat} lon={d.w.lon} name={name} logo={d.w.logo_url} color={d.w.colors_hex} /></div>
-      {/if}
-      
-        </div>
-      </div>
+      <div class="flex flex-col gap-4 lg:block lg:columns-2 lg:gap-x-4">{@render about()}</div>
     {/if}
   
   </div>

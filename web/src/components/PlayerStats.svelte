@@ -152,7 +152,7 @@
     return countries.size > 1 ? (u ? `${nationalTeam(base).name} U${u[1]}` : nationalTeam(team).name) : u ? `U${u[1]}` : t("statsSenior");
   };
   const natGroups = $derived(["Competitive", "Friendly", "Total"].filter((g) => national.some((r) => r.competition_group === g)));
-  const cell = (c?: Cell) => (c && (c.apps != null || c.goals != null) ? `${num(c.apps) || "–"} ${t("matchesLc")} · ${num(c.goals) || "–"} ${t("goalsLc")}` : "");
+  const cell = (c?: Cell) => (c && (c.apps != null || c.goals != null) ? `${num(c.apps) || "–"} ${t("matchesLc")}, ${num(c.goals) || "–"} ${t("goalsLc")}` : "");
   const VIEWS: [View, string][] = [["club", "statsByClub"], ["season", "statsBySeason"], ["comp", "statsByComp"], ["nat", "statsNat"]];
 </script>
 
@@ -192,7 +192,7 @@
         <ul class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
           {#each byComp as c (c.g)}
             <li class="flex items-center gap-1.5"><span class="size-2 rounded-full" style:background={COLOR[c.g]} aria-hidden="true"></span>{label(c.g)}
-              <span class="tabular-nums text-muted">{num(c.goals) || "–"} {t("goalsLc")} · {num(c.apps) || "–"} {t("matchesLc")}</span></li>
+              <span class="tabular-nums text-muted">{num(c.goals) || "–"} {t("goalsLc")}, {num(c.apps) || "–"} {t("matchesLc")}</span></li>
           {/each}
         </ul>
       </div>
@@ -212,7 +212,7 @@
               <Logo club={{ logo_url: s.logo, colors_hex: s.colors, club_name: s.club }} size={36} />
               <div class="min-w-0">
                 <div class="truncate font-semibold">{s.club}</div>
-                <div class="text-xs tabular-nums text-muted">{span(s)} · {s.seasons.length} {s.seasons.length > 1 ? t("statsSeasons") : t("statsSeason1")}</div>
+                <div class="text-xs tabular-nums text-muted">{span(s)}, {s.seasons.length} {s.seasons.length > 1 ? t("statsSeasons") : t("statsSeason1")}</div>
               </div>
               <div class="hidden sm:block" aria-hidden="true">
                 <div class="flex h-1.5 overflow-hidden rounded-full bg-surface-2" style:width="{(100 * (s.total.goals ?? 0)) / maxStintGoals}%">
@@ -241,7 +241,7 @@
                       {#each parts as g}
                         <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
                           <span class="size-2 rounded-full" style:background={COLOR[g]} aria-hidden="true"></span>{label(g)}
-                          <span class="tabular-nums"><span class="text-fg">{num(x.by[g]?.apps) || "–"}</span> {t("statsAppsS")}{#if x.by[g]?.goals}<span class="mx-1">·</span><span class="font-semibold text-accent">{x.by[g]?.goals}</span> {t("statsGoalsS")}{/if}</span>
+                          <span class="tabular-nums"><span class="text-fg">{num(x.by[g]?.apps) || "–"}</span> {t("statsAppsS")}{#if x.by[g]?.goals}<span class="mr-1">,</span><span class="font-semibold text-accent">{x.by[g]?.goals}</span> {t("statsGoalsS")}{/if}</span>
                         </span>
                       {/each}
                     </div>
@@ -261,7 +261,7 @@
         </thead>
         <tbody>
           {#each seasons as s (s.key)}
-            <tr title={used.filter((g) => s.by[g]).map((g) => `${label(g)} : ${cell(s.by[g])}`).join(" · ")}>
+            <tr title={used.filter((g) => s.by[g]).map((g) => `${label(g)} : ${cell(s.by[g])}`).join(", ")}>
               <td class="whitespace-nowrap tabular-nums">{s.season}</td>
               <td><span class="flex items-center gap-2.5">{@render brand(s, 22)}{#if s.division}<span class="hidden text-xs text-muted md:inline">{s.division}</span>{/if}</span></td>
               <td class="num">{num(s.total.apps)}</td>
@@ -286,7 +286,7 @@
             <tr>
               <td><span class="flex items-center gap-2"><span class="size-2.5 rounded-full" style:background={COLOR[c.g]} aria-hidden="true"></span>{label(c.g)}</span></td>
               <td class="num">{num(c.apps)}</td><td class="num font-semibold">{num(c.goals)}</td><td class="num text-muted">{ratio(c)}</td>
-              <td class="whitespace-nowrap">{#if b && b.by[c.g]?.goals}<span class="tabular-nums">{b.season}</span> <span class="text-muted">· {b.club} · {b.by[c.g]?.goals} {t("goalsLc")}</span>{/if}</td>
+              <td class="whitespace-nowrap">{#if b && b.by[c.g]?.goals}<span class="tabular-nums">{b.season}</span> <span class="text-muted">({b.club}, {b.by[c.g]?.goals} {t("goalsLc")})</span>{/if}</td>
               <td class="hidden sm:table-cell" aria-hidden="true"><span class="block h-2 rounded-full" style:background={COLOR[c.g]} style:width="{(100 * (c.goals ?? 0)) / maxCompGoals}%"></span></td>
             </tr>
             {#if c.g === "League" && leagues.length > 1}
@@ -294,7 +294,7 @@
                 <tr class="bg-surface-2/40">
                   <td><span class="flex items-center gap-2 pl-6 text-muted"><span class="h-px w-3 bg-line" aria-hidden="true"></span><span class="text-fg">{d.name}</span></span></td>
                   <td class="num">{num(d.apps)}</td><td class="num font-semibold">{num(d.goals)}</td><td class="num text-muted">{ratio(d)}</td>
-                  <td class="whitespace-nowrap">{#if d.best}<span class="tabular-nums">{d.best.season}</span> <span class="text-muted">· {d.best.club} · {d.best.by.League?.goals} {t("goalsLc")}</span>{/if}</td>
+                  <td class="whitespace-nowrap">{#if d.best}<span class="tabular-nums">{d.best.season}</span> <span class="text-muted">({d.best.club}, {d.best.by.League?.goals} {t("goalsLc")})</span>{/if}</td>
                   <td class="hidden sm:table-cell" aria-hidden="true"><span class="block h-1.5 rounded-full opacity-70" style:background={COLOR.League} style:width="{(100 * (d.goals ?? 0)) / maxCompGoals}%"></span></td>
                 </tr>
               {/each}
@@ -314,7 +314,7 @@
             class="flex shrink-0 items-center gap-2 rounded-xl border px-3 py-1.5 text-left transition {i === teamSel ? 'border-accent bg-accent-soft' : 'border-line bg-surface hover:bg-surface-2'}" onclick={() => (teamSel = i)}>
             {#if x.flag}<Flag code={x.flag} label={x.name} size={18} />{/if}
             <span><span class="block text-sm font-semibold leading-tight">{short(e.team)}</span>
-              <span class="block text-[0.7rem] tabular-nums leading-tight text-muted">{num(e.total.apps) || "–"} · {num(e.total.goals) || "–"} {t("goalsLc")}</span></span>
+              <span class="block text-[0.7rem] tabular-nums leading-tight text-muted">{num(e.total.apps) || "–"}, {num(e.total.goals) || "–"} {t("goalsLc")}</span></span>
           </button>
         {/each}
       </div>
@@ -326,7 +326,7 @@
           <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-surface-2">{#if nt.flag}<Flag code={nt.flag} label={nt.name} size={30} />{/if}</span>
           <div class="min-w-0">
             <h3 class="text-xl font-extrabold leading-tight tracking-tight">{#if cur.link}<a class="link" href={wikiUrl("en", cur.link)} hreflang="en" target="_blank" rel="noopener">{cur.team}</a>{:else}{cur.team}{/if}</h3>
-            <p class="text-xs tabular-nums text-muted">{curYears[0]?.y}{curYears.length > 1 ? ` → ${curYears[curYears.length - 1].y}` : ""} · {cur.years.size} {cur.years.size > 1 ? t("statsYears") : t("statsYear1")}</p>
+            <p class="text-xs tabular-nums text-muted">{curYears[0]?.y}{curYears.length > 1 ? ` → ${curYears[curYears.length - 1].y}` : ""}, {cur.years.size} {cur.years.size > 1 ? t("statsYears") : t("statsYear1")}</p>
           </div>
         </div>
         <dl class="flex flex-wrap items-baseline gap-x-6 gap-y-2 sm:ml-auto">
@@ -344,7 +344,7 @@
           <ul class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs">
             {#each curSplit as c (c.g)}
               <li class="flex items-center gap-1.5"><span class="size-2 rounded-full" style:background={NAT_COLOR[c.g]} aria-hidden="true"></span>{label(c.g)}
-                <span class="tabular-nums text-muted">{num(c.apps) || "–"} {t("capsLc")} · {num(c.goals) || "–"} {t("goalsLc")}</span></li>
+                <span class="tabular-nums text-muted">{num(c.apps) || "–"} {t("capsLc")}, {num(c.goals) || "–"} {t("goalsLc")}</span></li>
             {/each}
           </ul>
         </div>
@@ -355,7 +355,7 @@
         <figure class="mt-5">
           <div class="flex h-28 items-end gap-[3px]" role="img" aria-label={curYears.map((r) => `${r.y} : ${r.c.apps ?? 0} ${t("capsLc")}, ${r.c.goals ?? 0} ${t("goalsLc")}`).join(" ; ")}>
             {#each curYears as r (r.y)}
-              <div class="group/col relative flex h-full min-w-0 flex-1 flex-col justify-end" title="{r.y} : {r.c.apps ?? 0} {t('capsLc')} · {r.c.goals ?? 0} {t('goalsLc')}">
+              <div class="group/col relative flex h-full min-w-0 flex-1 flex-col justify-end" title="{r.y} : {r.c.apps ?? 0} {t('capsLc')}, {r.c.goals ?? 0} {t('goalsLc')}">
                 {#if r.c.goals}<span class="mb-0.5 text-center text-[0.6875rem] font-semibold leading-none tabular-nums text-accent opacity-0 transition group-hover/col:opacity-100 sm:opacity-100">{r.c.goals}</span>{/if}
                 <div class="relative w-full overflow-hidden rounded-t-[3px] {r.gap ? 'border-t border-dashed border-line' : 'bg-fg/15 group-hover/col:bg-fg/25'}" style:height="{(100 * (r.c.apps ?? 0)) / maxYear}%">
                   <span class="absolute inset-x-0 bottom-0 bg-accent" style:height="{r.c.apps ? Math.min(100, (100 * (r.c.goals ?? 0)) / r.c.apps) : 0}%"></span>
@@ -367,8 +367,8 @@
             {#each curYears as r, i (r.y)}<span class="min-w-0 flex-1 overflow-visible whitespace-nowrap text-center">{i % labelEvery === 0 ? (r.y.length === 4 ? "’" + r.y.slice(2) : r.y.slice(2, 4) + "–" + r.y.slice(-2)) : ""}</span>{/each}
           </div>
           <figcaption class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
-            {#if busiest?.c.apps}<span>{t("statsBusiest")} : <strong class="text-fg tabular-nums">{busiest.y}</strong> · {busiest.c.apps} {t("capsLc")}</span>{/if}
-            {#if bestYear?.c.goals}<span>{t("statsBestYear")} : <strong class="text-fg tabular-nums">{bestYear.y}</strong> · {bestYear.c.goals} {t("goalsLc")}</span>{/if}
+            {#if busiest?.c.apps}<span>{t("statsBusiest")} : <strong class="text-fg tabular-nums">{busiest.y}</strong>, {busiest.c.apps} {t("capsLc")}</span>{/if}
+            {#if bestYear?.c.goals}<span>{t("statsBestYear")} : <strong class="text-fg tabular-nums">{bestYear.y}</strong>, {bestYear.c.goals} {t("goalsLc")}</span>{/if}
           </figcaption>
         </figure>
       {/if}
@@ -419,7 +419,7 @@
                 <td class="hidden whitespace-nowrap md:table-cell">
                   <span class="flex items-center justify-end gap-2">
                     {#if r.mark}<span class="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">{t("statsCapMark")}{r.mark}</span>{/if}
-                    <span class="w-20 text-right tabular-nums text-muted">{r.capsCum} · {r.goalsCum}</span>
+                    <span class="w-20 text-right tabular-nums text-muted">{r.capsCum}, {r.goalsCum}</span>
                   </span>
                 </td>
               </tr>
@@ -431,5 +431,5 @@
   {/if}
   <p class="border-t border-line px-5 py-3 text-xs text-muted">{t("statsNote")}
     {#if source}<a class="link" href={wikiUrl("en", source)} hreflang="en" target="_blank" rel="noopener">{t("statsSrc")}</a>{/if}
-    · {t("statsReading")}</p>
+    {t("statsReading")}</p>
 </section>

@@ -23,7 +23,7 @@
   {#each items as it (it.key)}
     <button type="button" id="{idPrefix}-{it.key}" role={tabs ? "tab" : undefined} aria-selected={tabs ? value === it.key : undefined} aria-pressed={tabs ? undefined : value === it.key}
       tabindex={tabs && value !== it.key ? -1 : 0} onkeydown={onKey}
-      class="min-h-10 min-w-fit flex-1 whitespace-nowrap rounded-[0.6rem] px-2 text-sm font-semibold transition sm:min-h-9 sm:flex-none sm:px-4 {value === it.key ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg active:bg-surface-2'}"
+      class="min-h-10 min-w-fit flex-1 whitespace-nowrap rounded-[0.6rem] px-1.5 text-sm font-semibold transition sm:min-h-9 sm:flex-none sm:px-4 {value === it.key ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg active:bg-surface-2'}"
       onclick={() => onselect(it.key)}>{#if it.short}<span class="sm:hidden">{it.short}</span><span class="max-sm:hidden">{it.label}</span>{:else}{it.label}{/if}</button>
   {/each}
 </div>

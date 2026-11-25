@@ -36,7 +36,7 @@
     {/if}
     <div class="min-w-0">
       <h1 class="text-3xl font-extrabold leading-none tracking-tight text-balance sm:text-4xl lg:text-5xl">{title}</h1>
-      <p class="mt-2 text-sm text-muted">{meta.data.first}{meta.data.first !== meta.data.last ? ` – ${meta.data.last}` : ""} · {(meta.data.n as number).toLocaleString(app.lang)} {t("matchesN")}</p>
+      <p class="mt-2 text-sm text-muted">{meta.data.first}{meta.data.first !== meta.data.last ? ` – ${meta.data.last}` : ""}, {(meta.data.n as number).toLocaleString(app.lang)} {t("matchesN")}</p>
     </div>
   </header>
   {#if meta.data.wiki}<div class="mt-4"><WikiButton urls={{ en: wikiUrl("en", meta.data.wiki as string) }} kind="wikiPlayer" /></div>{/if}

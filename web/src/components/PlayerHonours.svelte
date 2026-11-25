@@ -106,14 +106,14 @@
               <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted"><Trophy size={18} /></span>
               <span class="min-w-0 flex-1">
                 <a class="block truncate font-semibold no-underline hover:text-accent" href={href("ballon-dor")}>{t("balloon")}</a>
-                <span class="block truncate text-xs tabular-nums text-muted">{#if wins.length}{winYears.slice(0, 4).join(" · ")}{winYears.length > 4 ? " …" : ""}{:else}{t("balloonRanked")} : {data.data.awards.map((a) => `${a.year} (${a.rank})`).join(" · ")}{/if}</span>
+                <span class="block truncate text-xs tabular-nums text-muted">{#if wins.length}{winYears.slice(0, 4).join(", ")}{winYears.length > 4 ? " …" : ""}{:else}{t("balloonRanked")} : {data.data.awards.map((a) => `${a.year} (${a.rank})`).join(", ")}{/if}</span>
               </span>
               {#if more}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
             </summary>
             {#if more}
               <p class="mt-1.5 pl-[4.75rem] text-sm leading-relaxed tabular-nums text-muted">
-                {#if winYears.length > 4}<span class="block">{winYears.join(" · ")}</span>{/if}
-                {#if podium.length}<span class="block">{t("podium")} : {podium.map((a) => `${a.year} (${ord(a.rank)})`).join(" · ")}</span>{/if}
+                {#if winYears.length > 4}<span class="block">{winYears.join(", ")}</span>{/if}
+                {#if podium.length}<span class="block">{t("podium")} : {podium.map((a) => `${a.year} (${ord(a.rank)})`).join(", ")}</span>{/if}
               </p>
             {/if}
           </details>
@@ -138,11 +138,11 @@
                     <CompLogo code={g.competition} size={32} />
                     <span class="min-w-0 flex-1">
                       <a class="block truncate font-semibold no-underline hover:text-accent" href={href("competition", g.competition)}>{compName(g.competition)}</a>
-                      <span class="block truncate text-xs tabular-nums text-muted">{g.years.slice(0, 4).map((y) => titleYear(g.competition, y)).join(" · ")}{g.years.length > 4 ? " …" : ""}</span>
+                      <span class="block truncate text-xs tabular-nums text-muted">{g.years.slice(0, 4).map((y) => titleYear(g.competition, y)).join(", ")}{g.years.length > 4 ? " …" : ""}</span>
                     </span>
                     {#if g.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
                   </summary>
-                  {#if g.years.length > 4}<p class="mt-1.5 pl-[4.75rem] text-sm leading-relaxed tabular-nums text-muted">{g.years.map((y) => titleYear(g.competition, y)).join(" · ")}</p>{/if}
+                  {#if g.years.length > 4}<p class="mt-1.5 pl-[4.75rem] text-sm leading-relaxed tabular-nums text-muted">{g.years.map((y) => titleYear(g.competition, y)).join(", ")}</p>{/if}
                 </details>
               </li>
             {/each}

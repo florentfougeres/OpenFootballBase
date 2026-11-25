@@ -35,7 +35,7 @@
   boot();
 
   const head = $derived(route.parts[0]);
-  // Un titre par page (WCAG 2.4.2) : « Arsenal FC · 2026/27 · OpenFootballBase ». Un joueur pose son nom (`page.name`) quand ses données sont lues.
+  // Un titre par page (WCAG 2.4.2) : « Arsenal FC 2026/27 – OpenFootballBase ». Un joueur pose son nom (`page.name`) quand ses données sont lues.
   const pageName = $derived.by(() => {
     const [h, a, b] = route.parts;
     switch (h) {
@@ -52,11 +52,11 @@
       case "ballon-dor": return t("balloon");
       case "competition": return a ? compName(a) : "";
       case "country": return a ? countryOf(a).name : "";
-      case "club": return a ? [clubName(clubOf(a)), b?.replace("-", "/")].filter(Boolean).join(" · ") : "";
+      case "club": return a ? [clubName(clubOf(a)), b?.replace("-", "/")].filter(Boolean).join(" ") : "";
       default: return "";
     }
   });
-  $effect(() => { document.title = [page.name ?? pageName, t("title")].filter(Boolean).join(" · "); });
+  $effect(() => { document.title = [page.name ?? pageName, t("title")].filter(Boolean).join(" – "); });
   // Remonte en haut de page à chaque changement de route (hors changement de saison sur l'accueil).
   $effect(() => { route.parts.join("/"); scrollTo({ top: 0 }); });
   // Transition de page sur mobile : un glissement court dans le sens de la navigation (avant : depuis la droite ; arrière : depuis la gauche), jamais avec « réduire les animations ».

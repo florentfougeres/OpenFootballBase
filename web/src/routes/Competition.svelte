@@ -76,7 +76,7 @@
     {/if}
     <div class="min-w-0">
       <h1 class="text-3xl font-extrabold leading-none tracking-tight text-balance sm:text-4xl lg:text-5xl">{compName(code)}</h1>
-      <p class="mt-2 flex items-center gap-2 text-sm text-muted">{#if !isArea(comp.country_code)}<Flag code={country.flag} label={country.name} size={16} />{/if}<span>{country.name}{#if !isArea(comp.country_code)} · {t("divisionN")} {comp.level}{/if}</span></p>
+      <p class="mt-2 flex items-center gap-2 text-sm text-muted">{#if !isArea(comp.country_code)}<Flag code={country.flag} label={country.name} size={16} />{/if}<span>{country.name}{#if !isArea(comp.country_code)}, {t("divisionN")} {comp.level}{/if}</span></p>
     </div>
     <div class="ml-auto shrink-0 self-start"><FollowButton item={{ kind: "comp", id: code, label: compName(code), sub: country.name, path: `competition/${enc(code)}` }} compact /></div>
   </header>
@@ -101,7 +101,7 @@
     {#if winnersOfSeason.length}
       <p class="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-line bg-accent-soft px-4 py-3">
         <span class="flex items-center gap-1.5 text-sm font-semibold text-accent"><Trophy size={18} />{t("honoursWinner")} {label}</span>
-        {#each winnersOfSeason as w, i}{#if i}<span class="text-muted">·</span>{/if}
+        {#each winnersOfSeason as w, i}{#if i}<span class="text-muted" aria-hidden="true">,</span>{/if}
           {#if w.club}<a class="flex items-center gap-2 font-semibold no-underline hover:text-accent" href={href("club", enc(w.club))}><Logo club={w.c} size={22} />{clubName(w.c)}</a>
           {:else}<span class="font-semibold">{w.winner_name}</span>{/if}
         {/each}
@@ -146,11 +146,11 @@
                       {#if g.c}<Logo club={g.c} size={32} />{:else}<span class="size-8 shrink-0"></span>{/if}
                       <span class="min-w-0 flex-1">
                         <span class="block font-semibold leading-snug">{#if g.c}<a class="no-underline hover:text-accent" href={href("club", enc(g.key))}>{clubName(g.c)}</a>{:else}{g.name}{/if}</span>
-                        <span class="block truncate text-xs tabular-nums text-muted">{[...g.years].sort((a, b) => b - a).slice(0, 4).map(seasonName).join(" · ")}{g.years.length > 4 ? " …" : ""}</span>
+                        <span class="block truncate text-xs tabular-nums text-muted">{[...g.years].sort((a, b) => b - a).slice(0, 4).map(seasonName).join(", ")}{g.years.length > 4 ? " …" : ""}</span>
                       </span>
                       {#if g.years.length > 4}<span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>{/if}
                     </summary>
-                    {#if g.years.length > 4}<p class="mt-1.5 pl-[3.75rem] text-sm leading-relaxed tabular-nums text-muted">{[...g.years].sort((a, b) => b - a).map(seasonName).join(" · ")}</p>{/if}
+                    {#if g.years.length > 4}<p class="mt-1.5 pl-[3.75rem] text-sm leading-relaxed tabular-nums text-muted">{[...g.years].sort((a, b) => b - a).map(seasonName).join(", ")}</p>{/if}
                   </details>
                 </li>
               {/each}

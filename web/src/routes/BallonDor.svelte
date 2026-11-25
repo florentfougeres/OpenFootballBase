@@ -62,7 +62,7 @@
           <Flag code={flagOf(g.qid)} size={20} />
           <span class="min-w-0 flex-1">
             {#if g.qid && data.data.known.has(g.qid)}<a class="block truncate font-semibold no-underline hover:text-accent" href={href("player", enc(g.qid))}>{g.name}</a>{:else}<span class="block truncate font-semibold">{g.name}</span>{/if}
-            <span class="block text-xs tabular-nums text-muted">{g.w.length ? g.w.sort().join(" · ") : "—"}{#if g.s || g.t} · {t("podium")} : {[g.s ? `${g.s}×${ord(2)}` : "", g.t ? `${g.t}×${ord(3)}` : ""].filter(Boolean).join(", ")}{/if}</span>
+            <span class="block text-xs tabular-nums text-muted">{g.w.length ? g.w.sort().join(", ") : "—"}{#if g.s || g.t}, {t("podium")} : {[g.s ? `${g.s}×${ord(2)}` : "", g.t ? `${g.t}×${ord(3)}` : ""].filter(Boolean).join(", ")}{/if}</span>
           </span>
           <span class="display text-2xl font-bold tabular-nums text-accent">{g.w.length}</span>
         </li>
@@ -82,7 +82,7 @@
               <Flag code={flagOf(w.player_qid)} size={20} />
               <span class="min-w-0 flex-1">
                 <span class="block truncate font-semibold">{#if link(w)}<a class="no-underline hover:text-accent" href={link(w)} onclick={(e) => e.stopPropagation()}>{w.player_name}</a>{:else}{w.player_name}{/if}</span>
-                <span class="block truncate text-xs text-muted">{w.club ? clubName(clubOf(w.club)) : w.club_name ?? ""}{#if w.points} · {w.points} {t("points")}{/if}</span>
+                <span class="block truncate text-xs text-muted">{w.club ? clubName(clubOf(w.club)) : w.club_name ?? ""}{#if w.points}, {w.points} {t("points")}{/if}</span>
               </span>
               {#if w.club}<Logo club={clubOf(w.club)} size={30} />{/if}
               <span class="text-muted transition group-open:rotate-90" aria-hidden="true">›</span>

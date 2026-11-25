@@ -86,7 +86,7 @@
 {:else if label && season}
   {@const c = season.coverage}
   <h1 class="text-3xl font-extrabold tracking-tight">{t("covTitle")} <span class="text-accent">{label}</span></h1>
-  <p class="mt-2 max-w-2xl text-muted">{c.with_squad} / {c.club_seasons} {t("covSquads").toLowerCase()} ({pct(c.with_squad, c.club_seasons)} %) · {c.club_seasons - c.with_squad} {t("covMissing").toLowerCase()}</p>
+  <p class="mt-2 max-w-2xl text-muted">{c.with_squad} / {c.club_seasons} {t("covSquads").toLowerCase()} ({pct(c.with_squad, c.club_seasons)} %), {c.club_seasons - c.with_squad} {t("covMissing").toLowerCase()}</p>
 
   <div class="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={t("season")}>
     {#each seasons as [l]}
@@ -194,7 +194,7 @@
           </div>
         </div>
         {#each visible as g (g.conf)}
-          {#if !confSel}<div class="bg-surface-2 px-4 py-1.5 text-sm font-bold">{g.conf} <span class="font-normal text-muted">· {g.area}</span></div>{/if}
+          {#if !confSel}<div class="bg-surface-2 px-4 py-1.5 text-sm font-bold">{g.conf} <span class="font-normal text-muted">({g.area})</span></div>{/if}
           {#each g.rows as { comp, country } (comp.code)}
             {@const share = shareOf(comp.code)}
             <a class="block px-4 py-3 no-underline active:bg-surface-2" href={href("competition", comp.code)}>
@@ -236,7 +236,7 @@
         {#each visible as g (g.conf)}
           <tbody>
             {#if !confSel}
-              <tr><th colspan={shownCols.length + 1} class="sticky left-0 border-t border-line bg-surface-2 px-3 py-1.5 text-left text-sm font-bold">{g.conf} <span class="font-normal text-muted">· {g.area}</span></th></tr>
+              <tr><th colspan={shownCols.length + 1} class="sticky left-0 border-t border-line bg-surface-2 px-3 py-1.5 text-left text-sm font-bold">{g.conf} <span class="font-normal text-muted">({g.area})</span></th></tr>
             {/if}
             {#each g.rows as { comp, country } (comp.code)}
               <tr class="group/row">
@@ -248,9 +248,9 @@
                   <td class="px-0.5 py-0.5">
                     {#if c}
                       <a class="heat block rounded px-1 py-1.5 text-center no-underline transition hover:ring-2 hover:ring-accent" style:background={fill(c.n, c.ok)} style:--p={heatShare(c.n, c.ok)}
-                        href={href("competition", comp.code, seasonSlug(s))} title="{compName(comp.code)} · {s} : {c.ok} / {c.n} {t('covSquads').toLowerCase()}">{pct(c.ok, c.n)}</a>
+                        href={href("competition", comp.code, seasonSlug(s))} title="{compName(comp.code)}, {s} : {c.ok} / {c.n} {t('covSquads').toLowerCase()}">{pct(c.ok, c.n)}</a>
                     {:else}
-                      <span class="block px-1 py-1.5 text-center text-muted/50" aria-hidden="true">·</span>
+                      <span class="block px-1 py-1.5 text-center text-muted/50" aria-hidden="true">–</span>
                     {/if}
                   </td>
                 {/each}

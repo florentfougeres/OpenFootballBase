@@ -74,9 +74,9 @@
       {#if flag}<Flag code={flag} size={28} />{/if}<span class="min-w-0">{name}</span>
     </h1>
     <dl class="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-      <div><dt class="eyebrow">{t("coachTenures")}</dt><dd class="mt-0.5 font-medium tabular-nums">{d.infobox.length || d.tenures.length} · {teamsN} {teamsN > 1 ? t("coachTeamsN") : t("coachTeamsN1")}</dd></div>
+      <div><dt class="eyebrow">{t("coachTenures")}</dt><dd class="mt-0.5 font-medium tabular-nums">{d.infobox.length || d.tenures.length}, {teamsN} {teamsN > 1 ? t("coachTeamsN") : t("coachTeamsN1")}</dd></div>
       <div><dt class="eyebrow">{t("coachSince")}</dt><dd class="mt-0.5 font-medium tabular-nums">{first}</dd></div>
-      {#if birthText}<div><dt class="eyebrow">{t("coachBorn")}</dt><dd class="mt-0.5 font-medium">{birthText}{place ? ` · ${place}` : ""}</dd></div>{/if}
+      {#if birthText}<div><dt class="eyebrow">{t("coachBorn")}</dt><dd class="mt-0.5 font-medium">{birthText}{place ? `, ${place}` : ""}</dd></div>{/if}
       {#if d.career.length}<div><dt class="eyebrow">{t("coachAlsoPlayer")}</dt><dd class="mt-0.5 font-medium"><a class="link" href={href("player", enc(qid))}>{t("coachPlayerPage")}</a></dd></div>{/if}
     </dl>
     <div class="mt-4"><WikiButton urls={d.urls} kind="wikiPlayer" fallbackKey="wikiLocalOnly" /></div>

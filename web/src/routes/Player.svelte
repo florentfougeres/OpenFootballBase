@@ -12,6 +12,8 @@
   import Segmented from "../components/Segmented.svelte";
   import Logo from "../components/Logo.svelte";
   import PlayerHonours from "../components/PlayerHonours.svelte";
+  import CareerList from "../components/CareerList.svelte";
+  import PlayerNow from "../components/PlayerNow.svelte";
   import PlayerStats from "../components/PlayerStats.svelte";
   import Spinner from "../components/Spinner.svelte";
   import WikiButton from "../components/WikiButton.svelte";
@@ -64,7 +66,7 @@
     if (b.precision >= 11) {
       const n = new Date();
       const age = ageAt(b.birth_date, n.getFullYear(), n.getMonth() + 1, n.getDate());
-      return `${t("born")} ${day.toLocaleDateString(app.lang, { day: "numeric", month: "long", year: "numeric" })} · ${age} ${t("yearsOld")}`;
+      return `${t("born")} ${day.toLocaleDateString(app.lang, { day: "numeric", month: "long", year: "numeric" })}, ${age} ${t("yearsOld")}`;
     }
     return `${t("bornIn")} ${day.getFullYear()}`;
   });
@@ -77,6 +79,27 @@
     return `${ageAt(b.birth_date, n.getFullYear(), n.getMonth() + 1, n.getDate())} ${t("yearsOld")}`;
   });
   const heightText = $derived(d?.profile?.height_cm ? `${(d.profile.height_cm / 100).toLocaleString(app.lang, { minimumFractionDigits: 2 })} m` : "");
+  // Les faits d'un coup d'œil sous l'en-tête : pays, âge, taille, numéro et poste (ceux de la dernière saison listée, donnés comme actuels seulement s'ils le sont), lieu de naissance.
+  const facts = $derived.by(() => {
+    if (!d) return [] as { k: string; label: string; value: string; sub?: string; flag?: string | null; accent?: boolean }[];
+    const out: { k: string; label: string; value: string; sub?: string; flag?: string | null; accent?: boolean }[] = [];
+    if (d.p.flag || d.p.nat) out.push({ k: "nat", label: t("country"), value: natLabel, flag: d.p.flag ?? null });
+    const b = d.birth;
+    if (b) {
+      const day = new Date(b.birth_date + "T00:00:00");
+      if (b.precision >= 11) out.push({ k: "age", label: `${t("born")} ${day.toLocaleDateString(app.lang, { day: "numeric", month: "long", year: "numeric" })}`, value: bornShort });
+      else out.push({ k: "age", label: t("factAge"), value: bornShort });
+    }
+    if (d.profile?.height_cm) out.push({ k: "h", label: t("heightLabel"), value: heightText });
+    const now = d.p.last === d.p.latest;
+    if (now && d.p.num) out.push({ k: "num", label: t("factNumber"), value: String(d.p.num) });
+    if (d.p.pos) out.push({ k: "pos", label: t("position"), value: t("pos1_" + d.p.pos) });
+    if (d.profile?.birth_place) out.push({ k: "bp", label: t("birthPlace"), value: d.profile.birth_place });
+    if (totals) { out.unshift({ k: "goals", label: t("sumGoals"), value: String(totals.goals), accent: true }); out.unshift({ k: "apps", label: t("sumApps"), value: String(totals.apps), accent: true }); }
+    return out;
+  });
+  const kit = $derived((String(d?.p.club ? clubOf(d.p.club).colors_hex ?? "" : "").split(/\s*\|\s*/)).filter((c: string) => /^#[0-9a-fA-F]{6}$/.test(c)));
+  const isPhone = $derived(typeof matchMedia === "function" && matchMedia("(max-width: 639px)").matches);
   // Sélection A uniquement (les équipes de jeunes ont leurs propres lignes dans le tableau).
   const senior = $derived(d?.national.find((r) => !/\bU\d{2}\b|under/i.test(r.team_name)) ?? null);
   // Frise : une barre par passage, positionnée sur l'axe des années ; les passages simultanés (prêt, équipe réserve) passent sur une autre ligne.
@@ -137,54 +160,43 @@
 {:else if !d}
   <p class="text-warn">{t("noResult")}</p>
 {:else}
-  <header class="card flex items-start gap-3 p-3 sm:gap-5 sm:p-6">
-    {#if d.profile?.photo_url && !photoFailed}
-      <figure class="w-16 shrink-0 sm:w-40">
-        <!-- Cadre 4/5 recadré au centre ; une photo en pied (bien plus haute que le cadre) est calée sur le haut pour garder le visage. Sur téléphone la photo est une vignette : son crédit passe en bas de page. -->
-        <img class="aspect-[4/5] w-16 rounded-lg border border-line bg-surface-2 object-cover sm:w-40 sm:rounded-xl" style:object-position={tallPhoto ? "50% 6%" : "50% 50%"} src={d.profile.photo_url} alt={d.profile.photo_caption || d.p.name} loading="lazy" width="160" height="200"
-          onerror={() => (photoFailed = true)}
-          onload={(e) => { const i = e.currentTarget as HTMLImageElement; tallPhoto = i.naturalHeight / Math.max(1, i.naturalWidth) > 1.45; }} />
-        <figcaption class="mt-1.5 text-[0.7rem] leading-snug text-muted max-sm:hidden">
-          <a class="link" href={d.profile.photo_page} target="_blank" rel="noopener">{t("photoBy")} : {d.profile.photo_author || "Wikipedia / Commons"}{d.profile.photo_license ? ` · ${d.profile.photo_license}` : ""}</a>
-        </figcaption>
-      </figure>
-    {/if}
-    <div class="min-w-0 flex-1">
-    <h1 class="text-xl font-extrabold tracking-tight sm:text-3xl">{d.p.name}</h1>
-    {#if d.p.club}
-      {@const c = clubOf(d.p.club)}
-      <!-- Où il joue : le club de sa dernière saison listée (« actuel » seulement si c'est la saison la plus récente), son poste et son numéro. -->
-      <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm sm:mt-2">
-        <a class="inline-flex min-h-8 items-center gap-2 font-semibold no-underline hover:underline" href={href("club", c.wikidata_qid || enc(d.p.club))}><Logo club={c} size={22} />{clubName(c)}</a>
-        <span class="text-muted">{d.p.last === d.p.latest ? "" : `${t("lastClub")} · ${d.p.last}`}{#if d.p.pos}{d.p.last === d.p.latest ? "" : " · "}{t("pos1_" + d.p.pos)}{/if}{#if d.p.num} · n°{d.p.num}{/if}</span>
-      </p>
-    {/if}
-    {#if d.profile?.full_name && fold(d.profile.full_name) !== fold(d.p.name)}<p class="mt-0.5 text-sm text-muted max-sm:truncate sm:mt-1">{d.profile.full_name}</p>{/if}
-    <p class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted sm:mt-2">
-      {#if d.p.flag || d.p.nat}<span class="flex items-center gap-2"><Flag code={d.p.flag} label={d.p.nat} /><span>{natLabel}</span></span>{/if}
-      {#if born}<span class="sm:hidden">{bornShort}</span><span class="max-sm:hidden">{born}</span>{/if}
-      {#if d.profile?.birth_place}<span class="max-sm:hidden">{t("birthPlace")} : {d.profile.birth_place}</span>{/if}
-      {#if d.profile?.height_cm}<span class="max-sm:hidden">{t("heightLabel")} : {heightText}</span>{/if}
-    </p>
-    {#if d.profile?.birth_place || d.profile?.height_cm}
-      <p class="mt-0.5 text-xs text-muted sm:hidden">{[d.profile?.birth_place, d.profile?.height_cm ? heightText : ""].filter(Boolean).join(" · ")}</p>
-    {/if}
-    {#if totals}
-      <p class="mt-2 text-sm font-semibold sm:hidden">
-        <span class="text-accent">{totals.apps}</span> {t("matchesLc")} · <span class="text-accent">{totals.goals}</span> {t("goalsLc")}
-      </p>
-      <ul class="mt-3 grid grid-cols-2 gap-2 max-sm:hidden sm:mt-4 sm:flex sm:flex-wrap sm:gap-3">
-        <li class="rounded-xl bg-accent-soft px-3 py-2 sm:px-4"><strong class="block text-xl font-extrabold text-accent">{totals.apps}</strong><span class="text-xs text-muted">{t("sumApps")}</span></li>
-        <li class="rounded-xl bg-accent-soft px-3 py-2 sm:px-4"><strong class="block text-xl font-extrabold text-accent">{totals.goals}</strong><span class="text-xs text-muted">{t("sumGoals")}</span></li>
-      </ul>
-      <p class="mt-2 text-xs text-muted max-sm:hidden">
-        {t("sumClubs")} : {totals.clubApps} {t("matchesLc")}, {totals.clubGoals} {t("goalsLc")}{#if totals.hasNat}{" · "}{t("sumNat")} : {totals.natApps} {t("capsLc")}, {totals.natGoals} {t("goalsLc")}{/if}
-      </p>
-    {/if}
-    <!-- Téléphone : deux icônes de 44 px (Suivre, Wikipédia) ; grand écran : boutons avec libellé. -->
-    <div class="mt-2.5 flex items-center gap-2 sm:hidden"><FollowButton compact item={{ kind: "player", id: key, label: d.p.name, sub: natLabel, path: `player/${enc(key)}` }} /><WikiButton compact urls={d.urls} kind="wikiPlayer" /></div>
-    <div class="mt-4 flex flex-wrap items-center gap-2 max-sm:hidden"><FollowButton item={{ kind: "player", id: key, label: d.p.name, sub: natLabel, path: `player/${enc(key)}` }} /><WikiButton urls={d.urls} kind="wikiPlayer" /></div>
+  <!-- Un seul bandeau, sur le modèle de la fiche club : la couleur du club en liseré, l'identité (photo, nom, club) puis les faits en valeur d'abord, libellé dessous. -->
+  <header class="card overflow-hidden">
+    {#if kit[0]}<div class="flex h-1.5" aria-hidden="true"><span class="flex-1" style:background={kit[0]}></span>{#if kit[1]}<span class="w-1/3" style:background={kit[1]}></span>{/if}</div>{/if}
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-3 p-4 sm:p-6" style:background={kit[0] ? `color-mix(in oklab, ${kit[0]} 9%, var(--surface))` : "var(--surface)"}>
+      {#if d.profile?.photo_url && !photoFailed}
+        <!-- Cadre carré calé sur le haut : le visage est presque toujours en haut de l'image. -->
+        <img class="size-20 shrink-0 rounded-2xl border border-line bg-surface-2 object-cover sm:size-28" style:object-position="50% 12%" src={d.profile.photo_url} alt={d.profile.photo_caption || d.p.name} loading="lazy" width="112" height="112"
+          onerror={() => (photoFailed = true)} />
+      {/if}
+      <div class="min-w-0 flex-1">
+        <h1 class="text-2xl font-extrabold leading-tight tracking-tight sm:text-4xl">{d.p.name}</h1>
+        {#if d.p.club}
+          {@const c = clubOf(d.p.club)}
+          <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm sm:text-base">
+            <a class="inline-flex min-h-8 items-center gap-2 font-semibold no-underline hover:underline" href={href("club", c.wikidata_qid || enc(d.p.club))}><Logo club={c} size={22} />{clubName(c)}</a>
+            {#if d.p.last !== d.p.latest}<span class="text-muted">{t("lastClub")} ({d.p.last})</span>{/if}
+          </p>
+        {/if}
+        {#if d.profile?.full_name && fold(d.profile.full_name) !== fold(d.p.name)}<p class="mt-0.5 text-sm text-muted max-sm:truncate">{d.profile.full_name}</p>{/if}
+      </div>
+      <!-- Téléphone : deux icônes de 44 px (Suivre, Wikipédia) ; grand écran : boutons avec libellé. -->
+      <div class="flex items-center gap-2 max-sm:w-full sm:self-start"><FollowButton compact={isPhone} item={{ kind: "player", id: key, label: d.p.name, sub: natLabel, path: `player/${enc(key)}` }} /><WikiButton compact={isPhone} urls={d.urls} kind="wikiPlayer" /></div>
     </div>
+    {#if facts.length}
+      <dl class="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-line/60 px-4 py-5 sm:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] sm:px-6">
+        {#each facts as f (f.k)}
+          <div class="flex min-w-0 flex-col-reverse justify-end gap-0.5 {f.k === 'bp' ? 'col-span-2' : ''}">
+            <dt class="text-sm text-muted">{f.label}</dt>
+            <dd class="flex items-center gap-2 text-lg font-semibold leading-tight {f.accent ? 'text-accent' : ''}">{#if f.flag}<Flag code={f.flag} label={f.value} />{/if}<span class="min-w-0 text-balance">{f.value}</span></dd>
+            {#if f.sub}<dd class="text-xs tabular-nums text-muted order-first">{f.sub}</dd>{/if}
+          </div>
+        {/each}
+      </dl>
+    {/if}
+    {#if d.profile?.photo_url && !photoFailed}
+      <p class="border-t border-line/60 px-4 py-2 text-[0.7rem] text-muted sm:px-6"><a class="link" href={d.profile.photo_page} target="_blank" rel="noopener">{t("photoBy")} : {d.profile.photo_author || "Wikipedia / Commons"}{d.profile.photo_license ? `, ${d.profile.photo_license}` : ""}</a></p>
+    {/if}
   </header>
 
   {#if tabs.length > 1}
@@ -197,10 +209,14 @@
 
   {#if tab === "path"}
   <div role="tabpanel" id="ppanel-path" aria-labelledby={tabs.length > 1 ? "ptab-path" : undefined}>
-  {#if d.career.length}
+  <!-- Grand écran : la carrière et les sélections à gauche (c'est ce qu'on vient voir), la saison et les derniers matchs à droite. -->
+  <div class="lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start lg:gap-x-6">
+  <div class="min-w-0">
+  {#if d.career.length || d.national.length}
+    {@const asTimeline = timeline && careerView === "timeline" && d.career.length > 0}
     <section class="card mt-4 overflow-hidden sm:mt-6">
-      <div class="flex flex-wrap items-center justify-between gap-3 px-5 pt-4">
-        <h2 class="text-lg font-bold">{t("careerFull")}</h2>
+      <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+        <h2 class="text-lg font-bold">{t("carTitle")}</h2>
         {#if timeline}
           <div class="inline-flex rounded-lg border border-line bg-surface p-0.5" role="group" aria-label={t("viewMode")}>
             {#each [["table", "tlTable"], ["timeline", "tlTimeline"]] as [v, k]}
@@ -210,13 +226,14 @@
           </div>
         {/if}
       </div>
-      {#if timeline && careerView === "timeline"}
+      <div class="border-t border-line/60">
+      {#if asTimeline}
         <div class="px-5 pb-3 pt-4">
         <div class="relative" style:height="{timeline.lanes * 2.75 + 1.5}rem" role="list">
         {#each timeline.ticks as tk}<span class="absolute top-0 h-full border-l border-dashed border-line" style:left="{tk.left}%" aria-hidden="true"></span>{/each}
         {#each timeline.bars as b (b.seq)}
           <div role="listitem" class="absolute flex h-10 items-center gap-1.5 overflow-hidden rounded-lg border px-1.5 text-sm font-medium {b.loan ? 'border-dashed border-info bg-info-soft' : 'border-accent/50 bg-accent-soft'}"
-            style:left="{b.left}%" style:width="{b.width}%" style:top="{b.lane * 2.75}rem" title="{b.club_name} · {b.years_raw}{b.loan ? ' (' + t('tlLoan') + ')' : ''}">
+            style:left="{b.left}%" style:width="{b.width}%" style:top="{b.lane * 2.75}rem" title="{b.club_name}, {b.years_raw}{b.loan ? ' (' + t('tlLoan') + ')' : ''}">
             <Logo club={{ logo_url: b.club_logo, colors_hex: b.club_colors, club_name: b.club_name }} size={22} />
             <span class="truncate">{b.club_name}</span>
           </div>
@@ -226,61 +243,20 @@
         {#each timeline.ticks as tk}<span class="absolute -translate-x-1/2" style:left="{tk.left}%">{tk.y}</span>{/each}
       </div>
         </div>
-      {:else}
-      <div class="overflow-x-auto">
-        <table class="tbl mt-2">
-          <thead><tr><th class="hidden sm:table-cell">{t("colYears")}</th><th>{t("club")}</th><th class="num">{t("colApps")}</th><th class="num">{t("colGoals")}</th></tr></thead>
-          <tbody>
-            {#each d.career as r (r.seq)}
-              <tr>
-                <td class="hidden whitespace-nowrap sm:table-cell">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} <span class="text-muted">{t("ongoing")}</span>{/if}</td>
-                <td>
-                  <span class="flex items-center gap-2.5">
-                    <Logo club={{ logo_url: r.club_logo, colors_hex: r.club_colors, club_name: r.club_name }} size={24} />
-                    <span>{#if r.loan}<span class="text-muted">→ </span>{/if}
-                      {#if r.club_qid}<a class="link" href={href("club", r.club_qid)}>{r.club_name}</a>
-                      {:else if r.club_link}<a class="link" href={wikiUrl("en", r.club_link)} hreflang="en" target="_blank" rel="noopener">{r.club_name}</a>
-                      {:else}{r.club_name}{/if}
-                      {#if r.loan} <Badge kind="info">{t("loanTag")}</Badge>{/if}
-                      <span class="block text-xs text-muted sm:hidden">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} {t("ongoing")}{/if}</span></span>
-                  </span>
-                </td>
-                <td class="num">{r.apps ?? ""}</td><td class="num">{r.goals ?? ""}</td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
       {/if}
-      <p class="border-t border-line px-5 py-3 text-xs text-muted">{t("careerFullNote")}
+      <CareerList career={asTimeline ? [] : d.career} national={d.national} />
+      </div>
+      {#if d.career.length}
+      <p class="border-t border-line/60 px-5 py-3 text-xs text-muted">{t("careerFullNote")}
         <a class="link" href={wikiUrl("en", d.career[0].source_title)} hreflang="en" target="_blank" rel="noopener">{t("careerSrc")}</a></p>
+      {/if}
     </section>
   {:else}
     <p class="mt-6 text-muted">{t("noCareer")}</p>
   {/if}
-
-  {#if d.national.length}
-    <section class="card mt-4 overflow-hidden sm:mt-6">
-      <h2 class="px-5 pt-4 text-lg font-bold">{t("nationalTitle")}</h2>
-      <div class="overflow-x-auto">
-        <table class="tbl mt-2">
-          <thead><tr><th class="hidden sm:table-cell">{t("colYears")}</th><th>{t("colTeam")}</th><th class="num">{t("colCaps")}</th><th class="num">{t("colGoals")}</th></tr></thead>
-          <tbody>
-            {#each d.national as r}
-              {@const nt = nationalTeam(r.team_name)}
-              <tr>
-                <td class="hidden whitespace-nowrap sm:table-cell">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} <span class="text-muted">{t("ongoing")}</span>{/if}</td>
-                <td><span class="flex items-center gap-2.5">{#if nt.flag}<Flag code={nt.flag} label={nt.name} />{/if}
-                  <span>{#if r.team_link}<a class="link" href={wikiUrl("en", r.team_link)} hreflang="en" target="_blank" rel="noopener">{nt.name}</a>{:else}{nt.name}{/if}
-                    <span class="block text-xs text-muted sm:hidden">{r.years_raw ?? ""}{#if isOngoing(r.years_raw)} {t("ongoing")}{/if}</span></span></span></td>
-                <td class="num">{r.caps ?? ""}</td><td class="num">{r.goals ?? ""}</td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  {/if}
+  </div>
+  <div class="min-w-0"><PlayerNow qid={d.p.qid ?? null} statClub={d.statClub} /></div>
+  </div>
   </div>
   {/if}
 
@@ -300,7 +276,7 @@
   {#if d.profile?.photo_url && !photoFailed}
     <!-- Crédit de la photo : sous la photo sur grand écran, ici sur téléphone (la vignette de l'en-tête est trop petite pour le porter). -->
     <p class="mt-4 text-[0.7rem] leading-snug text-muted sm:hidden">
-      <a class="link" href={d.profile.photo_page} target="_blank" rel="noopener">{t("photoBy")} : {d.profile.photo_author || "Wikipedia / Commons"}{d.profile.photo_license ? ` · ${d.profile.photo_license}` : ""}</a>
+      <a class="link" href={d.profile.photo_page} target="_blank" rel="noopener">{t("photoBy")} : {d.profile.photo_author || "Wikipedia / Commons"}{d.profile.photo_license ? `, ${d.profile.photo_license}` : ""}</a>
     </p>
   {/if}
 {/if}

@@ -200,8 +200,8 @@
       if (last) { const flip = teamKey(last.home_club, last.home_name) !== tie.a.key; const [x, y] = flip ? [last.pen_away, last.pen_home] : [last.pen_home, last.pen_away]; pens = `${t("resPens")} ${x}–${y}`; if (tie.played === tie.legs.length) tie.winner = x > y ? "a" : y > x ? "b" : null; }
       if (!tie.winner && tie.played === tie.legs.length) tie.winner = tie.ga > tie.gb ? "a" : tie.gb > tie.ga ? "b" : null;
       const legScores = tie.legs.map((m) => (m.ft_home == null ? "–" : score(m).join("–")));
-      const legs = tie.legs.length === 1 ? "" : tie.legs.length === 2 ? `${t("resLeg1")} ${legScores[0]} · ${t("resLeg2")} ${legScores[1]}` : legScores.join(" · ");
-      tie.note = [legs, pens].filter(Boolean).join(" · ");
+      const legs = tie.legs.length === 1 ? "" : tie.legs.length === 2 ? `${t("resLeg1")} ${legScores[0]}, ${t("resLeg2")} ${legScores[1]}` : legScores.join(", ");
+      tie.note = [legs, pens].filter(Boolean).join(", ");
     }
     return [...by.values()];
   });
@@ -210,7 +210,7 @@
   const extra = (m: Row) => [
     m.et_home != null ? `${t("resExtra")} ${m.et_home}–${m.et_away}` : "",
     m.pen_home != null ? `${t("resPens")} ${m.pen_home}–${m.pen_away}` : "",
-    m.ht_home != null ? `${t("resHalf")} ${m.ht_home}–${m.ht_away}` : ""].filter(Boolean).join(" · ");
+    m.ht_home != null ? `${t("resHalf")} ${m.ht_home}–${m.ht_away}` : ""].filter(Boolean).join(", ");
   const dayLabel = (d: string) => (d ? new Date(d).toLocaleDateString(app.lang, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : t("resNoDate"));
   const won = (m: Row, side: "home" | "away") => m.ft_home != null && (side === "home" ? m.ft_home > m.ft_away : m.ft_away > m.ft_home);
 </script>
@@ -287,7 +287,7 @@
     </div>
     {#if extra(m) || home.length || away.length}
       <p class="mt-1.5 text-xs leading-relaxed text-muted">
-        {#if home.length || away.length}<span class="inline-flex items-start gap-1"><Icon name="ball" size={12} /><span>{[...home, ...away].join(" · ")}</span></span>{/if}
+        {#if home.length || away.length}<span class="inline-flex items-start gap-1"><Icon name="ball" size={12} /><span>{[...home, ...away].join(", ")}</span></span>{/if}
         {#if extra(m)}<span class="block">{extra(m)}</span>{/if}
       </p>
     {/if}
@@ -332,7 +332,7 @@
       <div class="mt-5 grid grid-cols-[minmax(0,1fr)] items-start gap-6 {tables.length ? 'xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] max-w-4xl xl:max-w-none' : 'max-w-3xl'}">
         {#if tables.length}
           <section aria-labelledby="res-table">
-            <h2 id="res-table" class="mb-2 text-xl font-bold">{t("resTable")} <span class="font-semibold tabular-nums text-muted">{season}{#if stages.length > 1}{" · "}{stageLabel(stage.key)}{/if}{#if stepped}{" · "}{t("resAfterRound")} {upto}{/if}</span></h2>
+            <h2 id="res-table" class="mb-2 text-xl font-bold">{t("resTable")} <span class="font-semibold tabular-nums text-muted">{season}{#if stages.length > 1}{", "}{stageLabel(stage.key)}{/if}{#if stepped}{", "}{t("resAfterRound")} {upto}{/if}</span></h2>
             <div class="grid gap-5">
               {#each tables as tb (tb.title)}
                 <div>
@@ -346,7 +346,7 @@
         {/if}
 
         <section aria-labelledby="res-matches">
-          <h2 id="res-matches" class="mb-2 text-xl font-bold">{t("resMatches")}{#if stepped && round}<span class="font-semibold text-muted"> · {roundLabel(round)}</span>{/if}</h2>
+          <h2 id="res-matches" class="mb-2 text-xl font-bold">{t("resMatches")}{#if stepped && round}<span class="font-semibold text-muted">, {roundLabel(round)}</span>{/if}</h2>
           <div class="card px-4 py-1">
             {#each days as d (d.day)}
               <h3 class="mt-3 text-xs font-semibold uppercase tracking-wide text-muted first:mt-2">{dayLabel(d.day)}</h3>
