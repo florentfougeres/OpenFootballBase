@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { app, countryOf, href, enc, route, seasonSlug, t, type Row } from "../lib/app.svelte";
+  import { app, countryOf, href, enc, page, route, seasonSlug, t, type Row } from "../lib/app.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
   import { downloadCsv, RELEASES_URL } from "../lib/download";
@@ -76,6 +76,7 @@
   const iso = $derived(d?.w?.country_iso ? String(d.w.country_iso).toLowerCase() : null);
   const flag = $derived(d?.ours ? countryOf(d.ours.country_code).flag : iso);
   const country = $derived(d?.ours ? countryOf(d.ours.country_code).name : d?.w?.country_iso ? countryName(d.w.country_iso) : "");
+  $effect(() => { page.name = name ? (label && d?.ours ? `${name} · ${label}` : name) : null; return () => { page.name = null; }; });          // titre de l'onglet du navigateur
   const name = $derived(d ? (d.ours ? clubName(d.ours) : app.lang === "fr" ? d.w?.name_local : d.w?.name_en || d.w?.name_local) : "");
   const sub = $derived(d?.w && d.w.name_en && d.w.name_en !== name ? d.w.name_en : d?.w && d.w.name_local !== name ? d.w.name_local : "");
   const logo = $derived({ logo_url: d?.ours?.logo_url || d?.w?.logo_url || commonsLogo(d?.w?.logo_commons_url),
@@ -91,6 +92,7 @@
   });
   const current = $derived(seasonList.find((r) => r.season === label));
   const idx = $derived(seasonList.findIndex((s) => s.season === label));
+  const lastSquad = $derived(seasonList.find((r) => r.players && r.season !== label));          // dernier effectif connu, à proposer quand la saison affichée n'en a pas
   const older = $derived(idx >= 0 ? seasonList[idx + 1] : undefined);       // liste triée de la plus récente à la plus ancienne
   const newer = $derived(idx > 0 ? seasonList[idx - 1] : undefined);
   const to = (s: string) => href("club", enc(title ?? key), seasonSlug(s));
@@ -272,19 +274,19 @@
   <div class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 -mx-4 mt-3 border-b border-line/60 bg-bg/95 px-4 py-2 backdrop-blur lg:top-0 lg:mx-0 lg:px-0">
     {#if tabs.length > 1}
       <Segmented label={t("clubViews")} idPrefix="ctab" value={tab} onselect={setTab}
-        items={tabs.map((v) => ({ key: v, label: t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : v === "moves" ? "mvTab" : v === "coaches" ? "coaches" : "honours") }))} />
+        items={tabs.map((v) => ({ key: v, label: t(v === "overview" ? "clubOverview" : v === "squad" ? "sqTab" : v === "moves" ? "mvTab" : v === "coaches" ? "coaches" : "honours"), short: v === "overview" ? t("clubOverviewS") : v === "moves" ? t("mvTabS") : v === "coaches" ? t("coachesS") : undefined }))} />
     {/if}
     {#if (tab === "squad" || tab === "moves") && d.ours && seasonList.length}
       <div class="mt-2 flex items-center gap-2">
         <div class="flex shrink-0 items-center gap-1" role="group" aria-label={t("changeSeason")}>
-          {#if older}<a class="grid size-10 place-items-center rounded-xl border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg max-sm:hidden sm:size-9" href={to(older.season)} aria-label="{t('prevSeason')} {older.season}">‹</a>
-          {:else}<span class="grid size-10 place-items-center rounded-xl border border-line/60 text-muted/40 max-sm:hidden sm:size-9" aria-hidden="true">‹</span>{/if}
+          {#if older}<a class="grid size-10 place-items-center rounded-xl border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg sm:size-9" href={to(older.season)} aria-label="{t('prevSeason')} {older.season}">‹</a>
+          {:else}<span class="grid size-10 place-items-center rounded-xl border border-line/60 text-muted/40 sm:size-9" aria-hidden="true">‹</span>{/if}
           <button type="button" class="inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-3.5 text-sm font-semibold tabular-nums transition hover:bg-surface-2 sm:h-9" aria-haspopup="dialog" onclick={() => (seasonSheet = true)}>
-            {label}{#if level(current ?? {})}<span class="text-[0.6875rem] font-bold text-accent">D{level(current ?? {})}</span>{/if}
+            {label}{#if level(current ?? {})}<span class="text-xs font-bold text-accent" title={t("divTip")}>D{level(current ?? {})}</span>{/if}
             <svg viewBox="0 0 24 24" class="size-4 text-muted" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
           </button>
-          {#if newer}<a class="grid size-10 place-items-center rounded-xl border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg max-sm:hidden sm:size-9" href={to(newer.season)} aria-label="{t('nextSeason')} {newer.season}">›</a>
-          {:else}<span class="grid size-10 place-items-center rounded-xl border border-line/60 text-muted/40 max-sm:hidden sm:size-9" aria-hidden="true">›</span>{/if}
+          {#if newer}<a class="grid size-10 place-items-center rounded-xl border border-line bg-surface text-muted no-underline transition hover:bg-surface-2 hover:text-fg sm:size-9" href={to(newer.season)} aria-label="{t('nextSeason')} {newer.season}">›</a>
+          {:else}<span class="grid size-10 place-items-center rounded-xl border border-line/60 text-muted/40 sm:size-9" aria-hidden="true">›</span>{/if}
         </div>
         {#if tab === "squad"}
           <div class="ml-auto flex min-w-0 items-center gap-2">
@@ -325,7 +327,7 @@
         <li><a class="flex min-h-12 items-center gap-3 rounded-xl px-3 no-underline transition hover:bg-surface-2 {s.season === label ? 'bg-accent-soft text-accent' : ''}" href={to(s.season)} aria-current={s.season === label ? "true" : undefined} onclick={() => (seasonSheet = false)}>
           <span class="display w-20 text-lg font-semibold tabular-nums">{s.season}</span>
           <span class="min-w-0 flex-1 truncate text-sm text-muted">{compName(s.competition)}</span>
-          <span class="shrink-0 text-xs font-bold {level(s) === 1 ? 'text-accent' : 'text-muted'}">{level(s) ? `D${level(s)}` : "·"}{#if !s.players} <span aria-label={t("unresolved")}>∅</span>{/if}</span>
+          <span class="shrink-0 text-xs font-bold {level(s) === 1 ? 'text-accent' : 'text-muted'}">{level(s) ? `D${level(s)}` : "·"}{#if !s.players} <span class="font-medium normal-case text-muted">{t("unresolved")}</span>{/if}</span>
         </a></li>
       {/each}
     </ul>
@@ -362,6 +364,7 @@
       {:else if squad && !rows.length}
         <div class="card border-info/30 bg-info-soft p-4 text-info">
           <p>{t("noSquad")}{squad.cs?.known_gap_reason ? ` — ${t("gapReason")} : ${squad.cs.known_gap_reason}` : ""}</p>
+          {#if lastSquad}<p class="mt-2"><a class="link font-semibold" href={to(lastSquad.season)}>{t("lastSquadCta")} : {lastSquad.season} ({lastSquad.players} {t("playersN")}) →</a></p>{/if}
           {#if fillUrl}<p class="mt-2 text-sm">{t("fillIntro")} <a class="link" href={fillUrl} target="_blank" rel="noopener">{t("fillCta")}</a></p>{/if}
         </div>
       {:else if squad}
@@ -435,14 +438,14 @@
                   <ul class="divide-y divide-line/60">
                     {#each group as r (r.key + r.shirt_number)}
                       {@const age = ageOf(r)}
-                      <li class="grid grid-cols-[2.25rem_1fr_auto] items-center gap-3 py-1.5 hover:bg-surface-2">
-                        <span class="display text-right text-2xl font-bold text-muted">{r.shirt_number ?? ""}</span>
+                      <li class="relative grid grid-cols-[2.25rem_1fr_auto] items-center gap-3 py-1.5 hover:bg-surface-2 max-sm:min-h-11">
+                        <span class="display text-right text-2xl font-bold text-fg">{r.shirt_number ?? ""}</span>
                         <span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                           <Flag code={r.nat_flag} label={r.nationality} />
-                          <a class="font-medium hover:text-accent hover:underline {selected === r.key ? 'text-accent' : ''}" href={href("player", enc(r.key))} aria-current={selected === r.key ? "true" : undefined} onclick={(e) => pickRow(e, r)}>{r.player}</a>
+                          <a class="font-medium after:absolute after:inset-0 hover:text-accent hover:underline {selected === r.key ? 'text-accent' : ''}" href={href("player", enc(r.key))} aria-current={selected === r.key ? "true" : undefined} onclick={(e) => pickRow(e, r)}>{r.player}</a>
                           {@render stint(r)}
                         </span>
-                        <span class="text-sm text-muted tabular-nums" title={t("ageTip")}>{age != null ? `${age} ${t("ageYears")}` : ""}</span>
+                        <span class="text-sm text-muted tabular-nums" title={t("ageTip")}>{age != null ? `${age} ${t("ageYears")}` : "—"}{#if age == null}<span class="sr-only">{t("ageUnknown")}</span>{/if}</span>
                       </li>
                     {/each}
                   </ul>
