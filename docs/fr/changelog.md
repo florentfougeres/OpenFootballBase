@@ -9,6 +9,8 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 ## Site et outils
 
 ### 2026-11-25
+- **Page club : elle s'ouvre sur l'effectif.** Les onglets passent à Effectif, Mouvements, Entraîneurs, Palmarès puis **À propos** (l'ancien « Aperçu », avec la carte). L'entraîneur en poste s'affiche dans l'en-tête, et Transfermarkt, FBref et WorldFootball deviennent des boutons en tête de « À propos ». Le bouton « Composer avec cet effectif » est retiré.
+- **Fiche joueur : l'en-tête dit où il joue.** Club (blason, lien), poste et numéro de sa dernière saison listée, avec « Dernier club connu · saison » quand ce n'est pas la saison en cours. Le fil d'Ariane est masqué sur téléphone.
 - **Démarrage plus rapide.** Les 20 vues de tables lues par plages (matchs, entraîneurs, stats, palmarès…) ne sont plus créées au démarrage mais à la première requête qui les cite : créer une vue lit le pied du fichier, un aller-retour réseau chacune, ce qui coûtait environ 5 s sur GitHub Pages avant l'accueil. Les tables de l'accueil et `career` restent immédiates.
 
 ### 2026-11-24

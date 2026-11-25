@@ -2,7 +2,7 @@
   import { app, href, enc, page, route, t } from "../lib/app.svelte";
   import { q } from "../lib/db";
   import { resource } from "../lib/resource.svelte";
-  import { ageAt, isOngoing, natLabel as libNatLabel, nationalTeam, wikiUrl } from "../lib/format";
+  import { ageAt, clubName, clubOf, isOngoing, natLabel as libNatLabel, nationalTeam, wikiUrl } from "../lib/format";
   import { fold } from "../lib/fold";
   import Badge from "../components/Badge.svelte";
   import Crumbs from "../components/Crumbs.svelte";
@@ -23,7 +23,8 @@
 
   const res = resource(async () => {
     const [p] = await q(`SELECT any_value(player) AS name, any_value(player_qid) AS qid, any_value(link_title) AS link_title,
-        arg_max(nat_flag, season) AS flag, arg_max(nationality, season) AS nat FROM squad WHERE COALESCE(player_qid, 'name:' || player) = ?`, [key]);
+        arg_max(nat_flag, season) AS flag, arg_max(nationality, season) AS nat,
+        arg_max(club, season) AS club, max(season) AS last, arg_max(position, season) AS pos, arg_max(shirt_number, season) AS num, (SELECT max(season) FROM squad) AS latest FROM squad WHERE COALESCE(player_qid, 'name:' || player) = ?`, [key]);
     if (!p || !p.name) return null;
     let birth: any = null;
     if (p.qid && app.has.birth) birth = (await q(`SELECT birth_date, precision FROM birth WHERE player_qid = ?`, [p.qid]))[0] ?? null;
@@ -128,7 +129,7 @@
   };
 </script>
 
-<Crumbs />
+<div class="max-sm:hidden"><Crumbs /></div>
 {#if res.loading && !d}
   <Spinner />
 {:else if res.error}
@@ -150,6 +151,14 @@
     {/if}
     <div class="min-w-0 flex-1">
     <h1 class="text-xl font-extrabold tracking-tight sm:text-3xl">{d.p.name}</h1>
+    {#if d.p.club}
+      {@const c = clubOf(d.p.club)}
+      <!-- Où il joue : le club de sa dernière saison listée (« actuel » seulement si c'est la saison la plus récente), son poste et son numéro. -->
+      <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm sm:mt-2">
+        <a class="inline-flex min-h-8 items-center gap-2 font-semibold no-underline hover:underline" href={href("club", c.wikidata_qid || enc(d.p.club))}><Logo club={c} size={22} />{clubName(c)}</a>
+        <span class="text-muted">{d.p.last === d.p.latest ? "" : `${t("lastClub")} · ${d.p.last}`}{#if d.p.pos}{d.p.last === d.p.latest ? "" : " · "}{t("pos1_" + d.p.pos)}{/if}{#if d.p.num} · n°{d.p.num}{/if}</span>
+      </p>
+    {/if}
     {#if d.profile?.full_name && fold(d.profile.full_name) !== fold(d.p.name)}<p class="mt-0.5 text-sm text-muted max-sm:truncate sm:mt-1">{d.profile.full_name}</p>{/if}
     <p class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted sm:mt-2">
       {#if d.p.flag || d.p.nat}<span class="flex items-center gap-2"><Flag code={d.p.flag} label={d.p.nat} /><span>{natLabel}</span></span>{/if}

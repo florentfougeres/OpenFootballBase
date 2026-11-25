@@ -122,13 +122,13 @@
 
   // Mouvements : on compare l'effectif de la saison à celui de la précédente (aucun tableau de transferts requis).
   // Cinq vues : Aperçu (la fiche du club), Effectif et Mouvements (une saison, arrivées et départs), Entraîneurs et Palmarès. L'onglet est dans l'adresse (`?tab=`) : partageable, et le retour du navigateur le restitue.
-  // Sans `?tab=` : l'effectif quand l'adresse porte une saison (on vient d'un classement ou d'une liste de la saison), sinon l'aperçu (on vient voir le club).
+  // Sans `?tab=` : l'effectif (c'est la page du club), « À propos » (la fiche) en dernier ; un club sans effectif n'a que la fiche.
   type Tab = "overview" | "squad" | "moves" | "coaches" | "honours";
-  const tabs = $derived<Tab[]>(["overview", ...(d?.ours ? (["squad", "moves"] as Tab[]) : []), ...(coaches.loading || coaches.data?.length ? (["coaches"] as Tab[]) : []), ...(honours.loading || honours.data?.length ? (["honours"] as Tab[]) : [])]);
+  const tabs = $derived<Tab[]>([...(d?.ours ? (["squad", "moves"] as Tab[]) : []), ...(coaches.loading || coaches.data?.length ? (["coaches"] as Tab[]) : []), ...(honours.loading || honours.data?.length ? (["honours"] as Tab[]) : []), "overview"]);
   const tab = $derived.by<Tab>(() => {
     const want = route.query.get("tab") as Tab | null;
     if (want && tabs.includes(want)) return want;
-    return d?.ours && slug ? "squad" : "overview";
+    return d?.ours ? "squad" : "overview";
   });
   const setTab = (v: Tab) => {
     const qs = new URLSearchParams(route.query);
@@ -141,6 +141,7 @@
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || !matchMedia("(min-width: 1280px)").matches) return;
     e.preventDefault(); selected = r.key;
   };
+  const nowCoach = $derived(coaches.data?.find((k) => k.to == null) ?? null);          // entraîneur en poste : le mandat sans fin
   const view = $derived<"squad" | "moves">(tab === "moves" ? "moves" : "squad");          // Effectif (les joueurs) ou Mouvements (arrivées et départs)
   let seasonSheet = $state(false), filterSheet = $state(false);
   const moves = resource(async () => {
@@ -257,13 +258,12 @@
         <p class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-muted sm:mt-2 sm:gap-x-4 sm:gap-y-1">
           <span class="flex items-center gap-1.5 font-medium text-fg"><Flag code={flag} label={country} /> {country}</span>
           {#if current}<a class="link" href={href("competition", current.competition, seasonSlug(current.season))}>{compName(current.competition)}</a>{/if}
+          {#if nowCoach}<span>{t("coachNow")} : <a class="link" href={href("coach", nowCoach.qid)}>{nowCoach.name}</a></span>{/if}
           {#each (extra.data ?? []).filter((c) => c !== current?.competition) as c}<a class="link max-sm:hidden" href={href("competition", c, seasonSlug(label ?? ""))}>{compName(c)}</a>{/each}
         </p>
       </div>
       <div class="col-span-2 flex flex-wrap items-center gap-2 sm:col-span-1 sm:ml-auto sm:self-start">
         <FollowButton item={{ kind: "club", id: key, label: name, sub: country, path: `club/${enc(key)}` }} />
-        {#if d.ours && label}<a class="inline-flex min-h-10 items-center gap-2 rounded-xl border border-line bg-surface px-3.5 text-sm font-semibold no-underline transition hover:bg-surface-2" href="{href("lineup")}?src=club&club={enc(title ?? key)}&s={enc(label)}">
-          <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4zM4 12h16M12 4v16" /></svg>{t("lineupFromClub")}</a>{/if}
       </div>
     </div>
   </header>
@@ -562,23 +562,16 @@
     {:else if tab === "overview"}
       <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
         <div class="min-w-0">
-          {#if d.ours && label}
-            <a class="tile mb-6 max-w-xl" href={to(label)}>
-              <span class="min-w-0 flex-1"><span class="block font-semibold">{t("seeSquad")} {label}</span>{#if current}<span class="block text-sm text-muted">{compName(current.competition)}</span>{/if}</span>
-              <span class="text-muted" aria-hidden="true">›</span>
-            </a>
-          {/if}
           <h2 id="about-club" class="mb-3 text-xl font-bold">{t("about_club")}</h2>
+          {#if external.length}
+            <p class="mb-4 flex flex-wrap gap-2">{#each external as [label, url]}<a class="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3.5 text-sm font-semibold no-underline transition hover:bg-surface-2" href={url} target="_blank" rel="noopener">{label}<span class="text-muted" aria-hidden="true">↗</span></a>{/each}</p>
+          {/if}
       {#if info.length || external.length}
         <dl class="space-y-3 text-sm">
           {#each info as it}
             <div><dt class="eyebrow">{it.label}</dt>
               <dd class="mt-0.5 font-medium">{#if it.to}<a class="link" href={it.to}>{it.value}</a>{:else if it.href}<a class="link break-all" href={it.href} target="_blank" rel="noopener">{it.value}</a>{:else}{it.value}{/if}</dd></div>
           {/each}
-          {#if external.length}
-            <div><dt class="eyebrow">{t("externalIds")}</dt>
-              <dd class="mt-0.5 flex flex-wrap gap-x-4 gap-y-1 font-medium">{#each external as [label, url]}<a class="link" href={url} target="_blank" rel="noopener">{label}</a>{/each}</dd></div>
-          {/if}
         </dl>
       {/if}
       <div class="mt-4"><WikiButton urls={d.urls} kind="wikiClub" fallbackKey="wikiLocalOnly" /></div>

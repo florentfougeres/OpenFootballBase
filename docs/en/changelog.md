@@ -9,6 +9,8 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 ## Site and tooling
 
 ### 2026-11-25
+- **Club page: it opens on the squad.** Tabs are now Squad, Movements, Coaches, Honours, then **About** (the former "Overview", with the map). The current coach shows in the header, and Transfermarkt, FBref and WorldFootball become buttons at the top of "About". The "Build a line-up with this squad" button is removed.
+- **Player page: the header says where he plays.** Club (crest, link), position and shirt number from his last listed season, with "Last known club · season" when it is not the current season. The breadcrumb is hidden on phones.
 - **Faster start-up.** The 20 views over range-read tables (matches, coaches, stats, honours…) are no longer created at start-up but on the first query that mentions them: creating a view reads the file footer, one network round trip each, which cost about 5 s on GitHub Pages before the home page. The home-page tables and `career` stay immediate.
 
 ### 2026-11-24
