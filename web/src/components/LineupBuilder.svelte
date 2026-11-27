@@ -469,7 +469,7 @@
       <input id="lineup-title" type="text" maxlength="40" class="mb-2.5 mt-1 h-10 w-full rounded-xl border border-line bg-bg px-3 text-base" placeholder={caption} bind:value={lineup.title} />
       <label class="eyebrow" for="lineup-subtitle">{t("lineupSubtitle")}</label>
       <input id="lineup-subtitle" type="text" maxlength="60" class="mb-3 mt-1 h-10 w-full rounded-xl border border-line bg-bg px-3 text-base" placeholder={t("lineupSubtitlePh")} bind:value={lineup.subtitle} />
-      <ul class="divide-y divide-line/60 overflow-hidden rounded-xl border border-line">
+      <ul class="divide-y divide-line/40 overflow-hidden rounded-xl border border-line">
         {@render toggle(t("lineupShowFormation"), lineup.opts.formation, (v) => (lineup.opts.formation = v))}
         {#if logo}{@render toggle(t("lineupShowBadge"), lineup.opts.badge, (v) => (lineup.opts.badge = v))}{/if}
         {@render toggle(t("lineupShowPhotos"), lineup.display === "photo", (v) => setDisplay(v ? "photo" : find ? "initials" : "number"))}

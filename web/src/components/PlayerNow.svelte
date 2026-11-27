@@ -73,7 +73,7 @@
 {#if recent.data?.length}
   <section class="{card} mt-4 sm:mt-6" aria-labelledby="pn-recent">
     <h2 id="pn-recent" class="mb-3 text-lg font-bold">{t("pnRecent")}</h2>
-    <ul class="divide-y divide-line/60">
+    <ul class="divide-y divide-line/40">
       {#each recent.data as m (m.id)}
         <li class="grid min-h-12 grid-cols-[5.5rem_1fr_auto] items-center gap-3 py-1.5 text-sm">
           <span class="text-muted tabular-nums">{fmt(m.date)}</span>

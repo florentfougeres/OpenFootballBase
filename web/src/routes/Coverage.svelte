@@ -54,10 +54,8 @@
   });
   const cell = (code: string, s: string) => grid.data?.get(`${code}|${s}`);
   const total = (s: string) => { let n = 0, ok = 0; for (const [k, v] of grid.data ?? []) if (k.endsWith(`|${s}`)) { n += v.n; ok += v.ok; } return { n, ok }; };
-  /** Remplissage d'une case : plus l'effectif est complet, plus la case est verte ; le texte change de couleur pour rester lisible. */
-  const fill = (n: number, ok: number) => (n ? `color-mix(in oklab, var(--accent) ${Math.round((100 * ok) / n)}%, var(--surface-2))` : "transparent");
-  /** Part de la case remplie, en points : la feuille de style (`.heat`) en tire la couleur du texte, avec un seuil propre à chaque thème (`--heat-t`) pour que le contraste reste de 4,5:1 au moins. */
-  const heatShare = (n: number, ok: number) => (n ? Math.round((100 * ok) / n) : 0);
+  /** Remplissage d'une case : une teinte douce, d'autant plus verte que l'effectif est complet (40 % au plus : le texte garde sa couleur et reste lisible dans les deux thèmes). */
+  const fill = (n: number, ok: number) => (n ? `color-mix(in oklab, var(--accent) ${Math.round((40 * ok) / n)}%, var(--surface-2))` : "transparent");
 
   // Filtres de la grille : confédération, texte, « avec effectifs seulement » (les championnats dont on ne connaît que les clubs sont masqués), période.
   let confSel = $state("");
@@ -99,7 +97,7 @@
     <Spinner />
   {:else if detail.data}
     <h2 class="mt-8 mb-3 text-xl font-bold">{t("covByCountry")}</h2>
-    <ul class="card divide-y divide-line">
+    <ul class="card divide-y divide-line/40 overflow-hidden">
       {#each detail.data as g (g.code)}
         <li>
           {#if g.missing.length}
@@ -164,7 +162,7 @@
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span aria-live="polite">{nRows} {t("compsN").toLowerCase()}</span>{#if onlySquads && hiddenLists}<span>{hiddenLists} {t("covHiddenLists")}</span>{/if}
         {#if filtered}<button type="button" class="link" onclick={reset}>{t("covReset")}</button>{/if}
-        <span class="flex w-full items-center gap-1 sm:ml-auto sm:w-auto" aria-hidden="true">{t("covLegend")} 0 %<span class="h-3 w-24 rounded-sm border border-line" style="background: linear-gradient(to right, var(--surface-2), var(--accent))"></span>100 %</span>
+        <span class="flex w-full items-center gap-1 sm:ml-auto sm:w-auto" aria-hidden="true">{t("covLegend")} 0 %<span class="h-3 w-24 rounded-sm border border-line" style="background: linear-gradient(to right, var(--surface-2), color-mix(in oklab, var(--accent) 40%, var(--surface-2)))"></span>100 %</span>
       </div>
     </div>
     {#if !visible.length}
@@ -182,19 +180,19 @@
           <a class="shrink-0 rounded-full border border-line bg-surface px-3 py-1 text-sm font-semibold no-underline hover:bg-surface-2" href={href("coverage", seasonSlug(s))}>{s}</a>
         {/each}
       </div>
-      <div class="card divide-y divide-line overflow-hidden">
+      <div class="card divide-y divide-line/40 overflow-hidden">
         <div class="px-4 py-3">
           <div class="flex items-baseline justify-between text-xs text-muted"><span class="font-semibold text-fg">{t("covAll")}</span><span class="tabular-nums">{shownCols[0]} → {shownCols[nCols - 1]}</span></div>
           <div class="mt-2 grid gap-[2px]" style={strip}>
             {#each shownCols as s}
               {@const tt = total(s)}
-              <a class="heat grid h-6 place-items-center rounded-[3px] text-[11px] font-semibold no-underline" style:background={fill(tt.n, tt.ok)} style:--p={heatShare(tt.n, tt.ok)} href={href("coverage", seasonSlug(s))}
+              <a class="grid h-6 place-items-center rounded-[3px] text-[11px] font-semibold no-underline" style:background={fill(tt.n, tt.ok)} href={href("coverage", seasonSlug(s))}
                 aria-label="{s} : {tt.n ? pct(tt.ok, tt.n) : 0} %">{#if nums && tt.n}{pct(tt.ok, tt.n)}{/if}</a>
             {/each}
           </div>
         </div>
         {#each visible as g (g.conf)}
-          {#if !confSel}<div class="bg-surface-2 px-4 py-1.5 text-sm font-bold">{g.conf} <span class="font-normal text-muted">({g.area})</span></div>{/if}
+          {#if !confSel}<div class="px-4 pb-1 pt-4 text-sm font-bold">{g.conf} <span class="font-normal text-muted">({g.area})</span></div>{/if}
           {#each g.rows as { comp, country } (comp.code)}
             {@const share = shareOf(comp.code)}
             <a class="block px-4 py-3 no-underline active:bg-surface-2" href={href("competition", comp.code)}>
@@ -206,7 +204,7 @@
               <span class="mt-2 grid gap-[2px]" style={strip} aria-hidden="true">
                 {#each shownCols as s}
                   {@const c = cell(comp.code, s)}
-                  <span class="heat grid h-5 place-items-center rounded-[3px] text-[11px] font-semibold {c ? '' : 'bg-surface-2/60'}" style:background={c ? fill(c.n, c.ok) : undefined} style:--p={c ? heatShare(c.n, c.ok) : 0}>{#if nums && c}{pct(c.ok, c.n)}{/if}</span>
+                  <span class="grid h-5 place-items-center rounded-[3px] text-[11px] font-semibold {c ? '' : 'bg-surface-2/60'}" style:background={c ? fill(c.n, c.ok) : undefined}>{#if nums && c}{pct(c.ok, c.n)}{/if}</span>
                 {/each}
               </span>
             </a>
@@ -219,16 +217,16 @@
       <table class="w-full border-separate border-spacing-0 text-xs tabular-nums">
         <thead class="sticky top-0 z-20 bg-surface">
           <tr>
-            <th class="sticky left-0 z-30 min-w-44 bg-surface px-3 py-2 text-left font-semibold">{t("covRow")}</th>
+            <th class="sticky left-0 z-30 min-w-44 bg-surface px-3 py-2 text-left font-medium text-muted">{t("covRow")}</th>
             {#each shownCols as s}
-              <th class="px-0.5 py-2 text-center font-semibold"><a class="link block rounded px-1 py-0.5" href={href("coverage", seasonSlug(s))} title="{t('covDetail')} {s}">{s.slice(2, 4)}<span class="block text-[0.6875rem] font-normal text-muted">{s.slice(5)}</span></a></th>
+              <th class="px-0.5 py-2 text-center font-medium"><a class="link block rounded px-1 py-0.5" href={href("coverage", seasonSlug(s))} title="{t('covDetail')} {s}">{s.slice(2, 4)}<span class="block text-[0.6875rem] font-normal text-muted">{s.slice(5)}</span></a></th>
             {/each}
           </tr>
           <tr>
-            <th class="sticky left-0 z-30 border-b border-line bg-surface px-3 pb-2 text-left font-medium text-muted">{t("covAll")}</th>
+            <th class="sticky left-0 z-30 border-b border-line/60 bg-surface px-3 pb-2 text-left font-medium text-muted">{t("covAll")}</th>
             {#each shownCols as s}
               {@const tt = total(s)}
-              <td class="border-b border-line px-0.5 pb-2"><a class="heat block rounded px-1 py-1.5 text-center font-semibold no-underline" style:background={fill(tt.n, tt.ok)} style:--p={heatShare(tt.n, tt.ok)}
+              <td class="border-b border-line/60 px-0.5 pb-2"><a class="block rounded px-1 py-1.5 text-center font-semibold no-underline" style:background={fill(tt.n, tt.ok)}
                 href={href("coverage", seasonSlug(s))} title="{s} : {tt.ok} / {tt.n} {t('covSquads').toLowerCase()}">{tt.n ? pct(tt.ok, tt.n) : "–"}</a></td>
             {/each}
           </tr>
@@ -236,18 +234,18 @@
         {#each visible as g (g.conf)}
           <tbody>
             {#if !confSel}
-              <tr><th colspan={shownCols.length + 1} class="sticky left-0 border-t border-line bg-surface-2 px-3 py-1.5 text-left text-sm font-bold">{g.conf} <span class="font-normal text-muted">({g.area})</span></th></tr>
+              <tr><th colspan={shownCols.length + 1} class="sticky left-0 border-b border-line/60 px-3 pb-1.5 pt-4 text-left text-sm font-bold">{g.conf} <span class="font-normal text-muted">({g.area})</span></th></tr>
             {/if}
             {#each g.rows as { comp, country } (comp.code)}
               <tr class="group/row">
-                <th class="sticky left-0 z-10 bg-surface px-3 py-0.5 text-left font-medium group-hover/row:bg-surface-2">
+                <th class="sticky left-0 z-10 bg-surface px-3 py-1 text-left font-medium group-hover/row:bg-surface-2">
                   <a class="flex items-center gap-2 whitespace-nowrap no-underline hover:text-accent" href={href("competition", comp.code)}><Flag code={country.flag} label={country.name} size={16} /><span class="truncate">{compName(comp.code)}</span></a>
                 </th>
                 {#each shownCols as s}
                   {@const c = cell(comp.code, s)}
-                  <td class="px-0.5 py-0.5">
+                  <td class="px-0.5 py-1">
                     {#if c}
-                      <a class="heat block rounded px-1 py-1.5 text-center no-underline transition hover:ring-2 hover:ring-accent" style:background={fill(c.n, c.ok)} style:--p={heatShare(c.n, c.ok)}
+                      <a class="block rounded px-1 py-1.5 text-center no-underline transition hover:ring-2 hover:ring-accent" style:background={fill(c.n, c.ok)}
                         href={href("competition", comp.code, seasonSlug(s))} title="{compName(comp.code)}, {s} : {c.ok} / {c.n} {t('covSquads').toLowerCase()}">{pct(c.ok, c.n)}</a>
                     {:else}
                       <span class="block px-1 py-1.5 text-center text-muted/50" aria-hidden="true">–</span>

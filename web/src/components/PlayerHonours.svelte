@@ -81,7 +81,7 @@
       <div class="mt-4 px-5">
         <div class="flex items-baseline gap-2"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{nationalTotal}</span><span class="font-semibold">{nationalTotal > 1 ? t("titlesN") : t("titleN")} {t("withNational")}</span></div>
       </div>
-      <ul class="mt-2 divide-y divide-line/60 px-5">
+      <ul class="mt-2 divide-y divide-line/40 px-5">
         {#each nationalGroups as g (g.code)}
           <li class="flex items-center gap-3 py-2.5">
             <span class="display w-8 text-2xl font-bold tabular-nums">{g.rows.length}</span>
@@ -98,7 +98,7 @@
 
     {#if data.data.awards.length}
       <h3 class="mt-4 px-5 text-xs font-semibold uppercase tracking-wide text-muted">{t("honoursIndividual")}</h3>
-      <ul class="divide-y divide-line/60 px-5">
+      <ul class="divide-y divide-line/40 px-5">
         <li class="py-2.5">
           <details class="group">
             <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
@@ -129,7 +129,7 @@
         {@const rows = sorted.filter((g) => compKind(g.competition) === kind)}
         {#if rows.length}
           <h3 class="mt-3 flex items-baseline justify-between px-5 text-xs font-semibold uppercase tracking-wide text-muted"><span>{t("kind_" + kind)}</span><span class="tabular-nums">{rows.reduce((n, g) => n + g.years.length, 0)}</span></h3>
-          <ul class="divide-y divide-line/60 px-5">
+          <ul class="divide-y divide-line/40 px-5">
             {#each rows as g (g.competition)}
               <li class="py-2.5">
                 <details class="group">

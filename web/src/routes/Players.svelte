@@ -213,7 +213,7 @@
         <p class="card p-4 text-muted">{t("sqNoMatch")}</p>
       {:else}
         <div class="card">
-          <div class="sticky top-14 z-10 hidden items-center gap-3 rounded-t-[inherit] border-b border-line bg-surface px-4 py-2 text-xs font-semibold text-muted sm:grid {COLS}" role="row">
+          <div class="sticky top-14 z-10 hidden items-center gap-3 rounded-t-[inherit] border-b border-line/60 bg-surface px-4 py-2.5 text-xs font-medium text-muted sm:grid sm:px-5 {COLS}" role="row">
             {#each [["num", "plColNum", "justify-end"], ["name", "plSortName", ""], ["pos", "plColPos", ""], ["club", "plSortClub", ""]] as [k, key, cls]}
               <div role="columnheader" aria-sort={sort === k ? (desc ? "descending" : "ascending") : "none"}>
                 <button type="button" class="flex w-full items-center gap-1 text-left hover:text-fg {cls}" onclick={() => sortBy(k as SortKey)}>
@@ -228,10 +228,10 @@
               </button>
             </div>
           </div>
-          <ul class="divide-y divide-line/60">
+          <ul class="divide-y divide-line/40">
             {#each sorted.slice(0, limit) as r (r.key + r.club)}
               {@const a = age(r)}
-              <li class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 px-4 py-2.5 transition hover:bg-surface-2 sm:py-2 {COLS}">
+              <li class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 px-4 py-3 transition hover:bg-surface-2 sm:px-5 {COLS}">
                 <span class="hidden text-right text-sm font-semibold tabular-nums text-muted sm:block">{r.shirt_number ?? ""}</span>
                 <span class="flex min-w-0 items-center gap-2.5">
                   <Flag code={r.nat_flag} label={r.nationality} />

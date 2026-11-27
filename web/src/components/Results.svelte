@@ -350,7 +350,7 @@
           <div class="card px-4 py-1">
             {#each days as d (d.day)}
               <h3 class="mt-3 text-xs font-semibold uppercase tracking-wide text-muted first:mt-2">{dayLabel(d.day)}</h3>
-              <ul class="divide-y divide-line/60">
+              <ul class="divide-y divide-line/40">
                 {#each d.items as m (m.match_id)}{@render matchRow(m)}{/each}
               </ul>
             {/each}
@@ -362,7 +362,7 @@
       <section class="mt-5 max-w-3xl" aria-labelledby="res-ties">
         <h2 id="res-ties" class="mb-2 text-xl font-bold">{stageLabel(stage.key)} <span class="font-semibold tabular-nums text-muted">{season}</span></h2>
         <div class="card px-4 py-1">
-          <ul class="divide-y divide-line/60">
+          <ul class="divide-y divide-line/40">
             {#each ties as tie (tie.id)}
               <li class="py-3">
                 <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5">

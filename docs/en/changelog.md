@@ -8,6 +8,11 @@ Data releases (`Data X.Y.Z`) are listed in the [data repository's changelog](htt
 
 ## Site and tooling
 
+### 2026-11-27
+- **Lists in the same clean style as tables**: lighter rules and airier rows (Players, Movements, honours, squad, coaches, home).
+- **Softer coverage grid**: lightly tinted cells (text keeps its colour in both themes), grey confederation bands removed.
+- **Home**: "By country" shows the 8 best covered countries (Italy, Portugal and Turkey were cut by an alphabetical sort applied too early) and says the number counts clubs; the season repeated on every featured club is gone.
+
 ### 2026-11-25
 - **A click on a player opens their page directly.** On wide screens the squad list first opened a small preview beside the list; it is gone (the `PlayerPreview` component is removed) and the whole row leads to the player's page.
 - **Every table in the clean style**: the shared `.tbl` class loses its strong rules (quiet headers, airier rows, edges aligned with the card padding). This covers competition standings, the player's statistics by season, competition and national team, and the tables in the club overview and "This season". The coverage grid (heat map) keeps its grid form.

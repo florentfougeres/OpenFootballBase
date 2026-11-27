@@ -11,11 +11,11 @@
 <h1 class="text-4xl font-extrabold leading-none tracking-tight sm:text-5xl">{t("settings")}</h1>
 
 <div class="mt-5 max-w-3xl">
-  <ul class="card divide-y divide-line/60 overflow-hidden">
+  <ul class="card divide-y divide-line/40 overflow-hidden">
     <li><button type="button" class={row} onclick={cycleTheme}><span class="font-semibold">{t("theme")}</span><span class="text-sm text-muted">{themeLabel}</span></button></li>
     <li><a class={row} href={`#/${other}/settings`} hreflang={other} lang={other}><span class="font-semibold">{t("langLabel")}</span><span class="text-sm text-muted">{app.lang === "fr" ? "Français" : "English"} → {other.toUpperCase()}</span></a></li>
   </ul>
-  <ul class="card mt-4 divide-y divide-line/60 overflow-hidden">
+  <ul class="card mt-4 divide-y divide-line/40 overflow-hidden">
     <li><a class={row} href={href("coverage")}><span class="font-semibold">{t("coverage")}</span><span class="text-muted" aria-hidden="true">›</span></a></li>
     <li><a class={row} href={href("about")}><span class="font-semibold">{t("about")}</span><span class="text-muted" aria-hidden="true">›</span></a></li>
   </ul>

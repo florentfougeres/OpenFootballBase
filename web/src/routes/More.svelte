@@ -16,7 +16,7 @@
 <h1 class="text-4xl font-extrabold leading-none tracking-tight sm:text-5xl">{t("more")}</h1>
 <p class="mt-3 text-muted">{t("moreLead")}</p>
 
-<ul class="card mt-5 max-w-3xl divide-y divide-line/60 overflow-hidden">
+<ul class="card mt-5 max-w-3xl divide-y divide-line/40 overflow-hidden">
   {#each items as it (it.to)}
     <li>
       <a class={row} href={it.to}>

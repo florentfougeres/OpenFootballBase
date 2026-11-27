@@ -94,7 +94,7 @@
         <label class="text-sm font-semibold text-muted" for="lineup-club">{t("lineupPickClub")}</label>
         <input id="lineup-club" type="search" class="mt-1.5 h-12 w-full rounded-xl border border-line bg-surface px-4 text-base" placeholder={t("lineupClubSearch")} bind:value={term} autocomplete="off" />
         {#if matches.length}
-          <ul class="card mt-2 divide-y divide-line/60 overflow-hidden p-1">
+          <ul class="card mt-2 divide-y divide-line/40 overflow-hidden p-1">
             {#each matches as c (c.wikipedia_title)}
               <li><button type="button" class={pickBtn} onclick={() => go({ src: "club", club: c.wikipedia_title as string })}><Logo club={c} size={32} /><span class="min-w-0 flex-1 truncate font-semibold">{clubName(c)}</span></button></li>
             {/each}

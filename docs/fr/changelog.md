@@ -8,6 +8,11 @@ Les releases de données (`Data X.Y.Z`) sont listées dans le [changelog du dép
 
 ## Site et outils
 
+### 2026-11-27
+- **Listes au même style épuré que les tableaux** : filets plus légers et lignes plus aérées (Joueurs, Mouvements, palmarès, effectif, entraîneurs, accueil).
+- **Couverture adoucie** : cases en teinte légère (le texte garde sa couleur dans les deux thèmes), bandeaux gris de confédération supprimés.
+- **Accueil** : « Par pays » montre les 8 pays les mieux couverts (l'Italie, le Portugal et la Turquie étaient coupés par un tri alphabétique fait trop tôt) et dit que le nombre compte des clubs ; la saison répétée sur chaque club à la une est retirée.
+
 ### 2026-11-25
 - **Un clic sur un joueur ouvre sa fiche directement.** Sur grand écran, la liste de l'effectif ouvrait d'abord un petit aperçu à côté de la liste ; il est supprimé (composant `PlayerPreview` retiré), la ligne entière mène à la fiche du joueur.
 - **Tous les tableaux au style épuré** : la classe commune `.tbl` perd ses filets marqués (en-têtes discrets, lignes plus aérées, bords alignés sur le remplissage de la carte). Cela couvre le classement des compétitions, les statistiques du joueur par saison, compétition et sélection, et les tableaux de l'aperçu du club et de « Cette saison ». La grille de couverture (carte de chaleur) garde sa forme de grille.

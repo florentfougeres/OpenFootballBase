@@ -53,12 +53,8 @@
   });
   const countries = $derived((data.data?.countries ?? []).map((c) => ({ ...c, name: app.lang === "fr" ? c.name_fr : c.name_en }))
     .sort((a, b) => a.name.localeCompare(b.name, app.lang)));
-  // 116 pays d'un coup font une liste interminable : les mieux couverts d'abord, le reste derrière un bouton.
-  const TOP = 12;
-  let showAll = $state(false);
-  const topCountries = $derived([...countries].sort((a, b) => b.clubs - a.clubs).slice(0, TOP).sort((a, b) => a.name.localeCompare(b.name, app.lang)));
-  const topCodes = $derived(new Set(topCountries.map((c) => c.code)));
-  const otherCountries = $derived(countries.filter((c) => !topCodes.has(c.code)));
+  // Les 8 pays les mieux couverts, rangés par nom (trier par nom AVANT de couper ferait disparaître l'Italie) ; la liste complète est dans Explorer.
+  const topCountries = $derived([...countries].sort((a, b) => b.clubs - a.clubs).slice(0, 8).sort((a, b) => a.name.localeCompare(b.name, app.lang)));
 </script>
 
 <div class="mx-auto max-w-6xl px-4 pb-6 pt-3 lg:pt-8">
@@ -129,13 +125,12 @@
           <h2 id="feat-clubs" class="text-xl font-bold">{t("featuredClubs")}</h2>
           <a class="link inline-flex min-h-11 items-center text-sm" href={href("explore")}>{t("allClubs")} →</a>
         </div>
-        <ul class="card mt-1 divide-y divide-line/60 overflow-hidden">
+        <ul class="card mt-1 divide-y divide-line/40 overflow-hidden">
           {#each data.data.clubs.slice(0, 8) as x (x.wikipedia_title)}
             <li>
               <a class="row" href={href("club", enc(x.wikipedia_title), seasonSlug(x.season))}>
                 <Logo club={x} size={32} />
                 <span class="min-w-0 flex-1 truncate font-semibold">{clubName(x)}</span>
-                <span class="shrink-0 text-xs tabular-nums text-muted">{x.season}</span>
                 <span class="shrink-0 text-muted" aria-hidden="true">›</span>
               </a>
             </li>
@@ -148,13 +143,13 @@
           <h2 id="by-country" class="text-xl font-bold">{t("byCountry")}</h2>
           <a class="link inline-flex min-h-11 items-center text-sm" href={href("explore") + "?v=countries"}>{t("seeAll")} →</a>
         </div>
-        <ul class="card mt-1 divide-y divide-line/60 overflow-hidden">
-          {#each topCountries.slice(0, 8) as c (c.code)}
+        <ul class="card mt-1 divide-y divide-line/40 overflow-hidden">
+          {#each topCountries as c (c.code)}
             <li>
               <a class="row" href={href("country", c.code)}>
                 <Flag code={areaFlag(c.code) ?? c.flag} label={c.name} size={24} />
                 <span class="min-w-0 flex-1 truncate font-semibold">{c.name}</span>
-                <span class="shrink-0 text-xs tabular-nums text-muted">{c.clubs || ""}</span>
+                <span class="shrink-0 text-xs tabular-nums text-muted">{c.clubs ? `${nf(c.clubs)} ${t("statClubs")}` : ""}</span>
                 <span class="shrink-0 text-muted" aria-hidden="true">›</span>
               </a>
             </li>

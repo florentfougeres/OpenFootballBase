@@ -86,7 +86,7 @@
     <section aria-labelledby="coach-tenures">
       <h2 id="coach-tenures" class="mb-2 text-xl font-bold">{t("coachCareer")}</h2>
       {#if d.infobox.length}
-        <ul class="card divide-y divide-line/60 overflow-hidden">
+        <ul class="card divide-y divide-line/40 overflow-hidden">
           {#each d.infobox as r, i (i)}
             {@const nat = r.team_logo ? null : nationalTeam(r.team_name)}
             <li class="flex items-center gap-3 px-4 py-2.5 text-sm">
@@ -100,7 +100,7 @@
         </ul>
         <p class="mt-2 text-xs text-muted">{t("coachInfoboxNote")}</p>
       {:else}
-        <ul class="card divide-y divide-line/60 overflow-hidden">
+        <ul class="card divide-y divide-line/40 overflow-hidden">
           {#each d.tenures as r, i (i)}
             <li>
               <a class="row" href={href("club", enc(r.club))}>
@@ -119,7 +119,7 @@
     {#if d.career.length}
       <section aria-labelledby="coach-player">
         <h2 id="coach-player" class="mb-2 text-xl font-bold">{t("coachPlayingCareer")}</h2>
-        <ul class="card divide-y divide-line/60 overflow-hidden">
+        <ul class="card divide-y divide-line/40 overflow-hidden">
           {#each d.career as r, i (i)}
             <li class="flex items-center gap-3 px-4 py-2.5 text-sm">
               <Logo club={{ logo_url: r.club_logo, colors_hex: r.club_colors, club_name: r.club_name }} size={24} />

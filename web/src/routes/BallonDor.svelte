@@ -55,7 +55,7 @@
 {:else}
   <section class="mt-6" aria-labelledby="bd-board">
     <h2 id="bd-board" class="mb-2 text-xl font-bold">{t("balloonBoard")}</h2>
-    <ol class="card divide-y divide-line/60 px-4">
+    <ol class="card divide-y divide-line/40 px-4">
       {#each board as g, i (g.key)}
         <li class="flex items-center gap-3 py-2.5">
           <span class="w-5 text-right text-sm tabular-nums text-muted">{i + 1}</span>
@@ -72,7 +72,7 @@
 
   <section class="mt-8" aria-labelledby="bd-editions">
     <h2 id="bd-editions" class="mb-2 text-xl font-bold">{t("balloonEditions")}</h2>
-    <ul class="card divide-y divide-line/60">
+    <ul class="card divide-y divide-line/40">
       {#each editions as [year, ranks] (year)}
         {@const w = ranks[0]}
         <li>

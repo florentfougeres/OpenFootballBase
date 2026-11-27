@@ -226,7 +226,7 @@
               </div>
             </summary>
             <!-- Une ligne par saison : saison et division à gauche, matchs et buts à droite ; la répartition par compétition en étiquettes, seulement quand il y en a plusieurs. -->
-            <ul class="divide-y divide-line/60 bg-surface-2/40 px-5 pb-1">
+            <ul class="divide-y divide-line/40 bg-surface-2/40 px-5 pb-1">
               {#each s.seasons as x (x.key)}
                 {@const parts = used.filter((g) => (x.by[g]?.apps ?? 0) > 0 || (x.by[g]?.goals ?? 0) > 0)}
                 <li class="py-2.5">

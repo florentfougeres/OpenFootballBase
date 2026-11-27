@@ -399,7 +399,7 @@
             <Spinner />
           {:else if mv}
             {#snippet person(r: Row, other: Row | undefined, rel: string)}
-              <li class="grid grid-cols-[1fr_auto] items-center gap-3 py-1.5">
+              <li class="grid min-h-12 grid-cols-[1fr_auto] items-center gap-3 py-2.5">
                 <span class="flex min-w-0 items-center gap-2">
                   <Flag code={r.nat_flag} label={r.nationality} />
                   <a class="truncate font-medium hover:text-accent hover:underline" href={href("player", enc(r.key))}>{r.player}</a>
@@ -414,13 +414,13 @@
             <p class="text-sm text-muted">{mv.prev} → {label}, <strong class="text-fg">{mv.kept}</strong> {t("mvKept")}</p>
             <div class="mt-3 grid gap-4 xl:grid-cols-2">
               <section class="card p-4" aria-labelledby="mv-in">
-                <h2 id="mv-in" class="mb-1 flex items-baseline gap-2 border-b border-line pb-1 text-lg font-bold text-accent">{t("mvArrivals")} <span class="display text-base font-semibold">{mv.arrivals.length}</span></h2>
-                {#if mv.arrivals.length}<ul class="divide-y divide-line/60">{#each mv.arrivals as r (r.key)}{@render person(r, mv.from.get(r.key), t("mvFrom"))}{/each}</ul>
+                <h2 id="mv-in" class="mb-1 flex items-baseline gap-2 border-b border-line/60 pb-2 text-lg font-bold text-accent">{t("mvArrivals")} <span class="display text-base font-semibold">{mv.arrivals.length}</span></h2>
+                {#if mv.arrivals.length}<ul class="divide-y divide-line/40">{#each mv.arrivals as r (r.key)}{@render person(r, mv.from.get(r.key), t("mvFrom"))}{/each}</ul>
                 {:else}<p class="py-2 text-sm text-muted">{t("mvNone")}</p>{/if}
               </section>
               <section class="card p-4" aria-labelledby="mv-out">
-                <h2 id="mv-out" class="mb-1 flex items-baseline gap-2 border-b border-line pb-1 text-lg font-bold text-warn">{t("mvDepartures")} <span class="display text-base font-semibold">{mv.departures.length}</span></h2>
-                {#if mv.departures.length}<ul class="divide-y divide-line/60">{#each mv.departures as r (r.key)}{@render person(r, mv.dest.get(r.key), t("mvTo"))}{/each}</ul>
+                <h2 id="mv-out" class="mb-1 flex items-baseline gap-2 border-b border-line/60 pb-2 text-lg font-bold text-warn">{t("mvDepartures")} <span class="display text-base font-semibold">{mv.departures.length}</span></h2>
+                {#if mv.departures.length}<ul class="divide-y divide-line/40">{#each mv.departures as r (r.key)}{@render person(r, mv.dest.get(r.key), t("mvTo"))}{/each}</ul>
                 {:else}<p class="py-2 text-sm text-muted">{t("mvNone")}</p>{/if}
               </section>
             </div>
@@ -449,13 +449,13 @@
               {@const group = shown.filter((r) => (r.position || null) === pos)}
               {#if group.length}
                 <section class="mb-5 break-inside-avoid last:mb-0">
-                  <h2 class="mb-1 flex items-baseline gap-2 border-b border-line pb-1 text-lg font-bold">
+                  <h2 class="mb-1 flex items-baseline gap-2 border-b border-line/60 pb-2 text-lg font-bold">
                     {pos ? t(pos) : t("unknownPos")} <span class="display text-base font-semibold text-muted">{group.length}</span>
                   </h2>
-                  <ul class="divide-y divide-line/60">
+                  <ul class="divide-y divide-line/40">
                     {#each group as r (r.key + r.shirt_number)}
                       {@const age = ageOf(r)}
-                      <li class="relative grid grid-cols-[2.25rem_1fr_auto] items-center gap-3 py-1.5 hover:bg-surface-2 max-sm:min-h-11">
+                      <li class="relative grid grid-cols-[2.25rem_1fr_auto] items-center gap-3 py-2.5 hover:bg-surface-2 max-sm:min-h-11">
                         <span class="display text-right text-2xl font-bold text-fg">{r.shirt_number ?? ""}</span>
                         <span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                           <Flag code={r.nat_flag} label={r.nationality} />
@@ -529,14 +529,14 @@
         {@const total = honours.data.reduce((n, h) => n + h.years.length, 0)}
         <h2 id="honours-section" class="mb-2 flex scroll-mt-20 items-center gap-2 text-xl font-bold"><Trophy size={20} />{t("honours")}</h2>
         <div class="card mb-6 px-4 py-3">
-          <div class="flex items-baseline gap-2 border-b border-line pb-2"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{total}</span><span class="font-semibold">{total > 1 ? t("titlesN") : t("titleN")}</span></div>
+          <div class="flex items-baseline gap-2 border-b border-line/60 pb-3"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{total}</span><span class="font-semibold">{total > 1 ? t("titlesN") : t("titleN")}</span></div>
           {#each KINDS as kind (kind)}
             {@const rows = honours.data.filter((h) => compKind(h.code) === kind)}
             {#if rows.length}
-              <h3 class="mt-3 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wide text-muted"><span>{t("kind_" + kind)}</span><span class="tabular-nums">{rows.reduce((n, h) => n + h.years.length, 0)}</span></h3>
-              <ul class="divide-y divide-line/60">
+              <h3 class="mt-3 flex items-baseline justify-between text-xs font-medium text-muted"><span>{t("kind_" + kind)}</span><span class="tabular-nums">{rows.reduce((n, h) => n + h.years.length, 0)}</span></h3>
+              <ul class="divide-y divide-line/40">
                 {#each rows as h (h.code)}
-                  <li class="py-2.5">
+                  <li class="py-3">
                     <details class="group">
                       <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
                         <span class="display w-8 text-2xl font-bold tabular-nums">{h.years.length}</span>
@@ -564,10 +564,10 @@
       <div class="max-w-2xl">
         <h2 class="mb-2 text-xl font-bold">{t("coaches")}</h2>
         <div class="card mb-6 px-4 py-3">
-          <ul class="divide-y divide-line/60">
+          <ul class="divide-y divide-line/40">
             {#each coaches.data as k, i (i)}          <!-- clé = rang : un même entraîneur peut avoir deux mandats qui commencent la même année -->
 
-              <li class="flex items-center gap-3 py-2">
+              <li class="flex min-h-12 items-center gap-3 py-2.5">
                 {#if k.flag}<Flag code={k.flag} size={16} />{/if}
                 <a class="min-w-0 flex-1 truncate font-medium hover:text-accent hover:underline" href={href("coach", enc(k.qid))}>{k.name}</a>
                 <span class="shrink-0 text-sm tabular-nums text-muted">{k.to === k.from ? k.from : `${k.from}–${k.to ?? ""}`}{#if k.to === null}<span class="sr-only"> {t("coachesNow")}</span>{/if}</span>

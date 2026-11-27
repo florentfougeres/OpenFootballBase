@@ -123,7 +123,7 @@
     {#if d.scorers.length}
       <section class="{card}" aria-labelledby="ov-scorers">
         <h2 id="ov-scorers" class={head}>{t("ovScorers")} <span class="text-sm font-semibold text-muted">{season}</span></h2>
-        <ol class="divide-y divide-line/60">
+        <ol class="divide-y divide-line/40">
           {#each d.scorers as s, i (s.qid ?? s.name)}
             <li class="grid min-h-11 grid-cols-[1.5rem_1fr_auto] items-center gap-3 text-sm">
               <span class="tabular-nums text-muted">{i + 1}</span>
@@ -144,7 +144,7 @@
         </div>
         <details class="max-sm:mt-2 sm:contents" open={wide}>
           <summary class="min-h-11 cursor-pointer list-none py-2 text-sm font-semibold text-accent sm:hidden">{t("ovDetails")}</summary>
-        <ul class="divide-y divide-line/60">
+        <ul class="divide-y divide-line/40">
           {#each d.last as m (m.id)}
             <li class="grid min-h-11 grid-cols-[3.25rem_1fr_auto] items-center gap-3 py-1.5 text-sm">
               <span class="text-muted tabular-nums">{m.date ? fmt(m.date, { day: "numeric", month: "short" }) : ""}</span>

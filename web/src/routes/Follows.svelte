@@ -19,7 +19,7 @@
     {#each KINDS as g (g.k)}
       {#if by(g.k).length}
         <h2 class="mb-2 mt-6 px-1 text-xs font-semibold uppercase tracking-wide text-muted first:mt-0">{t(g.label)}</h2>
-        <ul class="card divide-y divide-line/60 overflow-hidden">
+        <ul class="card divide-y divide-line/40 overflow-hidden">
           {#each by(g.k) as f (f.id)}
             <li class="flex items-center pr-2">
               <a class="{row} min-w-0 flex-1" href={`#/${app.lang}/${f.path}`}>

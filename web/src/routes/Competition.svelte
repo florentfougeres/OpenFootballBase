@@ -136,10 +136,10 @@
         <div>
           <h2 class="mb-2 flex items-center gap-2 text-xl font-bold"><Trophy size={20} />{t("honoursBest")}</h2>
           <div class="card px-4 py-3">
-            <div class="flex items-baseline gap-2 border-b border-line pb-2"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{new Set(winners.data.map((w) => w.season_start)).size}</span><span class="font-semibold">{t("honoursSeasons")}</span></div>
-            <ol class="divide-y divide-line/60">
+            <div class="flex items-baseline gap-2 border-b border-line/60 pb-3"><span class="display text-3xl font-extrabold leading-none tabular-nums text-accent">{new Set(winners.data.map((w) => w.season_start)).size}</span><span class="font-semibold">{t("honoursSeasons")}</span></div>
+            <ol class="divide-y divide-line/40">
               {#each ranking.slice(0, 10) as g (g.key)}
-                <li class="py-2.5">
+                <li class="py-3">
                   <details class="group">
                     <summary class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
                       <span class="display w-8 text-2xl font-bold tabular-nums">{g.years.length}</span>
@@ -160,9 +160,9 @@
         <div>
           <h2 class="mb-2 text-xl font-bold">{t("honoursBySeason")}</h2>
           <div class="card px-4 py-1">
-            <ul class="max-h-[32rem] divide-y divide-line/60 overflow-y-auto pr-1">
+            <ul class="max-h-[32rem] divide-y divide-line/40 overflow-y-auto pr-1">
               {#each winners.data as w (w.season_start + w.winner_qid)}
-                <li class="flex items-center gap-3 py-2 {winnersOfSeason.includes(w) ? 'font-semibold' : ''}">
+                <li class="flex items-center gap-3 py-3 {winnersOfSeason.includes(w) ? 'font-semibold' : ''}">
                   {#if hasSeasons}<a class="w-16 shrink-0 text-sm tabular-nums text-muted no-underline hover:text-accent" href={href("competition", code, seasonSlug(seasonName(w.season_start)))} onclick={() => (chosen = "season")}>{seasonName(w.season_start)}</a>{:else}<span class="w-16 shrink-0 text-sm tabular-nums text-muted">{seasonName(w.season_start)}</span>{/if}
                   {#if w.c}<Logo club={w.c} size={26} />{:else}<span class="size-[26px] shrink-0"></span>{/if}
                   <span class="min-w-0 flex-1 truncate">{#if w.club}<a class="no-underline hover:text-accent" href={href("club", enc(w.club))}>{clubName(w.c)}</a>{:else}{w.winner_name}{/if}</span>

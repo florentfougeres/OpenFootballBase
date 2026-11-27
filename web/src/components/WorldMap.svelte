@@ -234,7 +234,7 @@
 
 <Sheet open={!!list} onclose={() => (list = null)} title={list?.title ?? ""}>
   {#if list}
-    <ul class="divide-y divide-line/60">
+    <ul class="divide-y divide-line/40">
       {#each list.items as it (it.key)}
         <li>
           <a class="row" href={it.to} onclick={() => (list = null)}>

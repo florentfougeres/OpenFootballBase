@@ -50,7 +50,7 @@
       {#if players.length}
         <section>
           <h2 class="mb-3 text-lg font-bold">{t("players")}</h2>
-          <ul class="card divide-y divide-line">
+          <ul class="card divide-y divide-line/40">
             {#each players as p (p.key)}
               <li class="flex items-center gap-3 px-4 py-2.5">
                 <Flag code={p.flag} label={p.nat} />
@@ -64,7 +64,7 @@
       {#if world.length}
         <section>
           <h2 class="mb-3 text-lg font-bold">{t("worldClubs")}</h2>
-          <ul class="card divide-y divide-line">
+          <ul class="card divide-y divide-line/40">
             {#each world as c (c.qid)}
               <li class="flex items-center gap-3 px-4 py-2.5">
                 <Logo club={{ logo_url: c.logo_url || commonsLogo(c.logo_commons_url), colors_hex: c.colors_hex, name_en: c.name_en, name_local: c.name_local }} size={28} />
